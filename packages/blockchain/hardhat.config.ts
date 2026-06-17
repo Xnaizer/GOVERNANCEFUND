@@ -7,7 +7,7 @@ dotenv.config();
 export default defineConfig({
   plugins: [hardhatToolboxMochaEthers],
   solidity: {
-    version: "0.8.20",
+    version: "0.8.35",
     settings: {
       optimizer: {
         enabled: true,
