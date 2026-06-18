@@ -32,7 +32,7 @@ contract RupiahToken is ERC20, IRupiahToken {
 
     /**
      * @notice Tracks whether gateway address has been set.
-     * Prevents setGatewa() from being called more than once.
+     * Prevents setGateway() from being called more than once.
      */
     bool public gatewaySet;
 
@@ -82,7 +82,7 @@ contract RupiahToken is ERC20, IRupiahToken {
      *      After address set, mint() permanently locked to address that already assigned.
      * @param _governanceContract Address of deployed Web3Governance contract.
      */
-    function setGovernace(address _governanceContract) external onlyDeployer {
+    function setGovernance(address _governanceContract) external onlyDeployer {
         require(!governanceSet, "RupiahToken: Governance address already set");
         require(_governanceContract != address(0), "RupiahToken: Invalid governance address");
 
@@ -123,7 +123,7 @@ contract RupiahToken is ERC20, IRupiahToken {
 
     /**
      * @notice Burns e-IDR tokens from a PIC Wallet.
-     * @dev Only callable by TrustedGovernance contract.
+     * @dev Only callable by TrustedGateway contract.
      *      Triggered inside depositAndBurnToken() after PIC transfers
      *      tokens to the gateway via transferFrom().
      * @param amount Amount in Wei (18 decimals).
@@ -137,5 +137,66 @@ contract RupiahToken is ERC20, IRupiahToken {
         emit TokenBurned(msg.sender, amount);
     }
     
+    /**
+     * @notice Returns total supply of e-IDR tokens.
+     * @dev Override the ERC20 function to be able to write it.
+     * @return uint256 Amount of total supply.
+     */
+    function totalSupply() public view override(ERC20, IRupiahToken) returns(uint256) {
+        return super.totalSupply();
+    }
 
+    /**
+     * @notice Return balance of a address.
+     * @dev Override the ERC20 function.
+     * @param account Address to view balance of e-IDR tokens.
+     * @return uint256 Amount of e-IDR token in the wallet address.
+     */
+    function balanceOf(address account) public view override(ERC20, IRupiahToken) returns(uint256) {
+        return super.balanceOf(account);
+    }
+
+    /**
+     * @notice Returns the remaining amount that a spender is allowed
+     *         to transfer on behalf of the owner.
+     * @param owner The Token owner address.
+     * @param spender The spender address (TrustedGatewayBurner contract).
+     * @return remaining Allowance amount in Wei (18 decimals).
+     */
+    function allowance(address owner, address spender) public view override(ERC20, IRupiahToken) returns (uint256 remaining) {
+        return super.allowance(owner, spender);
+    }
+
+    /**
+     * @notice Transfers tokens from caller to recipient.
+     * @param to Recipient address.
+     * @param amount Amount to transfer in Wei (18 decimals).
+     * @return success True if transfer succeeded.
+     */
+    function transfer(address to, uint256 amount) public override(ERC20, IRupiahToken) returns(bool success) {
+        return super.transfer(to, amount);
+    }
+
+    /**
+     * @notice Approves a spender to transfer tokens on behalf of caller.
+     * @dev PIC must call this before TrustedGatewayBurner can pull tokens.
+     * @param spender The address authorized to spend (TrustedGatewayBurner).
+     * @param amount Amount approved in Wei (18 decimals).
+     * @return success Return boolean values from approval.
+     */
+    function approve(address spender, uint256 amount) public override(ERC20, IRupiahToken) returns (bool success) {
+        return super.approve(spender, amount);
+    }
+
+    /**
+     * @notice Transfer tokens from one address to another using allowance. 
+     * @dev Used by TrustedGatewayBurner to pull tokens from PIC Wallet.
+     * @param from The token owner address.
+     * @param to The recipient address.
+     * @param amount Amount to transfer in Wei (18 decimals).
+     * @return success Return boolean values from TransferFrom.
+     */
+    function transferFrom(address from, address to, uint256 amount) public override(ERC20, IRupiahToken) returns(bool success) {
+        return super.transferFrom(from, to, amount);
+    }
 }
