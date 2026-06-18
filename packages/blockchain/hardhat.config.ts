@@ -21,11 +21,11 @@ export default defineConfig({
     },
     polygon_amoy: {
       type: "http",
-      url: process.env.ALCHEMY_AMOY_RPC_URL || "",
+      url: process.env.ALCHEMY_BASE_SEPOLIA_RPC_URL || "",
       accounts: process.env.DEPLOYER_PRIVATE_KEY
         ? [process.env.DEPLOYER_PRIVATE_KEY]
         : [],
-      chainId: 80002,
+      chainId: 84532,
     },
   },
   paths: {
