@@ -12,11 +12,12 @@ contract Web3Governance is EIP712, AccessControl {
 
     /**
      * @notice Role definition to get unique hash from each roles.
-     * @dev Define each bytes32 hash for ADMIN, VALIDATOR, AUDITOR role
+     * @dev Define each bytes32 hash for ADMIN, VALIDATOR, AUDITOR, PIC role
      */
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant VALIDATOR_ROLE = keccak256("VALIDATOR_ROLE");
     bytes32 public constant AUDITOR_ROLE = keccak256("AUDITOR_ROLE");
+    bytes32 public constant PIC_ROLE = keccak256("PIC_ROLE");
 
     /**
      * @notice Lifecycle states of a funding program.
@@ -176,6 +177,14 @@ contract Web3Governance is EIP712, AccessControl {
     /// @notice Emitted when a role is revoked from an account through BFT governance.
     event RoleRevokedViaGovernance(bytes32 indexed role, address indexed account);
 
+    /// @notice Emitted when an admin directly grants PIC_ROLE (no voting). The granting admin
+    ///         (msg.sender) is recorded as the accountable party.
+    event PicRoleGrantedByAdmin(bytes32 indexed role, address indexed account, address admin);
+
+    /// @notice Emitted when an admin directly revokes PIC_ROLE (no voting). The revoking admin
+    ///         (msg.sender) is recorded as the accountable party.
+    event PicRoleRevokedByAdmin(bytes32 indexed role, address indexed account, address admin);
+
     // ==========================================
     // PROPOSAL EVENTS
     // ==========================================
@@ -249,9 +258,11 @@ contract Web3Governance is EIP712, AccessControl {
         require(
             !hasRole(ADMIN_ROLE, candidate) &&
             !hasRole(VALIDATOR_ROLE, candidate) &&
-            !hasRole(AUDITOR_ROLE, candidate),
-            "Govern: Candidate already holds a structural role"
+            !hasRole(AUDITOR_ROLE, candidate) &&
+            !hasRole(PIC_ROLE, candidate),
+            "Govern: Candidate already holds a role"
         );
+        require(roleToGrant != PIC_ROLE, "Govern: Use grantPicRole for PIC, not voting");
 
         uint256 voteId = roleVoteNonce++;
 
@@ -276,6 +287,7 @@ contract Web3Governance is EIP712, AccessControl {
      */
     function proposeRoleDevote(address targetUser, bytes32 roleToRevoke) external onlyRole(ADMIN_ROLE) {
         require(hasRole(roleToRevoke, targetUser), "Govern: Target does not hold this role");
+        require(roleToRevoke != PIC_ROLE, "Govern: Use revokePicRole for PIC, not voting");
 
         uint256 voteId = roleVoteNonce++;
 
@@ -335,6 +347,39 @@ contract Web3Governance is EIP712, AccessControl {
         }
     }
 
+    /**
+     * @notice Grants PIC_ROLE to a user directly, without BFT voting.
+     * @dev Single admin authority — PIC is an operational role, not a governance position.
+     *      Candidate must hold no other role (one-address-one-role). No counter (PIC is not
+     *      part of any BFT threshold).
+     * @param user The account to grant PIC_ROLE.
+     */
+    function grantPicRole(address user) external onlyRole(ADMIN_ROLE) {
+        require(
+            !hasRole(ADMIN_ROLE, user) &&
+            !hasRole(VALIDATOR_ROLE, user) &&
+            !hasRole(AUDITOR_ROLE, user) &&
+            !hasRole(PIC_ROLE, user),
+            "Govern: User already holds a role"
+        );
+        _grantRole(PIC_ROLE, user);
+        emit PicRoleGrantedByAdmin(PIC_ROLE, user, msg.sender);
+    }
+
+    /**
+     * @notice Revokes PIC_ROLE from a user directly, without BFT voting.
+     * @dev Single admin authority. Revoking prevents the user from submitting NEW proposals and
+     *      from opening NEW milestones, but does NOT freeze in-progress milestones already opened
+     *      (those are halted via auditor freeze). Recommended SOP for fraud: auditor freezes first,
+     *      then admin revokes.
+     * @param user The account to revoke PIC_ROLE from.
+     */
+    function revokePicRole(address user) external onlyRole(ADMIN_ROLE) {
+        require(hasRole(PIC_ROLE, user), "Govern: User does not hold PIC role");
+        _revokeRole(PIC_ROLE, user);
+        emit PicRoleRevokedByAdmin(PIC_ROLE, user, msg.sender);
+    }
+
     // ==========================================
     // PROPOSAL VOTING FUNCTIONS
     // ==========================================
@@ -355,14 +400,10 @@ contract Web3Governance is EIP712, AccessControl {
         bytes32 programHash,
         uint256 totalBudget,
         uint256 milestoneCount
-    ) external {
+    ) external onlyRole(PIC_ROLE) {
         require(proposals[programId].programHash == bytes32(0), "Govern: Program ID already exists");
         require(milestoneCount > 0, "Govern: Milestone count cannot be zero");
         require(totalValidatorsCount >= 3, "Govern: Minimum 3 validators required to operate");
-
-        require(!hasRole(ADMIN_ROLE, msg.sender), "Govern: Admin cannot act as PIC");
-        require(!hasRole(VALIDATOR_ROLE, msg.sender), "Govern: Validator cannot act as PIC");
-        require(!hasRole(AUDITOR_ROLE, msg.sender), "Govern: Auditor cannot act as PIC");
 
         proposals[programId] = Proposal({
             programHash: programHash,
@@ -445,8 +486,9 @@ contract Web3Governance is EIP712, AccessControl {
         Proposal storage prop = proposals[programId];
 
         require(msg.sender == prop.picWallet, "Govern: Only the program PIC can release milestone");
+        require(hasRole(PIC_ROLE, msg.sender), "Govern: Caller no longer holds PIC role");
         require(prop.status == ProposalStatus.APPROVED || prop.status == ProposalStatus.MILESTONE_ACHIEVED, "Govern: Milestone is locked");
-        require(milestoneIndex == prop.currentMilestone, "Milestone sequence mismatch");
+        require(milestoneIndex == prop.currentMilestone, "Govern: Milestone sequence mismatch");
         require(prop.currentMilestone < prop.milestoneCount, "Govern: All milestones completed");
 
         bytes32 structHash = keccak256(abi.encode(
