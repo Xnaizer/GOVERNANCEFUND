@@ -233,5 +233,106 @@ contract Web3Governance is EIP712, AccessControl {
         rupiahToken = IRupiahToken(_rupiahTokenAddress);
     }
 
-    
+    // ==========================================
+    // ADMIN GOVERNANCE FUNCTIONS
+    // ==========================================
+
+/**
+     * @notice Proposes promoting an account to a structural role (ADMIN, VALIDATOR, or AUDITOR).
+     * @dev Triggered by a single admin; requires BFT 67% admin votes to execute.
+     *      The candidate must hold NO structural role (one-address-one-role enforcement).
+     *      Creates a RoleVote with isDevote = false.
+     * @param candidate The account to be promoted.
+     * @param roleToGrant The role hash to grant (ADMIN_ROLE, VALIDATOR_ROLE, or AUDITOR_ROLE).
+     */
+    function proposeRoleGrant(address candidate, bytes32 roleToGrant) external onlyRole(ADMIN_ROLE) {
+        require(
+            !hasRole(ADMIN_ROLE, candidate) &&
+            !hasRole(VALIDATOR_ROLE, candidate) &&
+            !hasRole(AUDITOR_ROLE, candidate),
+            "Govern: Candidate already holds a structural role"
+        );
+
+        uint256 voteId = roleVoteNonce++;
+
+        roleVotes[voteId] = RoleVote({
+            candidate: candidate,
+            roleToTarget: roleToGrant,
+            voteCount: 0,
+            isDevote: false,
+            executed: false
+        });
+
+        emit RoleVoteCreated(voteId, candidate, roleToGrant, false);
+    }
+
+    /**
+     * @notice Proposes revoking a structural role from an account (e.g. a compromised actor).
+     * @dev Triggered by a single admin; requires BFT 67% admin votes to execute.
+     *      The target must currently hold the role being revoked.
+     *      Creates a RoleVote with isDevote = true.
+     * @param targetUser The account whose role will be revoked.
+     * @param roleToRevoke The role hash to revoke.
+     */
+    function proposeRoleDevote(address targetUser, bytes32 roleToRevoke) external onlyRole(ADMIN_ROLE) {
+        require(hasRole(roleToRevoke, targetUser), "Govern: Target does not hold this role");
+
+        uint256 voteId = roleVoteNonce++;
+
+        roleVotes[voteId] = RoleVote({
+            candidate: targetUser,
+            roleToTarget: roleToRevoke,
+            voteCount: 0,
+            isDevote: true,
+            executed: false
+        });
+
+        emit RoleVoteCreated(voteId, targetUser, roleToRevoke, true);
+    }
+
+    /**
+     * @notice Casts an admin vote on a pending role grant or devote proposal.
+     * @dev Each admin can vote once per voteId. When the BFT threshold
+     *      (⌊2N/3⌋ + 1) is reached, the role is granted or revoked atomically and
+     *      the active role counter is recalibrated. Threshold uses live totalAdminsCount
+     *      at vote-cast time (known limitation: N can shift mid-vote).
+     * @param voteId The auto-generated ID of the role vote to approve.
+     */
+    function voteRoleProposal(uint256 voteId) external onlyRole(ADMIN_ROLE) {
+        RoleVote storage rVote = roleVotes[voteId];
+
+        require(!rVote.executed, "Govern: Vote already executed");
+        require(!hasVotedRole[voteId][msg.sender], "Govern: You have already voted");
+
+        hasVotedRole[voteId][msg.sender] = true;
+        rVote.voteCount += 1;
+        emit RoleVoteCast(voteId, msg.sender, rVote.voteCount);
+
+        uint256 adminBftThreshold = ((2 * totalAdminsCount) / 3) + 1;
+
+        if (rVote.voteCount >= adminBftThreshold) {
+            rVote.executed = true;
+
+            if (rVote.isDevote) {
+                _revokeRole(rVote.roleToTarget, rVote.candidate);
+
+                if (rVote.roleToTarget == ADMIN_ROLE) {
+                    if (totalAdminsCount > 1) totalAdminsCount -= 1;
+                } else if (rVote.roleToTarget == VALIDATOR_ROLE) {
+                    if (totalValidatorsCount > 0) totalValidatorsCount -= 1;
+                }
+                emit RoleRevokedViaGovernance(rVote.roleToTarget, rVote.candidate);
+            } else {
+                _grantRole(rVote.roleToTarget, rVote.candidate);
+
+                if (rVote.roleToTarget == ADMIN_ROLE) {
+                    totalAdminsCount += 1;
+                } else if (rVote.roleToTarget == VALIDATOR_ROLE) {
+                    totalValidatorsCount += 1;
+                }
+                emit RoleGrantedViaGovernance(rVote.roleToTarget, rVote.candidate);
+            }
+        }
+    }
+
 }
