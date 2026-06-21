@@ -335,4 +335,72 @@ contract Web3Governance is EIP712, AccessControl {
         }
     }
 
+    // ==========================================
+    // PROPOSAL VOTING FUNCTIONS
+    // ==========================================
+
+    /**
+     * @notice Submits a new funding proposal. Anyone who is NOT a structural actor may call this.
+     * @dev On-chain guards: programId must be unused, milestoneCount > 0, at least 3 validators
+     *      must exist, and the caller must NOT hold ADMIN/VALIDATOR/AUDITOR (one-address-one-role).
+     *      Web2 additionally verifies PIC legitimacy (isVerifiedPIC) before allowing submission.
+     *      currentAllocatedBalance starts at 0 — no quota is allocated until a milestone is released.
+     * @param programId Unique program ID assigned by the PIC from Web2.
+     * @param programHash SHA-256 seal of the Web2 program data, for tamper detection.
+     * @param totalBudget Total program budget ceiling (display/reference; not yet drawable).
+     * @param milestoneCount Number of milestones the budget is split across.
+     */
+    function submitProposal(
+        uint256 programId,
+        bytes32 programHash,
+        uint256 totalBudget,
+        uint256 milestoneCount
+    ) external {
+        require(proposals[programId].programHash == bytes32(0), "Govern: Program ID already exists");
+        require(milestoneCount > 0, "Govern: Milestone count cannot be zero");
+        require(totalValidatorsCount >= 3, "Govern: Minimum 3 validators required to operate");
+
+        require(!hasRole(ADMIN_ROLE, msg.sender), "Govern: Admin cannot act as PIC");
+        require(!hasRole(VALIDATOR_ROLE, msg.sender), "Govern: Validator cannot act as PIC");
+        require(!hasRole(AUDITOR_ROLE, msg.sender), "Govern: Auditor cannot act as PIC");
+
+        proposals[programId] = Proposal({
+            programHash: programHash,
+            picWallet: msg.sender,
+            totalBudget: totalBudget,
+            currentAllocatedBalance: 0,
+            milestoneCount: milestoneCount,
+            currentMilestone: 0,
+            status: ProposalStatus.PENDING
+        });
+
+        emit ProposalSubmitted(programId, programHash, msg.sender);
+        
+    }
+
+    /**
+     * @notice Casts a validator vote to approve a pending proposal.
+     * @dev Each validator votes once per program. When votes reach the BFT threshold
+     *      (⌊2N/3⌋ + 1), the proposal status becomes APPROVED. Threshold uses live
+     *      totalValidatorsCount at vote-cast time (known limitation: N can shift mid-vote).
+     * @param programId The program being voted on.
+     */
+    function voteProposal(uint256 programId) external onlyRole(VALIDATOR_ROLE) {
+        Proposal storage prop = proposals[programId];
+
+        require(prop.status == ProposalStatus.PENDING, "Govern: Program is not in voting phase");
+        require(!hasVotedProposal[programId][msg.sender], "Govern: You have already voted");
+
+        hasVotedProposal[programId][msg.sender] = true;
+        proposalVotes[programId] += 1;
+
+        emit ProposalVoted(programId, msg.sender, proposalVotes[programId]);
+
+        uint256 bftThreshold = ((2 * totalValidatorsCount) / 3) + 1;
+
+        if(proposalVotes[programId] >= bftThreshold) {
+            prop.status = ProposalStatus.APPROVED;
+            emit ProposalApproved(programId);
+        }
+    }
 }
