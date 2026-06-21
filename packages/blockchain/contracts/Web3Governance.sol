@@ -160,65 +160,64 @@ contract Web3Governance is EIP712, AccessControl {
     /// @notice Auto-incrementing counter generating a unique voteId per role vote.
     uint256 public roleVoteNonce;
 
-
     // ==========================================
     // ADMIN EVENTS
     // ==========================================
 
-    /// @notice Event while Role vote is created.
+    /// @notice Emitted when an admin proposes a new role grant or revoke vote.
     event RoleVoteCreated(uint256 indexed voteId, address indexed candidate, bytes32 roleToTarget, bool isDevote);
 
-    /// @notice Event while vote is cast.
+    /// @notice Emitted each time an admin casts a vote on a role proposal.
     event RoleVoteCast(uint256 indexed voteId, address indexed admin, uint256 currentVotes);
 
-    /// @notice Event when someone granted to each roles. 
+    /// @notice Emitted when a role is granted to an account through BFT governance.
     event RoleGrantedViaGovernance(bytes32 indexed role, address indexed account);
 
-    /// @notice Event when someone revoked to each roles. 
+    /// @notice Emitted when a role is revoked from an account through BFT governance.
     event RoleRevokedViaGovernance(bytes32 indexed role, address indexed account);
 
     // ==========================================
     // PROPOSAL EVENTS
     // ==========================================
 
-    /// @notice Event while proposal is submitted.
-    event ProposalSubmitted(uint256 indexed programId, bytes32 programHash, address indexed picWallet );
+    /// @notice Emitted when a PIC submits a new funding proposal.
+    event ProposalSubmitted(uint256 indexed programId, bytes32 programHash, address indexed picWallet);
 
-    /// @notice Event while proposal is voted. 
+    /// @notice Emitted each time a validator votes to approve a proposal.
     event ProposalVoted(uint256 indexed programId, address indexed validator, uint256 currentVotes);
 
-    /// @notice Event while proposal is approved. 
+    /// @notice Emitted when a proposal reaches the 67% BFT threshold and is approved.
     event ProposalApproved(uint256 indexed programId);
 
     // ==========================================
     // MILESTONE EVENTS
     // ==========================================
 
-    /// @notice Event while milestone released. 
+    /// @notice Emitted when a milestone passes EIP-712 verification and becomes DRAWABLE.
     event MilestoneReleased(uint256 indexed programId, uint256 indexed milestoneIndex, uint256 milestoneBudget);
 
-    /// @notice Event while on chain withdrawal logged 
+    /// @notice Emitted when a PIC withdrawal is recorded on-chain (forensic audit trail).
     event OnChainWithdrawalLogged(uint256 indexed programId, address indexed picWallet, uint256 amount, string recipient, string description);
 
-    /// @notice Event while milestone finalized. 
+    /// @notice Emitted when a PIC finalizes a milestone, cancelling any unused quota.
     event MilestoneFinalized(uint256 indexed programId, uint256 indexed milestoneIndex);
 
-    /// @notice Event while program is completed. 
+    /// @notice Emitted when the final milestone is reached and the program is fully completed.
     event ProgramCompleted(uint256 indexed programId);
 
     // ==========================================
     // FREEZE AND UNFREEZE EVENTS
     // ==========================================
 
-    /// @notice Event when program is force to freeze. 
+    /// @notice Emitted when an auditor force-freezes a program on suspicion of fraud.
     event ProgramForceFrozen(uint256 indexed programId, address indexed auditor);
 
-    /// @notice Event when program unfreeze appeal is submitted. 
+    /// @notice Emitted when a PIC submits an appeal to unfreeze their program.
     event UnfreezeAppealSubmitted(uint256 indexed programId, address indexed picWallet);
 
-    /// @notice Event when program unfreeze appeal is voted. 
+    /// @notice Emitted each time a validator votes on an unfreeze appeal.
     event UnfreezeAppealVoted(uint256 indexed programId, address indexed validator, uint256 currentVotes);
 
-    /// @notice Event when program is unfreeze.
-    event ProgramUnfrozenViaGovernance(uint256 indexed programId);
+    /// @notice Emitted when an unfreeze appeal reaches the 67% BFT threshold and the program resumes.
+    event ProgramUnfrozenViaBFT(uint256 indexed programId);
 }
