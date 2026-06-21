@@ -89,4 +89,75 @@ contract Web3Governance is EIP712, AccessControl {
     bytes32 private constant MILESTONE_APPROVAL_TYPEHASH = keccak256(
         "MilestoneApproval(uint256 programId,uint256 milestoneIndex,uint256 milestoneBudget,bytes32 evidenceHash)"
     );
+    
+    // ==========================================
+    // TOKEN REFERENCE
+    // ==========================================
+
+    /**
+     * @notice Reference to the e-IDR Rupiah token contract.
+     * @dev Used to call mint() when a PIC executes a withdrawal. Set in constructor.
+     */
+    IRupiahToken public rupiahToken;
+
+    // ==========================================
+    // PROGRAM STORAGE
+    // ==========================================
+
+    /// @notice All funding programs, keyed by programId (assigned by PIC from Web2).
+    mapping(uint256 => Proposal) public proposals;
+
+    /// @dev Withdrawal history per program. private — accessed via getWithdrawalHistory().
+    mapping(uint256 => WithdrawalRecord[]) private withdrawalHistories;
+
+    // ==========================================
+    // VALIDATOR PROPOSAL VOTING (BFT)
+    // ==========================================
+
+    /// @notice Prevents a validator from voting twice on the same proposal.
+    mapping(uint256 => mapping(address => bool)) public hasVotedProposal;
+
+    /// @notice Accumulated approval votes per program, compared against BFT threshold.
+    mapping(uint256 => uint256) public proposalVotes;
+
+    /// @notice Total active validators — N for the validator BFT threshold.
+    uint256 public totalValidatorsCount;
+
+    // ==========================================
+    // UNFREEZE APPEAL VOTING (BFT)
+    // ==========================================
+
+    /// @notice Unfreeze appeals per frozen program, keyed by programId.
+    mapping(uint256 => UnfreezeAppeal) public unfreezeAppeals;
+
+    /// @notice Prevents a validator from voting twice on the same unfreeze appeal.
+    mapping(uint256 => mapping(address => bool)) public hasVotedUnfreeze;
+
+    // ==========================================
+    // ANTI-COLLUSION SIGNER TRACKING
+    // ==========================================
+
+    /**
+     * @notice Tracks signers who already signed a milestone on a given program.
+     * @dev historyOfSigners[programId][signer] = true blocks the same signer from
+     *      approving a different milestone on the same program.
+     */
+    mapping(uint256 => mapping(address => bool)) public historyOfSigners;
+
+    // ==========================================
+    // ADMIN ROLE GOVERNANCE VOTING (BFT)
+    // ==========================================
+
+    /// @notice All admin role-governance votes, keyed by auto-generated voteId.
+    mapping(uint256 => RoleVote) public roleVotes;
+
+    /// @notice Prevents an admin from voting twice on the same role vote.
+    mapping(uint256 => mapping(address => bool)) public hasVotedRole;
+
+    /// @notice Total active admins — N for the admin BFT threshold.
+    uint256 public totalAdminsCount;
+
+    /// @notice Auto-incrementing counter generating a unique voteId per role vote.
+    uint256 public roleVoteNonce;
+
 }
