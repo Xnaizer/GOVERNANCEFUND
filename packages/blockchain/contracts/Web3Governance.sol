@@ -526,5 +526,91 @@ contract Web3Governance is EIP712, AccessControl {
         emit MilestoneReleased(programId, milestoneIndex, milestoneBudget);
     }
 
+// ==========================================
+    // MILESTONE WITHDRAWAL FUNCTIONS
+    // ==========================================
+
+    /**
+     * @notice Withdraws funds from an active (DRAWABLE) milestone, minting e-IDR tokens to the PIC.
+     * @dev This is the ONLY place tokens are minted (mint-on-demand). Each call records a
+     *      WithdrawalRecord on-chain (forensic audit trail) and decrements the milestone quota.
+     *      When the quota reaches zero, the milestone is marked MILESTONE_ACHIEVED; if it was the
+     *      final milestone, the program is marked COMPLETED.
+     *      Only the program's PIC may withdraw. recipientName is the third party being paid.
+     * @param programId The program to withdraw from.
+     * @param withdrawAmount Amount to withdraw in Wei (18 decimals); must not exceed remaining quota.
+     * @param recipientName Name of the third party receiving the funds (vendor, worker, etc.).
+     * @param description Purpose of this disbursement.
+     */
+    function executePicWithdrawal(
+        uint256 programId,
+        uint256 withdrawAmount,
+        string calldata recipientName,
+        string calldata description
+    ) external {
+        Proposal storage prop = proposals[programId];
+
+        require(prop.status == ProposalStatus.DRAWABLE, "Govern: Funds are locked or frozen");
+        require(msg.sender == prop.picWallet, "Govern: Only the program PIC can withdraw");
+        require(withdrawAmount > 0, "Govern: Withdrawal amount must be greater than zero");
+        require(prop.currentAllocatedBalance >= withdrawAmount, "Govern: Withdrawal exceeds remaining quota");
+
+        prop.currentAllocatedBalance -= withdrawAmount;
+
+        withdrawalHistories[programId].push(WithdrawalRecord({
+            timestamp: block.timestamp,
+            amount: withdrawAmount,
+            recipientName: recipientName,
+            description: description
+        }));
+
+        rupiahToken.mint(msg.sender, withdrawAmount);
+
+        emit OnChainWithdrawalLogged(programId, msg.sender, withdrawAmount, recipientName, description);
+
+        if (prop.currentAllocatedBalance == 0) {
+            prop.status = ProposalStatus.MILESTONE_ACHIEVED;
+
+            if (prop.currentMilestone == prop.milestoneCount) {
+                prop.status = ProposalStatus.COMPLETED;
+                emit ProgramCompleted(programId);
+            }
+        }
+    }
+
+    /**
+     * @notice Closes the active milestone without spending the remaining quota (efficiency path).
+     * @dev Cancels any unused balance (it is never minted) and advances the program. Only the
+     *      program's PIC (still holding PIC_ROLE) may call this. If this was the final milestone,
+     *      the program is marked COMPLETED. Off-chain, returning unused budget earns +reputation.
+     * @param programId The program whose active milestone is being finalized.
+     */
+    function finalizeMilestone(uint256 programId) external {
+        Proposal storage prop = proposals[programId];
+
+        require(msg.sender == prop.picWallet, "Govern: Only the program PIC can finalize milestone");
+        require(hasRole(PIC_ROLE, msg.sender), "Govern: Caller no longer holds PIC role");
+        require(prop.status == ProposalStatus.DRAWABLE, "Govern: Milestone is not active");
+
+        prop.currentAllocatedBalance = 0;
+        prop.status = ProposalStatus.MILESTONE_ACHIEVED;
+
+        emit MilestoneFinalized(programId, prop.currentMilestone - 1);
+
+        if (prop.currentMilestone == prop.milestoneCount) {
+            prop.status = ProposalStatus.COMPLETED;
+            emit ProgramCompleted(programId);
+        }
+    }
+
+    /**
+     * @notice Returns the full on-chain withdrawal history for a program.
+     * @dev Manual getter — Solidity cannot auto-generate getters for arrays inside mappings.
+     * @param programId The program to query.
+     * @return The array of all WithdrawalRecords for that program.
+     */
+    function getWithdrawalHistory(uint256 programId) external view returns (WithdrawalRecord[] memory) {
+        return withdrawalHistories[programId];
+    }
 
 }
