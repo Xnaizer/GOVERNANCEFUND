@@ -160,4 +160,65 @@ contract Web3Governance is EIP712, AccessControl {
     /// @notice Auto-incrementing counter generating a unique voteId per role vote.
     uint256 public roleVoteNonce;
 
+
+    // ==========================================
+    // ADMIN EVENTS
+    // ==========================================
+
+    /// @notice Event while Role vote is created.
+    event RoleVoteCreated(uint256 indexed voteId, address indexed candidate, bytes32 roleToTarget, bool isDevote);
+
+    /// @notice Event while vote is cast.
+    event RoleVoteCast(uint256 indexed voteId, address indexed admin, uint256 currentVotes);
+
+    /// @notice Event when someone granted to each roles. 
+    event RoleGrantedViaGovernance(bytes32 indexed role, address indexed account);
+
+    /// @notice Event when someone revoked to each roles. 
+    event RoleRevokedViaGovernance(bytes32 indexed role, address indexed account);
+
+    // ==========================================
+    // PROPOSAL EVENTS
+    // ==========================================
+
+    /// @notice Event while proposal is submitted.
+    event ProposalSubmitted(uint256 indexed programId, bytes32 programHash, address indexed picWallet );
+
+    /// @notice Event while proposal is voted. 
+    event ProposalVoted(uint256 indexed programId, address indexed validator, uint256 currentVotes);
+
+    /// @notice Event while proposal is approved. 
+    event ProposalApproved(uint256 indexed programId);
+
+    // ==========================================
+    // MILESTONE EVENTS
+    // ==========================================
+
+    /// @notice Event while milestone released. 
+    event MilestoneReleased(uint256 indexed programId, uint256 indexed milestoneIndex, uint256 milestoneBudget);
+
+    /// @notice Event while on chain withdrawal logged 
+    event OnChainWithdrawalLogged(uint256 indexed programId, address indexed picWallet, uint256 amount, string recipient, string description);
+
+    /// @notice Event while milestone finalized. 
+    event MilestoneFinalized(uint256 indexed programId, uint256 indexed milestoneIndex);
+
+    /// @notice Event while program is completed. 
+    event ProgramCompleted(uint256 indexed programId);
+
+    // ==========================================
+    // FREEZE AND UNFREEZE EVENTS
+    // ==========================================
+
+    /// @notice Event when program is force to freeze. 
+    event ProgramForceFrozen(uint256 indexed programId, address indexed auditor);
+
+    /// @notice Event when program unfreeze appeal is submitted. 
+    event UnfreezeAppealSubmitted(uint256 indexed programId, address indexed picWallet);
+
+    /// @notice Event when program unfreeze appeal is voted. 
+    event UnfreezeAppealVoted(uint256 indexed programId, address indexed validator, uint256 currentVotes);
+
+    /// @notice Event when program is unfreeze.
+    event ProgramUnfrozenViaGovernance(uint256 indexed programId);
 }
