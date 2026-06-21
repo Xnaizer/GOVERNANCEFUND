@@ -220,4 +220,18 @@ contract Web3Governance is EIP712, AccessControl {
 
     /// @notice Emitted when an unfreeze appeal reaches the 67% BFT threshold and the program resumes.
     event ProgramUnfrozenViaBFT(uint256 indexed programId);
+
+    /**
+     * @notice Declaration of smart GOVERNANCEFUND contract.
+     */
+    constructor(address _rupiahTokenAddress, address rootAdmin) 
+        EIP712("GovernanceAntiCorruption", "1") 
+    {
+        _grantRole(DEFAULT_ADMIN_ROLE, rootAdmin);
+        _grantRole(ADMIN_ROLE, rootAdmin);
+        totalAdminsCount = 1;
+        rupiahToken = IRupiahToken(_rupiahTokenAddress);
+    }
+
+    
 }
