@@ -526,7 +526,7 @@ contract Web3Governance is EIP712, AccessControl {
         emit MilestoneReleased(programId, milestoneIndex, milestoneBudget);
     }
 
-// ==========================================
+    // ==========================================
     // MILESTONE WITHDRAWAL FUNCTIONS
     // ==========================================
 
@@ -613,4 +613,74 @@ contract Web3Governance is EIP712, AccessControl {
         return withdrawalHistories[programId];
     }
 
+    // ==========================================
+    // FREEZE AND UNFREEZE FUNCTIONS
+    // ==========================================
+
+    /**
+     * @notice Force-freezes an active program suspected of fraud. Single auditor authority.
+     * @dev Only an AUDITOR may call this, and only while the program is DRAWABLE (the only state
+     *      with active, withdrawable funds). Freezing halts all withdrawals and milestone releases
+     *      immediately. The freeze is public — visible to everyone as a fraud signal. Outcome-based
+     *      reputation (off-chain) is decided later based on the unfreeze vote result.
+     * @param programId The program to freeze.
+     */
+    function forceFreezeProgram(uint256 programId) external onlyRole(AUDITOR_ROLE) {
+        Proposal storage prop = proposals[programId];
+        require(prop.status == ProposalStatus.DRAWABLE, "Govern: Program is not in active ");
+
+        prop.status = ProposalStatus.FROZEN;
+        emit ProgramForceFrozen(programId, msg.sender);
+    }
+
+    /**
+     * @notice Submits an appeal to unfreeze a frozen program. Only the program's PIC may appeal.
+     * @dev Resets the unfreeze appeal vote counter for the program, opening it for validator votes.
+     *      Off-chain, the PIC submits supporting evidence during the appeal period before voting.
+     *      Note: limited to one freeze-unfreeze cycle per program (known limitation) — validators
+     *      who voted on a prior cycle cannot vote again on the same program.
+     * @param programId The frozen program being appealed.
+     */
+    function proposeUnfreezeAppeal(uint256 programId) external {
+        Proposal storage prop = proposals[programId];
+
+        require(prop.status == ProposalStatus.FROZEN, "Govern: Program is not frozen");
+        require(msg.sender == prop.picWallet, "Govern: Only the program PIC can appeal");
+
+        unfreezeAppeals[programId] = UnfreezeAppeal({
+            voteCount: 0,
+            executed: false
+        });
+
+        emit UnfreezeAppealSubmitted(programId, msg.sender);
+    }
+
+    /**
+     * @notice Casts a validator vote on an unfreeze appeal. BFT 67% restores the program.
+     * @dev Each validator votes once per program appeal. When votes reach the threshold
+     *      (⌊2N/3⌋ + 1), the program reverts to DRAWABLE and resumes from where it was frozen.
+     *      A passing vote means fraud was NOT proven (off-chain: auditor penalized, PIC unharmed).
+     *      Threshold uses live totalValidatorsCount at vote-cast time (known limitation).
+     * @param programId The frozen program being voted on.
+     */
+    function voteUnfreezeAppeal(uint256 programId) external onlyRole(VALIDATOR_ROLE) {
+        Proposal storage prop = proposals[programId];
+        UnfreezeAppeal storage appeal = unfreezeAppeals[programId];
+
+        require(prop.status == ProposalStatus.FROZEN, "Govern: Program is not frozen");
+        require(!appeal.executed, "Govern: Appeal already resolved");
+        require(!hasVotedUnfreeze[programId][msg.sender], "Govern: You have already vote on this appeal");
+
+        hasVotedUnfreeze[programId][msg.sender] = true;
+        appeal.voteCount += 1;
+        emit UnfreezeAppealVoted(programId, msg.sender, appeal.voteCount);
+
+        uint256 bftThreshold = ((2 * totalValidatorsCount) / 3) + 1;
+
+        if(appeal.voteCount >= bftThreshold) {
+            appeal.executed = true;
+            prop.status = ProposalStatus.DRAWABLE;
+            emit ProgramUnfrozenViaBFT(programId);
+        }
+    }
 }
