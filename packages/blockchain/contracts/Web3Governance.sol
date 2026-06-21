@@ -403,4 +403,86 @@ contract Web3Governance is EIP712, AccessControl {
             emit ProposalApproved(programId);
         }
     }
+
+    /**
+     * @notice Releases a milestone for withdrawal after verifying 3 off-chain EIP-712 signatures.
+     * @dev Only the program's PIC may call this (front-running protection — signatures are
+     *      collected off-chain in Web2 and would otherwise be stealable). Milestones must be
+     *      released sequentially: milestoneIndex must equal the program's currentMilestone.
+     *
+     *      Flow:
+     *        1. Reconstruct the EIP-712 typed-data hash from the milestone parameters.
+     *        2. Recover the three signer addresses via ECDSA.
+     *        3. Verify each signer holds the correct role (ADMIN, VALIDATOR, AUDITOR).
+     *        4. From milestone index 1 onward, enforce anti-collusion: no signer may have
+     *           signed any previous milestone on the same program (historyOfSigners).
+     *        5. Record the signers, set status to DRAWABLE, allocate the milestone quota,
+     *           and advance currentMilestone.
+     *
+     *      evidenceHash here is the hash of the milestone APPROVAL document (signed by all 3
+     *      parties) — NOT the per-withdrawal receipt hash used in executePicWithdrawal.
+     *
+     *      Threshold context: signatures are gathered off-chain, so only the PIC pays gas for
+     *      this single on-chain submission.
+     *
+     * @param programId The program whose milestone is being released.
+     * @param milestoneIndex The milestone index being opened (must equal currentMilestone).
+     * @param milestoneBudget The quota allocated to this milestone, set as currentAllocatedBalance.
+     * @param evidenceHash SHA-256 hash of the signed milestone approval document.
+     * @param sigAdmin EIP-712 signature from an account holding ADMIN_ROLE.
+     * @param sigValidator EIP-712 signature from an account holding VALIDATOR_ROLE.
+     * @param sigAuditor EIP-712 signature from an account holding AUDITOR_ROLE.
+     */
+    function executeMilestoneRelease(
+        uint256 programId,
+        uint256 milestoneIndex,
+        uint256 milestoneBudget,
+        bytes32 evidenceHash,
+        bytes calldata sigAdmin,
+        bytes calldata sigValidator,
+        bytes calldata sigAuditor
+    ) external {
+        Proposal storage prop = proposals[programId];
+
+        require(msg.sender == prop.picWallet, "Govern: Only the program PIC can release milestone");
+        require(prop.status == ProposalStatus.APPROVED || prop.status == ProposalStatus.MILESTONE_ACHIEVED, "Govern: Milestone is locked");
+        require(milestoneIndex == prop.currentMilestone, "Milestone sequence mismatch");
+        require(prop.currentMilestone < prop.milestoneCount, "Govern: All milestones completed");
+
+        bytes32 structHash = keccak256(abi.encode(
+            MILESTONE_APPROVAL_TYPEHASH,
+            programId,
+            milestoneIndex,
+            milestoneBudget,
+            evidenceHash
+        ));
+
+        bytes32 typedDataHash = _hashTypedDataV4(structHash);
+
+        address signerAdmin = typedDataHash.recover(sigAdmin);
+        address signerValidator = typedDataHash.recover(sigValidator);
+        address signerAuditor = typedDataHash.recover(sigAuditor);
+
+        require(hasRole(ADMIN_ROLE, signerAdmin), "Govern: Invalid Admin signature");
+        require(hasRole(VALIDATOR_ROLE, signerValidator), "Govern: Invalid Validator signature");
+        require(hasRole(AUDITOR_ROLE, signerAuditor), "Govern: Invalid Auditor signature");
+        
+        if(milestoneIndex > 0) {
+            require(!historyOfSigners[programId][signerAdmin], "Govern: Admin already signed before");
+            require(!historyOfSigners[programId][signerValidator], "Govern: Validator already signed before");
+            require(!historyOfSigners[programId][signerAuditor],"Govern: Auditor already signed before");
+        }
+
+        historyOfSigners[programId][signerAdmin] = true;
+        historyOfSigners[programId][signerValidator] = true;
+        historyOfSigners[programId][signerAuditor] = true;
+
+        prop.status = ProposalStatus.DRAWABLE;
+        prop.currentAllocatedBalance = milestoneBudget;
+        prop.currentMilestone += 1;
+
+        emit MilestoneReleased(programId, milestoneIndex, milestoneBudget);
+    }
+
+
 }
