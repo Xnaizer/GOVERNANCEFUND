@@ -101,9 +101,7 @@ async function main() {
     voteId++;
     logTest("Admin 2", "Vote for Admin 4 Grant Admin (Progress: 3/3 Vote)", true, "- Admin 4 Active");
 
-    // =================================================================
-    // ONBOARDING ADMIN 5 (Total Admin = 4, Threshold BFT = 3 Vote)
-    // =================================================================
+    // Onboarding Admin 5 (Total Admin = 4, Threshold BFT = 3 Vote)
     await (await web3Governance.connect(rootAdmin).proposeRoleGrant(admin5.address, ADMIN_ROLE)).wait();
     await (await web3Governance.connect(rootAdmin).voteRoleProposal(voteId)).wait();
     logTest("Root Admin", "Vote for Admin 5 Grant Admin (Progress: 1/3 Vote)", true);
@@ -116,10 +114,7 @@ async function main() {
     voteId++;
     logTest("Admin 3", "Vote for Admin 5 Grant Admin (Progress: 3/3 Vote)", true, "- Admin 5 Active. Total Admins = 5");
 
-    // =================================================================
-    // REVOKING ADMIN 5 (Total Admin = 5, Threshold BFT = 4 Vote)
-    // =================================================================
-    
+    // Revoking Admin 5 (Total Admin = 5, Threshold BFT = 4 Vote)
     await (await web3Governance.connect(rootAdmin).proposeRoleDevote(admin5.address, ADMIN_ROLE)).wait();
     await (await web3Governance.connect(rootAdmin).voteRoleProposal(voteId)).wait();
     logTest("Root Admin", "Vote for Admin 5 Revoke Admin (Progress: 1/4 Vote)", true);
@@ -134,8 +129,43 @@ async function main() {
     voteId++;
     logTest("Admin 4", "Vote for Admin 5 Revoke Admin (Progress: 4/4 Vote)", true, "- Admin 5 Revoked. Total Admins returns to 4");
 
+    // =================================================================
+    // FASE 3: MULTI ADMIN VOTE FOR VALIDATOR & AUDITOR (Threshold = 3 of 4 Admins)
+    // =================================================================
 
+    // Onboard Validator 1.
+    await(await web3Governance.connect(rootAdmin).proposeRoleGrant(validator1.address,VALIDATOR_ROLE)).wait();
+    await(await web3Governance.connect(rootAdmin).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin2).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin3).voteRoleProposal(voteId)).wait();
+    logTest("Admin 1,2,3", "Vote for Validator 1 Grant Validator (3/4 Vote)", true, "- Validator 1 Active");
+    voteId++;
 
+    // Onboard Validator 2.
+    await(await web3Governance.connect(admin2).proposeRoleGrant(validator2.address,VALIDATOR_ROLE)).wait();
+    await(await web3Governance.connect(rootAdmin).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin3).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin4).voteRoleProposal(voteId)).wait();
+    logTest("Admin 1,3,4", "Vote for Validator 1 Grant Validator (3/4 Vote)", true, "- Validator 2 Active");
+    voteId++;
+    
+    // Onboard Validator 3.
+    await(await web3Governance.connect(admin3).proposeRoleGrant(validator3.address,VALIDATOR_ROLE)).wait();
+    await(await web3Governance.connect(rootAdmin).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin2).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin4).voteRoleProposal(voteId)).wait();
+    logTest("Admin 1,2,4", "Vote for Validator 3 Grant Validator (3/4 Vote)", true, "- Validator 3 Active");
+    voteId++;
+
+    // Onboard Auditor 1.
+    await(await web3Governance.connect(rootAdmin).proposeRoleGrant(auditor1, AUDITOR_ROLE)).wait();
+    await(await web3Governance.connect(admin2).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin3).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin4).voteRoleProposal(voteId)).wait();
+    logTest("Admin 2,3,4", "Vote for Auditor 1 Grant Auditor (3/4 Vote)", true, "- Auditor 1 Active");
+    voteId++;
+
+    
 }
 
 main().catch((error) => {
