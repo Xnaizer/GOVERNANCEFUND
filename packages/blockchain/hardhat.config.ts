@@ -13,13 +13,14 @@ export default defineConfig({
         enabled: true,
         runs: 200,
       },
+      viaIR: true
     },
   },
   networks: {
     hardhat: {
       type: "edr-simulated", 
     },
-    polygon_amoy: {
+    base_sepolia: {
       type: "http",
       url: process.env.ALCHEMY_BASE_SEPOLIA_RPC_URL || "",
       accounts: process.env.DEPLOYER_PRIVATE_KEY
