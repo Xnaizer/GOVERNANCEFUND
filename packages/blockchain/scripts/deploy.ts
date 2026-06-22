@@ -32,7 +32,7 @@ async function main() {
     const web3Governance = await Web3Governance.deploy(rupiahToken, deployer);
     await web3Governance.waitForDeployment();
     const web3GovernanceAddress = await web3Governance.getAddress();
-    console.log("3. Web3Govenrnace deployed to: ", web3GovernanceAddress);
+    console.log("3. Web3Governace deployed to: ", web3GovernanceAddress);
 
     // ============================================
     // STEP 4: SetGovernance in RupiahToken
