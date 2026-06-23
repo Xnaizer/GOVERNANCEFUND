@@ -167,6 +167,15 @@ async function main() {
     logTest("Admin 2,3,4", "Vote for Auditor 1 Grant Auditor (3/4 Vote)", true, "- Auditor 1 Active");
     voteId++;
 
+    // Onboard Auditor 2.
+    await(await web3Governance.connect(rootAdmin).proposeRoleGrant(auditor2.address, AUDITOR_ROLE)).wait();
+    await(await web3Governance.connect(admin2).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin3).voteRoleProposal(voteId)).wait();
+    await(await web3Governance.connect(admin4).voteRoleProposal(voteId)).wait();
+    logTest("Admin 2,3,4", "Vote for Auditor 2 Grant Auditor (3/4 Vote)", true, "- Auditor 2 Active");
+    voteId++;
+
+
     // =================================================================
     // PHASE 4: PIC REGISTRATION & BYPASS ATTEMPT BY HACKER
     // =================================================================
@@ -375,14 +384,14 @@ async function main() {
     logTest("System", "Checking remaining balance to withdraw in program id 1", true, `- Status: ${prop1.status} (2=DRAWABLE), Total Allocated Fund = ${ethers.formatEther(prop1.totalAllocatedSoFar)} eIDR, Remaining Fund = ${ethers.formatEther(prop1.currentAllocatedBalance)} eIDR`);
 
     // PIC withdraw all remaining fund
-    await(await web3Governance.connect(pic1).executePicWithdrawal(programId, ethers.parseEther("1500000"), "Dana Berkah Tbk", "Membeli Sembako"));
+    await(await web3Governance.connect(pic1).executePicWithdrawal(programId, ethers.parseEther("1500000"), "Dana Berkah Tbk", "Membeli Sembako")).wait();
     logTest("PIC 1", "Withdraw 1.5 Mill eIDR from milestone", true, "- 1.5 Mill eIDR send to PIC Wallet");
 
     // System checking PIC's wallet
     const pic1Balance2 = await rupiahToken.connect(pic1).balanceOf(pic1.address);
     logTest("System", "Checking PIC's eIDR Amount", true, `- PIC's eIDR : ${ethers.formatEther(pic1Balance2)} eIDR`);
     const prop2 = await web3Governance.proposals(programId);
-    logTest("System", "Checking remaining balance to withdraw in program id 1", true, `- Status: ${prop2.status} (2=MILESTONE_ACHIEVED), Total Allocated Fund = ${ethers.formatEther(prop1.totalAllocatedSoFar)} eIDR, Remaining Fund = ${ethers.formatEther(prop2.currentAllocatedBalance)} eIDR`);
+    logTest("System", "Checking remaining balance to withdraw in program id 1", true, `- Status: ${prop2.status} (3=MILESTONE_ACHIEVED), Total Allocated Fund = ${ethers.formatEther(prop2.totalAllocatedSoFar)} eIDR, Remaining Fund = ${ethers.formatEther(prop2.currentAllocatedBalance)} eIDR`);
 
 }
 
