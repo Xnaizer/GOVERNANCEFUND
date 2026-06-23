@@ -43,6 +43,7 @@ contract Web3Governance is EIP712, AccessControl {
         address picWallet;
         uint256 totalBudget;
         uint256 currentAllocatedBalance;
+        uint256 totalAllocatedSoFar;
         uint256 milestoneCount;
         uint256 currentMilestone;
         ProposalStatus status;
@@ -410,6 +411,7 @@ contract Web3Governance is EIP712, AccessControl {
             picWallet: msg.sender,
             totalBudget: totalBudget,
             currentAllocatedBalance: 0,
+            totalAllocatedSoFar: 0,
             milestoneCount: milestoneCount,
             currentMilestone: 0,
             status: ProposalStatus.PENDING
@@ -488,6 +490,10 @@ contract Web3Governance is EIP712, AccessControl {
         require(msg.sender == prop.picWallet, "Govern: Only the program PIC can release milestone");
         require(hasRole(PIC_ROLE, msg.sender), "Govern: Caller no longer holds PIC role");
         require(prop.status == ProposalStatus.APPROVED || prop.status == ProposalStatus.MILESTONE_ACHIEVED, "Govern: Milestone is locked");
+        require(
+            prop.totalAllocatedSoFar + milestoneBudget <= prop.totalBudget,
+            "Govern: Cumulative milestone budget exceeds total budget"
+        );
         require(milestoneIndex == prop.currentMilestone, "Govern: Milestone sequence mismatch");
         require(prop.currentMilestone < prop.milestoneCount, "Govern: All milestones completed");
 
@@ -519,6 +525,7 @@ contract Web3Governance is EIP712, AccessControl {
         historyOfSigners[programId][signerValidator] = true;
         historyOfSigners[programId][signerAuditor] = true;
 
+        prop.totalAllocatedSoFar += milestoneBudget;
         prop.status = ProposalStatus.DRAWABLE;
         prop.currentAllocatedBalance = milestoneBudget;
         prop.currentMilestone += 1;
