@@ -20,6 +20,13 @@ contract Web3Governance is EIP712, AccessControl {
     bytes32 public constant PIC_ROLE = keccak256("PIC_ROLE");
 
     /**
+     * @notice Maximum time a proposal can stay open for validator voting.
+     * @dev After this window from submission, voteProposal reverts. Prevents stale proposals
+     *      from being approved by slowly accumulating votes over an unreasonable time span.
+     */
+    uint256 public constant PROPOSAL_VOTING_PERIOD = 7 days;
+
+    /**
      * @notice Lifecycle states of a funding program.
      * @dev Stored as uint8 on-chain.
      *      Order must not change adter development - it would corrupt the existing data.
@@ -44,6 +51,7 @@ contract Web3Governance is EIP712, AccessControl {
         uint256 totalBudget;
         uint256 currentAllocatedBalance;
         uint256 totalAllocatedSoFar;
+        uint256 submittedAt;
         uint256 milestoneCount;
         uint256 currentMilestone;
         ProposalStatus status;
@@ -412,6 +420,7 @@ contract Web3Governance is EIP712, AccessControl {
             totalBudget: totalBudget,
             currentAllocatedBalance: 0,
             totalAllocatedSoFar: 0,
+            submittedAt: block.timestamp,
             milestoneCount: milestoneCount,
             currentMilestone: 0,
             status: ProposalStatus.PENDING
@@ -432,6 +441,7 @@ contract Web3Governance is EIP712, AccessControl {
         Proposal storage prop = proposals[programId];
 
         require(prop.status == ProposalStatus.PENDING, "Govern: Program is not in voting phase");
+        require(block.timestamp <= prop.submittedAt + PROPOSAL_VOTING_PERIOD, "Govern: Voting period has expired");
         require(!hasVotedProposal[programId][msg.sender], "Govern: You have already voted");
 
         hasVotedProposal[programId][msg.sender] = true;
