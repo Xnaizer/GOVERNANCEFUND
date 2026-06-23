@@ -14,6 +14,7 @@ async function main() {
         validator2,
         validator3,
         auditor1,
+        auditor2,
         pic1,
         hacker,
         fakePIC
@@ -259,6 +260,87 @@ async function main() {
         logTest("Validator 1", "Trying to vote program that already expired", true, "- Revert (Program vote phase is expired)");
     }
 
+    
+    // =================================================================
+    // PHASE 6: CRYPTOGRAPHY DATA STRUCTURE EIP-712
+    // =================================================================
+
+    const milestoneIndex = 0;
+    const milestoneBudget = ethers.parseEther("2500000");
+    const evidenceHash = ethers.id("Proof_Sign_Actor_With_EIP712_Technique");
+
+    const domain = {
+        name: "GovernanceAntiCorruption",
+        version: "1",
+        chainId: (await ethers.provider.getNetwork()).chainId,
+        verifyingContract: governanceAddress
+    };
+
+    const types = {
+        MilestoneApproval: [
+            { name: "programId", type: "uint256" },
+            { name: "milestoneIndex", type: "uint256" },
+            { name: "milestoneBudget", type: "uint256" },
+            { name: "evidenceHash", type: "bytes32" }
+        ]
+    };
+
+    const payload = { programId, milestoneIndex, milestoneBudget, evidenceHash };
+
+    // Signing Multi Structure in off-chain.
+    const sigAdmin = await rootAdmin.signTypedData(domain, types, payload);
+    const sigValidator = await validator1.signTypedData(domain, types, payload);
+    const sigAuditor = await auditor1.signTypedData(domain, types, payload);
+    const sigHacker = await hacker.signTypedData(domain, types, payload);
+
+    // Hacker trying to false authentication sign data
+    try {
+        await web3Governance.connect(pic1).executeMilestoneRelease(
+            programId,
+            milestoneIndex,
+            milestoneBudget,
+            evidenceHash,
+            sigHacker,
+            sigValidator,
+            sigAuditor
+        );
+        logTest("PIC 1", "Trying to release fund quota with incorrect role signature", false);
+    } catch (e) {
+        logTest("PIC 1", "Trying to release fund quota with incorrect role signature", true, "- Revert (Role validation refused)");
+    }
+
+    // PIC 1 try to manipulate milestone 1 budget
+    try {
+        await web3Governance.connect(pic1).executeMilestoneRelease(
+            programId,
+            milestoneIndex,
+            ethers.parseEther("5000000"),
+            evidenceHash,
+            sigAdmin, sigValidator, sigAuditor
+        );
+        logTest("PIC 1", "Trying to release with tampered milestoneBudget", false);
+    } catch (e) {
+        logTest("PIC 1", "Trying to release with tampered milestoneBudget", true, "- Revert (signature no longer matches altered data)");
+    }
+
+    // PIC 1 Claim 3 verified sign to release fund
+    await(await web3Governance.connect(pic1).executeMilestoneRelease(
+        programId,
+        milestoneIndex,
+        milestoneBudget,
+        evidenceHash,
+        sigAdmin,
+        sigValidator,
+        sigAuditor
+    )).wait();
+    logTest("PIC 1", "Milestone 1 release fund with 3 verified signature EIP 712", true, "- Milestone now is DRAWABLE");
+
+    // milestone release, checking state
+    const prop = await web3Governance.proposals(programId);
+
+    logTest("System", "Verify program state after milestone release", true, 
+        `- Status: ${prop.status} (3=DRAWABLE), Allocated: ${ethers.formatEther(prop.currentAllocatedBalance)} eIDR`
+    );
 
 }
 
