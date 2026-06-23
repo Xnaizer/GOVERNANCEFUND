@@ -195,7 +195,49 @@ async function main() {
     logTest("Admin 3", "Execute direct grant PIC role to fake PIC", true, "- fake PIC Active but cannot bypass voting from Multi Validator and Auditor");
 
 
+    // =================================================================
+    // FASE 5: PROPOSAL LIFECYCLE & VALIDATOR VOTING (BFT N=3, THRESHOLD=3)
+    // =================================================================
 
+    const programId = 1;
+    const programHash = ethers.id("Proposal_Anti_Korupsi_IDR_2026");
+    const totalBudget = ethers.parseEther("5000000");
+    const milestoneCount = 2;
+
+    // PIC 1 asked proposal.
+    await(await web3Governance.connect(pic1).submitProposal(programId, programHash, totalBudget, milestoneCount)).wait();
+    logTest("PIC 1", "Submit Funding Proposal  (ID: 1, Budget: 5 Mill, 2 Milestone)", true, "- Status: PENDING");
+
+    // Multi Validator vote to approve the program (BFT 67% dari 3 Node = 3 Vote)
+    await(await web3Governance.connect(validator1).voteProposal(programId)).wait();
+    await(await web3Governance.connect(validator2).voteProposal(programId)).wait();
+    logTest("Validator 1,2", "Approve PIC 1 Program (Progress: 2/3)", true);
+    
+    // Hacker trying to vote program.
+    try {
+        await(await web3Governance.connect(hacker).voteProposal(programId)).wait();
+        logTest("Hacker", "Trying to vote program", false);
+    } catch (e) {
+        logTest("Hacker", "Trying to vote program", true, "- Revert (Not Validator)");
+    }
+    
+    // validator 3 vote for pic 1 program
+    await(await web3Governance.connect(validator3).voteProposal(programId)).wait();
+    logTest("Validator 3", "Approve PIC 1 Program (Progress: 3/3)", true, "- Program Approved");
+
+    // Fake PIC create proposal program
+    const fakeprogramId = 2;
+    const fakeprogramHash = ethers.id("Proposal_Anti_Korupsi_IDR_2026 FAKE");
+    const faketotalBudget = ethers.parseEther("1000000");
+    const fakemilestoneCount = 3;
+    
+    await(await web3Governance.connect(fakePIC).submitProposal(fakeprogramId, fakeprogramHash, faketotalBudget, fakemilestoneCount)).wait();
+    logTest("Fake PIC", "Submit Funding Proposal  (ID: 2, Budget: 1 Mill, 2 Milestone)", true, "- Status: PENDING but no one vote");
+
+    // Root Admin notice Admin 3 grant role to fake PIC so he revoked it.
+    await(await web3Governance.connect(rootAdmin).revokePicRole(fakePIC.address)).wait();
+    logTest("Root Admin", "Acknowledge Fake PIC proposal", true, "- Fake PIC role revoked")
+    
 }
 
 main().catch((error) => {
