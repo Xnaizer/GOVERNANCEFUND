@@ -15,7 +15,8 @@ async function main() {
         validator3,
         auditor1,
         pic1,
-        hacker
+        hacker,
+        fakePIC
     ] = await ethers.getSigners();
 
     // Custom logger format.
@@ -29,7 +30,7 @@ async function main() {
     console.log("======================================================================================\n");
 
     // =================================================================
-    // FASE 1: DEPLOYMENT & SET INTER-CONTRACT PERMISSIONS
+    // PHASE 1: DEPLOYMENT & SET INTER-CONTRACT PERMISSIONS
     // =================================================================
 
     const RupiahToken = await ethers.getContractFactory("RupiahToken");
@@ -60,7 +61,7 @@ async function main() {
     const PIC_ROLE = await web3Governance.PIC_ROLE();
 
     // =================================================================
-    // FASE 2: MULTI ADMIN ONBOARDING AND DYNAMIC BFT THRESHOLD CHECK
+    // PHASE 2: MULTI ADMIN ONBOARDING AND DYNAMIC BFT THRESHOLD CHECK
     // =================================================================
 
     let voteId = 0;
@@ -130,7 +131,7 @@ async function main() {
     logTest("Admin 4", "Vote for Admin 5 Revoke Admin (Progress: 4/4 Vote)", true, "- Admin 5 Revoked. Total Admins returns to 4");
 
     // =================================================================
-    // FASE 3: MULTI ADMIN VOTE FOR VALIDATOR & AUDITOR (Threshold = 3 of 4 Admins)
+    // PHASE 3: MULTI ADMIN VOTE FOR VALIDATOR & AUDITOR (Threshold = 3 of 4 Admins)
     // =================================================================
 
     // Onboard Validator 1.
@@ -165,7 +166,36 @@ async function main() {
     logTest("Admin 2,3,4", "Vote for Auditor 1 Grant Auditor (3/4 Vote)", true, "- Auditor 1 Active");
     voteId++;
 
-    
+    // =================================================================
+    // PHASE 4: PIC REGISTRATION & BYPASS ATTEMPT BY HACKER
+    // =================================================================
+
+    // Hacker trying to register his self as PIC via voting proposal
+    try {
+        await web3Governance.connect(rootAdmin).proposeRoleGrant(hacker.address, PIC_ROLE);
+        logTest("Root Admin", "Trying to grant Fake PIC to proposal role", false);
+    } catch (e) {
+        logTest("Root Admin", "Trying to grant Fake PIC to proposal role", true, "- Revert cannot propose PIC role");
+    }
+
+    // Direct grant from Admin
+    await(await web3Governance.connect(rootAdmin).grantPicRole(pic1.address)).wait();
+    logTest("Root Admin", "Execute direct grant PIC role to PIC 1", true, "- PIC 1 Active");
+
+    // Hacker try direct grant PIC role
+    try {
+        await web3Governance.connect(hacker).grantPicRole(hacker);
+        logTest("Hacker", "Trying to directly execute grantPicRole to himself", false);
+    } catch (e) {
+        logTest("Hacker", "Trying to directly execute grantPicRole to himself", true), "- Revert (Not Admin)";
+    }
+
+    // Admin smuggle Fake PIC (Hacker)
+    await(await web3Governance.connect(admin3).grantPicRole(fakePIC.address)).wait();
+    logTest("Admin 3", "Execute direct grant PIC role to fake PIC", true, "- fake PIC Active but cannot bypass voting from Multi Validator and Auditor");
+
+
+
 }
 
 main().catch((error) => {
