@@ -147,7 +147,7 @@ async function main() {
     await(await web3Governance.connect(rootAdmin).voteRoleProposal(voteId)).wait();
     await(await web3Governance.connect(admin3).voteRoleProposal(voteId)).wait();
     await(await web3Governance.connect(admin4).voteRoleProposal(voteId)).wait();
-    logTest("Admin 1,3,4", "Vote for Validator 1 Grant Validator (3/4 Vote)", true, "- Validator 2 Active");
+    logTest("Admin 1,3,4", "Vote for Validator 2 Grant Validator (3/4 Vote)", true, "- Validator 2 Active");
     voteId++;
     
     // Onboard Validator 3.
@@ -159,7 +159,7 @@ async function main() {
     voteId++;
 
     // Onboard Auditor 1.
-    await(await web3Governance.connect(rootAdmin).proposeRoleGrant(auditor1, AUDITOR_ROLE)).wait();
+    await(await web3Governance.connect(rootAdmin).proposeRoleGrant(auditor1.address, AUDITOR_ROLE)).wait();
     await(await web3Governance.connect(admin2).voteRoleProposal(voteId)).wait();
     await(await web3Governance.connect(admin3).voteRoleProposal(voteId)).wait();
     await(await web3Governance.connect(admin4).voteRoleProposal(voteId)).wait();
@@ -184,10 +184,10 @@ async function main() {
 
     // Hacker try direct grant PIC role
     try {
-        await web3Governance.connect(hacker).grantPicRole(hacker);
+        await web3Governance.connect(hacker).grantPicRole(hacker.address);
         logTest("Hacker", "Trying to directly execute grantPicRole to himself", false);
     } catch (e) {
-        logTest("Hacker", "Trying to directly execute grantPicRole to himself", true), "- Revert (Not Admin)";
+        logTest("Hacker", "Trying to directly execute grantPicRole to himself", true, "- Revert (Not Admin)");
     }
 
     // Admin smuggle Fake PIC (Hacker)
@@ -236,6 +236,7 @@ async function main() {
 
     // Root Admin notice Admin 3 grant role to fake PIC so he revoked it.
     await(await web3Governance.connect(rootAdmin).revokePicRole(fakePIC.address)).wait();
+    logTest("Root Admin", "Revoke fake PIC role after suspicious proposal", true, "- Proposal ID 2 stuck PENDING, no validator votes");
 }
 
 main().catch((error) => {
