@@ -46,7 +46,7 @@ async function main() {
     const Web3Governance = await ethers.getContractFactory("Web3Governance");
     const web3Governance = await Web3Governance.deploy(tokenAddress, rootAdmin.address);
     await web3Governance.waitForDeployment();
-    const governanceAddress = web3Governance.getAddress();
+    const governanceAddress = await web3Governance.getAddress();
 
     await(await rupiahToken.setGovernance(governanceAddress)).wait();
     await(await rupiahToken.setGateway(gatewayAddress)).wait();
@@ -196,7 +196,7 @@ async function main() {
 
 
     // =================================================================
-    // FASE 5: PROPOSAL LIFECYCLE & VALIDATOR VOTING (BFT N=3, THRESHOLD=3)
+    // PHASE 5: PROPOSAL LIFECYCLE & VALIDATOR VOTING (BFT N=3, THRESHOLD=3)
     // =================================================================
 
     const programId = 1;
@@ -236,8 +236,6 @@ async function main() {
 
     // Root Admin notice Admin 3 grant role to fake PIC so he revoked it.
     await(await web3Governance.connect(rootAdmin).revokePicRole(fakePIC.address)).wait();
-    logTest("Root Admin", "Acknowledge Fake PIC proposal", true, "- Fake PIC role revoked")
-    
 }
 
 main().catch((error) => {
