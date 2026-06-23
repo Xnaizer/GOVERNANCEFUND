@@ -237,6 +237,29 @@ async function main() {
     // Root Admin notice Admin 3 grant role to fake PIC so he revoked it.
     await(await web3Governance.connect(rootAdmin).revokePicRole(fakePIC.address)).wait();
     logTest("Root Admin", "Revoke fake PIC role after suspicious proposal", true, "- Proposal ID 2 stuck PENDING, no validator votes");
+
+    // PIC 1 create another program but not one vote until 7 days
+    const anotherprogramId = 3;
+    const anotherprogramHash = ethers.id("Proposal_Anti_Korupsi_IDR_2026 Another");
+    const anothertotalBudget = ethers.parseEther("1000000");
+    const anothermilestoneCount = 3;
+
+    await(await web3Governance.connect(pic1).submitProposal(anotherprogramId, anotherprogramHash, anothertotalBudget,anothermilestoneCount)).wait();
+    logTest("PIC 1", "Submit Another Funding Proposal  (ID: 3, Budget: 1 Mill, 3 Milestone)", true, "- Status: PENDING");
+
+    // Blocktime stamp passed 7 days
+    await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60 + 30]);
+    await ethers.provider.send("evm_mine", []);
+
+    // code revert karna validator tidak boleh vote lagi
+    try {
+        await(await web3Governance.connect(validator1).voteProposal(anotherprogramId)).wait();
+        logTest("Validator 1", "Trying to vote program that already expired", false);
+    } catch (e) {
+        logTest("Validator 1", "Trying to vote program that already expired", true, "- Revert (Program vote phase is expired)");
+    }
+
+
 }
 
 main().catch((error) => {
