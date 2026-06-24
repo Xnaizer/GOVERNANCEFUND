@@ -1,5 +1,4 @@
 import { network } from "hardhat";
-import { after } from "node:test";
 
 async function main() {
     const { ethers } = await network.create();
@@ -497,12 +496,12 @@ async function main() {
         await rupiahToken.connect(pic1).transfer(hacker.address, ethers.parseEther("1000000"));
         logTest("PIC 1", "Transfer eIDR token to hacker", false);
     } catch (e) {
-        logTest("PIC 1", "Transfer eIDR token to hacker", true, '-Revert (Cannot transfer token unless to Governance address)');
+        logTest("PIC 1", "Transfer eIDR token to hacker", true, '-Revert (Cannot transfer token unless to Gateway address)');
     }
 
     // PIC approve to gateway to spend eIDR Balance
     await(await rupiahToken.connect(pic1).approve(gatewayAddress, pic1Balance3)).wait();
-    logTest('PIC 1', "Approve governance contract to spend 2.5 mill eIDR", true);
+    logTest('PIC 1', "Approve gateway contract to spend 2.5 mill eIDR", true);
 
     // System check totalSupply of eIDR Token
     const currentTotalSupply = await rupiahToken.connect(rootAdmin).totalSupply();
