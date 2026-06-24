@@ -426,7 +426,25 @@ async function main() {
     )).wait();
     logTest("PIC 1", "Release milestone 1 with different signers", true, "- Milestone 1 DRAWABLE");
 
-}
+    // =================================================================
+    // PHASE 9: EMERGENCY INTERVENTION - AUDITOR FORCE FREEZE BLOCK
+    // =================================================================
+
+    // Auditor smell something wrongs
+    await(await web3Governance.connect(auditor1).forceFreezeProgram(programId)).wait();
+    logTest("Auditor 1", "Detected anomali on system", true, "- Status: FROZEN");
+
+    // system checking status program
+    const prop3 = await web3Governance.proposals(programId);
+    logTest("System", "Checking status program with id 1", true, `- Status: ${prop3.status}  (4 = FROZEN)`);
+
+    try {
+        await web3Governance.connect(pic1).executePicWithdrawal(programId, ethers.parseEther("500000"), "Vendor A", "Buy a item");
+        logTest("PIC 1", "Trying to force withdrawal fund with Frozen status condition", false);
+    } catch (e) {
+        logTest("PIC 1", "Trying to force withdrawal fund with Frozen status condition", true, "- Revert (Status: FROZEN)");
+    }
+}   
 
 main().catch((error) => {
     console.error(error);
