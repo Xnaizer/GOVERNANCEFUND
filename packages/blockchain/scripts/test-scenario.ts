@@ -393,6 +393,39 @@ async function main() {
     const prop2 = await web3Governance.proposals(programId);
     logTest("System", "Checking remaining balance to withdraw in program id 1", true, `- Status: ${prop2.status} (3=MILESTONE_ACHIEVED), Total Allocated Fund = ${ethers.formatEther(prop2.totalAllocatedSoFar)} eIDR, Remaining Fund = ${ethers.formatEther(prop2.currentAllocatedBalance)} eIDR`);
 
+    // =================================================================
+    // PHASE 8: ANTI COLLUSION ACTOR MILESTONE SIGNATURE
+    // =================================================================
+
+    // Milestone index 1, after milestone 0 finished.
+    const milestoneIndex1 = 1;
+    const evidenceHash1 = ethers.id("Evidance_Milestone_1_Proposal_1");
+    const payload1Bad = { programId, milestoneIndex: milestoneIndex1, milestoneBudget: ethers.parseEther("2500000"), evidenceHash: evidenceHash1}
+
+    const sigAdminBad = await rootAdmin.signTypedData(domain, types, payload1Bad);
+    const sigValidatorBad = await validator2.signTypedData(domain, types, payload1Bad);
+    const sigAuditorBad = await auditor1.signTypedData(domain, types, payload1Bad);
+
+    try {
+        await web3Governance.connect(pic1).executeMilestoneRelease(
+            programId, milestoneIndex1, ethers.parseEther("2500000"), evidenceHash1, sigAdminBad, sigValidatorBad, sigAuditorBad
+        );
+        logTest("PIC 1", "Trying to release milestone 1 with few same signers (collusion)", false);
+    } catch (e) {
+        logTest("PIC 1", "Trying to release milestone 1 with few same signers (collusion)", true, "- Revert (Anti-Collusion: signer already signed before)");
+    }
+
+    // Milestone 1, Different admin/validator/auditor
+    const sigAdmin1 = await admin2.signTypedData(domain, types, payload1Bad);
+    const sigValidator1 = await validator2.signTypedData(domain, types, payload1Bad);
+    const sigAuditor1 = await auditor2.signTypedData(domain, types, payload1Bad);  
+
+    await(await web3Governance.connect(pic1).executeMilestoneRelease(
+        programId, milestoneIndex1, ethers.parseEther("2500000"), evidenceHash1,
+        sigAdmin1, sigValidator1, sigAuditor1
+    )).wait();
+    logTest("PIC 1", "Release milestone 1 with different signers", true, "- Milestone 1 DRAWABLE");
+
 }
 
 main().catch((error) => {
