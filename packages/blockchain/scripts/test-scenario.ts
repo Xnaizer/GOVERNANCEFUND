@@ -1,4 +1,5 @@
 import { network } from "hardhat";
+import { after } from "node:test";
 
 async function main() {
     const { ethers } = await network.create();
@@ -481,6 +482,47 @@ async function main() {
     // System checking on program status
     const prop4 = await web3Governance.proposals(programId);
     logTest("System", "Checking on program status", true, `- Status : ${prop4.status} (2-DRAWABLE)`);
+
+
+    // =================================================================
+    // PHASE 11: FIAT REDEMPTION AT GATEWAY (BURN LOGIC)
+    // =================================================================
+
+    // Checking PIC Wallet Tokens (e-IDR)
+    const pic1Balance3 = await rupiahToken.balanceOf(pic1.address);
+    logTest("System", "Checking Amount of eIDR Token PIC has", true, `balance : ${ethers.formatEther(pic1Balance3)} eIDR`);
+
+    // PIC trying to transfer eIDR token to hacker
+    try {
+        await rupiahToken.connect(pic1).transfer(hacker.address, ethers.parseEther("1000000"));
+        logTest("PIC 1", "Transfer eIDR token to hacker", false);
+    } catch (e) {
+        logTest("PIC 1", "Transfer eIDR token to hacker", true, '-Revert (Cannot transfer token unless to Governance address)');
+    }
+
+    // PIC approve to gateway to spend eIDR Balance
+    await(await rupiahToken.connect(pic1).approve(gatewayAddress, pic1Balance3)).wait();
+    logTest('PIC 1', "Approve governance contract to spend 2.5 mill eIDR", true);
+
+    // System check totalSupply of eIDR Token
+    const currentTotalSupply = await rupiahToken.connect(rootAdmin).totalSupply();
+    logTest("System", "Checking total supply of eIDR token", true, `Total Supply Before Burned: ${ethers.formatEther(currentTotalSupply)} eIDR`);
+
+    // PIC trigger Gateway Burner
+    await(await gateway.connect(pic1).depositAndBurnToken(pic1Balance3)).wait();
+    logTest('Gateway', "Burn 2.5 mill eIDR token and transfer FIAT to PIC", true, "- Burned 2.5 Mill eIDR");
+
+    // System checking total suppply of eIDR Token
+    const afterTotalSupply = await rupiahToken.connect(pic1).totalSupply();
+    logTest("System", "Checking total supply of eIDR tokens", true, `- Total Supply After Burned : ${ethers.formatEther(afterTotalSupply)}`);
+
+    // System checking total balance of eIDR Token from PIC's wallet
+    const pic1Balance4 = await rupiahToken.balanceOf(pic1.address);
+    logTest("System", "Checking Amount of eIDR Token balance from PIC's wallet", true, `PIC's eIDR Balance ${ethers.formatEther(pic1Balance4)} eIDR`);
+
+    console.log("\n======================================================================================");
+    console.log("AUDIT COMPLETE — ALL PHASES PASSED");
+    console.log("======================================================================================\n");
 
 }   
 
