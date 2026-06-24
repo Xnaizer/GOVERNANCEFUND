@@ -444,6 +444,44 @@ async function main() {
     } catch (e) {
         logTest("PIC 1", "Trying to force withdrawal fund with Frozen status condition", true, "- Revert (Status: FROZEN)");
     }
+
+    // =================================================================
+    // PHASE 10: RECOVERY VIA BFT UNFREEZE APPEAL (N=3, THRESHOLD=3)
+    // =================================================================
+
+    // PIC Submit unfreeze appeal
+    await(await web3Governance.connect(pic1).proposeUnfreezeAppeal(programId)).wait();
+    logTest("PIC 1", "Submit a propose to appeal the program", true, "- Proposal created");
+
+    // Hacker trying to vote the program 
+    try {
+        await web3Governance.connect(hacker).voteUnfreezeAppeal(programId);
+        logTest("Hacker", "Voting the frozen program appeal", false);
+    } catch (e) {
+        logTest("Hacker", "Voting the frozen program appeal", true, "- Revert (Not Validator)");
+    }
+
+    // Multi Validator vote to the frozen program
+    await(await web3Governance.connect(validator1).voteUnfreezeAppeal(programId)).wait();
+    await(await web3Governance.connect(validator2).voteUnfreezeAppeal(programId)).wait();
+    logTest("Validator 1, 2", "Voting on frozen program with id 1 (2/3)", true );
+
+    // Admin trying to vote unfreeze program
+    try {
+        await web3Governance.connect(admin2).voteUnfreezeAppeal(programId);
+        logTest("Admin 2", "Voting on frozen program with id 1", false);
+    } catch (e) {
+        logTest("Admin 2", "Voting the frozen program appeal", true, "- Revert (Not Validator)");
+    }
+
+    // validator 3
+    await(await web3Governance.connect(validator3).voteUnfreezeAppeal(programId)).wait();
+    logTest("Validator 3", "Voting on frozen program with id 1", true, "- Program Unfreeze");
+
+    // System checking on program status
+    const prop4 = await web3Governance.proposals(programId);
+    logTest("System", "Checking on program status", true, `- Status : ${prop4.status} (2-DRAWABLE)`);
+
 }   
 
 main().catch((error) => {
