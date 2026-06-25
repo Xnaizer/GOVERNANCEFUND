@@ -1,0 +1,12 @@
+﻿{
+  // Paksa Prisma VS Code extension pakai prisma-fmt dari node_modules lokal
+  // bukan bundled language server v7 bawaan extension.
+  // Ini mencegah false positive untuk fitur Prisma v5 seperti directUrl.
+  "prisma.prismaFmtBinPath": "./packages/database/node_modules/prisma/build/index.js",
+
+  // Formatter tetap pakai extension Prisma
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",
+    "editor.formatOnSave": true
+  }
+}
