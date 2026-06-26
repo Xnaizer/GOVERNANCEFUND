@@ -24,7 +24,7 @@ contract Web3Governance is EIP712, AccessControl {
      * @dev After this window from submission, voteProposal reverts. Prevents stale proposals
      *      from being approved by slowly accumulating votes over an unreasonable time span.
      */
-    uint256 public constant PROPOSAL_VOTING_PERIOD = 7 days;
+    uint256 public constant VOTING_PERIOD = 7 days;
 
     /**
      * @notice Lifecycle states of a funding program.
@@ -260,7 +260,7 @@ contract Web3Governance is EIP712, AccessControl {
     // ADMIN GOVERNANCE FUNCTIONS
     // ==========================================
 
-/**
+    /**
      * @notice Proposes promoting an account to a structural role (ADMIN, VALIDATOR, or AUDITOR).
      * @dev Triggered by a single admin; requires BFT 67% admin votes to execute.
      *      The candidate must hold NO structural role (one-address-one-role enforcement).
@@ -446,7 +446,7 @@ contract Web3Governance is EIP712, AccessControl {
         Proposal storage prop = proposals[programId];
 
         require(prop.status == ProposalStatus.PENDING, "Govern: Program is not in voting phase");
-        require(block.timestamp <= prop.submittedAt + PROPOSAL_VOTING_PERIOD, "Govern: Voting period has expired");
+        require(block.timestamp <= prop.submittedAt + VOTING_PERIOD, "Govern: Voting period has expired");
         require(!hasVotedProposal[programId][msg.sender], "Govern: You have already voted");
 
         hasVotedProposal[programId][msg.sender] = true;
@@ -687,24 +687,36 @@ contract Web3Governance is EIP712, AccessControl {
      *      Threshold uses live totalValidatorsCount at vote-cast time (known limitation).
      * @param programId The frozen program being voted on.
      */
-    function voteUnfreezeAppeal(uint256 programId) external onlyRole(VALIDATOR_ROLE) {
+    function voteUnfreezeAppeal(uint256 programId, bool approve) external onlyRole(VALIDATOR_ROLE) {
         Proposal storage prop = proposals[programId];
         UnfreezeAppeal storage appeal = unfreezeAppeals[programId];
 
         require(prop.status == ProposalStatus.FROZEN, "Govern: Program is not frozen");
-        require(!appeal.executed, "Govern: Appeal already resolved");
+        require(!appeal.resolved, "Govern: Appeal already resolved");
+        require(appeal.appealStartedAt != 0, "Govern: No active appeal");
+        require(block.timestamp <= appeal.appealStartedAt + VOTING_PERIOD, "Govern: Appeal voting expired");
         require(!hasVotedUnfreeze[programId][msg.sender], "Govern: You have already vote on this appeal");
 
         hasVotedUnfreeze[programId][msg.sender] = true;
-        appeal.voteCount += 1;
-        emit UnfreezeAppealVoted(programId, msg.sender, appeal.voteCount);
+
+        if (approve) {
+            appeal.approveVotes += 1;
+        } else {
+            appeal.rejectVotes += 1;
+        }
+
+        emit UnfreezeAppealVoted(programId, msg.sender, approve, appeal.approveVotes, appeal.rejectVotes);
 
         uint256 bftThreshold = ((2 * totalValidatorsCount) / 3) + 1;
 
-        if(appeal.voteCount >= bftThreshold) {
-            appeal.executed = true;
-            prop.status = ProposalStatus.DRAWABLE;
+        if (appeal.approveVotes >= bftThreshold) {
+            appeal.resolved = true;
+            prop.status = ProposalStatus.DRAWABLE;          
             emit ProgramUnfrozenViaBFT(programId);
+        } else if (appeal.rejectVotes >= bftThreshold) {
+            appeal.resolved = true;
+            prop.status = ProposalStatus.FRAUD_CONFIRMED;   
+            emit ProgramFraudConfirmed(programId);
         }
     }
 }
