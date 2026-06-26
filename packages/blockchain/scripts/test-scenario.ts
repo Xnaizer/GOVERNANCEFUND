@@ -35,17 +35,17 @@ async function main() {
     // =================================================================
 
     const RupiahToken = await ethers.getContractFactory("RupiahToken");
-    const rupiahToken = await RupiahToken.deploy();
+    const rupiahToken = await RupiahToken.deploy() as unknown as any;
     await rupiahToken.waitForDeployment();
     const tokenAddress = await rupiahToken.getAddress();
 
     const Gateway = await ethers.getContractFactory("TrustedGatewayBurner");
-    const gateway = await Gateway.deploy(tokenAddress);
+    const gateway = await Gateway.deploy(tokenAddress) as unknown as any;
     await gateway.waitForDeployment();
     const gatewayAddress = await gateway.getAddress();
 
     const Web3Governance = await ethers.getContractFactory("Web3Governance");
-    const web3Governance = await Web3Governance.deploy(tokenAddress, rootAdmin.address);
+    const web3Governance = await Web3Governance.deploy(tokenAddress, rootAdmin.address) as unknown as any;
     await web3Governance.waitForDeployment();
     const governanceAddress = await web3Governance.getAddress();
 
@@ -446,41 +446,122 @@ async function main() {
     }
 
     // =================================================================
-    // PHASE 10: RECOVERY VIA BFT UNFREEZE APPEAL (N=3, THRESHOLD=3)
+    // PHASE 10: RECOVERY VIA BFT UNFREEZE APPEAL — APPROVE WINS (N=3, THRESHOLD=3)
     // =================================================================
 
-    // PIC Submit unfreeze appeal
+    // PIC submit unfreeze appeal
     await(await web3Governance.connect(pic1).proposeUnfreezeAppeal(programId)).wait();
-    logTest("PIC 1", "Submit a propose to appeal the program", true, "- Proposal created");
+    logTest("PIC 1", "Submit unfreeze appeal", true, "- Appeal opened for voting");
 
-    // Hacker trying to vote the program 
+    // Hacker trying to vote
     try {
-        await web3Governance.connect(hacker).voteUnfreezeAppeal(programId);
+        await web3Governance.connect(hacker).voteUnfreezeAppeal(programId, true);
         logTest("Hacker", "Voting the frozen program appeal", false);
     } catch (e) {
         logTest("Hacker", "Voting the frozen program appeal", true, "- Revert (Not Validator)");
     }
 
-    // Multi Validator vote to the frozen program
-    await(await web3Governance.connect(validator1).voteUnfreezeAppeal(programId)).wait();
-    await(await web3Governance.connect(validator2).voteUnfreezeAppeal(programId)).wait();
-    logTest("Validator 1, 2", "Voting on frozen program with id 1 (2/3)", true );
+    // Validator 1, 2 vote APPROVE (setuju unfreeze)
+    await(await web3Governance.connect(validator1).voteUnfreezeAppeal(programId, true)).wait();
+    await(await web3Governance.connect(validator2).voteUnfreezeAppeal(programId, true)).wait();
+    logTest("Validator 1,2", "Vote APPROVE unfreeze (2/3)", true);
 
-    // Admin trying to vote unfreeze program
+    // Admin try to vote
     try {
-        await web3Governance.connect(admin2).voteUnfreezeAppeal(programId);
-        logTest("Admin 2", "Voting on frozen program with id 1", false);
+        await web3Governance.connect(admin2).voteUnfreezeAppeal(programId, true);
+        logTest("Admin 2", "Voting on frozen program", false);
     } catch (e) {
-        logTest("Admin 2", "Voting the frozen program appeal", true, "- Revert (Not Validator)");
+        logTest("Admin 2", "Voting on frozen program", true, "- Revert (Not Validator)");
     }
 
-    // validator 3
-    await(await web3Governance.connect(validator3).voteUnfreezeAppeal(programId)).wait();
-    logTest("Validator 3", "Voting on frozen program with id 1", true, "- Program Unfreeze");
+    // Validator 3 vote APPROVE → threshold fullfilled → DRAWABLE
+    await(await web3Governance.connect(validator3).voteUnfreezeAppeal(programId, true)).wait();
+    logTest("Validator 3", "Vote APPROVE unfreeze (3/3)", true, "- Program restored to DRAWABLE");
 
-    // System checking on program status
+    // Checking status  
     const prop4 = await web3Governance.proposals(programId);
-    logTest("System", "Checking on program status", true, `- Status : ${prop4.status} (2-DRAWABLE)`);
+    logTest("System", "Checking program status after unfreeze", true, `- Status: ${prop4.status} (2=DRAWABLE)`);
+
+    // Setup: program 4, approve, release milestone, freeze
+    const fraudProgramId = 4;
+    const fraudHash = ethers.id("Program_Fraud_Test");
+    await(await web3Governance.connect(pic1).submitProposal(fraudProgramId, fraudHash, ethers.parseEther("3000000"), 1)).wait();
+    await(await web3Governance.connect(validator1).voteProposal(fraudProgramId)).wait();
+    await(await web3Governance.connect(validator2).voteProposal(fraudProgramId)).wait();
+    await(await web3Governance.connect(validator3).voteProposal(fraudProgramId)).wait();
+    logTest("System", "Setup program 4: submitted & approved", true, "- Status: APPROVED");
+
+    // Release milestone 0 
+    const fraudEvidence = ethers.id("Fraud_Milestone_0");
+    const fraudPayload = { programId: fraudProgramId, milestoneIndex: 0, milestoneBudget: ethers.parseEther("3000000"), evidenceHash: fraudEvidence };
+    const fSigAdmin = await rootAdmin.signTypedData(domain, types, fraudPayload);
+    const fSigValidator = await validator1.signTypedData(domain, types, fraudPayload);
+    const fSigAuditor = await auditor1.signTypedData(domain, types, fraudPayload);
+    await(await web3Governance.connect(pic1).executeMilestoneRelease(fraudProgramId, 0, ethers.parseEther("3000000"), fraudEvidence, fSigAdmin, fSigValidator, fSigAuditor)).wait();
+    logTest("System", "Setup program 4: milestone 0 released", true, "- Status: DRAWABLE");
+
+    // Auditor freeze program 4
+    await(await web3Governance.connect(auditor1).forceFreezeProgram(fraudProgramId)).wait();
+    logTest("Auditor 1", "Freeze program 4 on fraud suspicion", true, "- Status: FROZEN");
+
+    // PIC appeal
+    await(await web3Governance.connect(pic1).proposeUnfreezeAppeal(fraudProgramId)).wait();
+    logTest("PIC 1", "Submit unfreeze appeal for program 4", true, "- Appeal opened");
+
+    // 3 validator vote REJECT
+    await(await web3Governance.connect(validator1).voteUnfreezeAppeal(fraudProgramId, false)).wait();
+    await(await web3Governance.connect(validator2).voteUnfreezeAppeal(fraudProgramId, false)).wait();
+    logTest("Validator 1,2", "Vote REJECT unfreeze (2/3)", true);
+
+    await(await web3Governance.connect(validator3).voteUnfreezeAppeal(fraudProgramId, false)).wait();
+    logTest("Validator 3", "Vote REJECT unfreeze (3/3)", true, "- FRAUD CONFIRMED");
+
+    // Checking on status 
+    const fraudProp = await web3Governance.proposals(fraudProgramId);
+    logTest("System", "Checking program 4 status", true, `- Status: ${fraudProp.status} (6=FRAUD_CONFIRMED)`);
+
+    // PIC try to withdraw while detected fraud
+    try {
+        await web3Governance.connect(pic1).executePicWithdrawal(fraudProgramId, ethers.parseEther("100000"), "X", "Y");
+        logTest("PIC 1", "Trying to withdraw after fraud confirmed", false);
+    } catch (e) {
+        logTest("PIC 1", "Trying to withdraw after fraud confirmed", true, "- Revert (Status: FRAUD_CONFIRMED, funds locked forever)");
+    }
+
+    // program 5: submit, approve, release, freeze, appeal
+    const expiredProgramId = 5;
+    const expiredHash = ethers.id("Program_Expired_Appeal_Test");
+    await(await web3Governance.connect(pic1).submitProposal(expiredProgramId, expiredHash, ethers.parseEther("2000000"), 1)).wait();
+    await(await web3Governance.connect(validator1).voteProposal(expiredProgramId)).wait();
+    await(await web3Governance.connect(validator2).voteProposal(expiredProgramId)).wait();
+    await(await web3Governance.connect(validator3).voteProposal(expiredProgramId)).wait();
+
+    const expEvidence = ethers.id("Expired_Milestone_0");
+    const expPayload = { programId: expiredProgramId, milestoneIndex: 0, milestoneBudget: ethers.parseEther("2000000"), evidenceHash: expEvidence };
+    const eSigAdmin = await rootAdmin.signTypedData(domain, types, expPayload);
+    const eSigValidator = await validator1.signTypedData(domain, types, expPayload);
+    const eSigAuditor = await auditor1.signTypedData(domain, types, expPayload);
+    await(await web3Governance.connect(pic1).executeMilestoneRelease(expiredProgramId, 0, ethers.parseEther("2000000"), expEvidence, eSigAdmin, eSigValidator, eSigAuditor)).wait();
+
+    await(await web3Governance.connect(auditor1).forceFreezeProgram(expiredProgramId)).wait();
+    await(await web3Governance.connect(pic1).proposeUnfreezeAppeal(expiredProgramId)).wait();
+    logTest("System", "Setup program 5: frozen & appeal opened", true, "- Status: FROZEN");
+
+    // Skip 7 days (Local Test)
+    await ethers.provider.send("evm_increaseTime", [7 * 24 * 60 * 60 + 30]);
+    await ethers.provider.send("evm_mine", []);
+
+    // Validator trying to vote after deadline
+    try {
+        await(await web3Governance.connect(validator1).voteUnfreezeAppeal(expiredProgramId, true)).wait();
+        logTest("Validator 1", "Trying to vote after appeal deadline", false);
+    } catch (e) {
+        logTest("Validator 1", "Trying to vote after appeal deadline", true, "- Revert (Appeal voting expired)");
+    }
+
+    // Program FROZEN (unresolved)
+    const expiredProp = await web3Governance.proposals(expiredProgramId);
+    logTest("System", "Checking program 5 status (unresolved)", true, `- Status: ${expiredProp.status} (4=FROZEN, stays frozen)`);
 
 
     // =================================================================
