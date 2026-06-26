@@ -35,7 +35,7 @@ enum ProposalStatus {
   MILESTONE_ACHIEVED
   FROZEN
   COMPLETED
-  EXPIRED
+  FRAUD_CONFIRMED 
 }
 
 
@@ -68,15 +68,21 @@ enum SignerRole {
   AUDITOR
 }
 
-// enum ReputationReason {
-
-// }
+// enum Reputation Reason
+enum ReputationReason {
+  PROGRAM_COMPLETED
+  MILESTONE_FINALIZED
+  FRAUD_PROVEN
+  FALSE_FREEZE
+  VALID_FREEZE
+}
 
 // enum Freeze Result
 enum FreezeResult {
   PENDING
   CLEARED
   FRAUD_PROVEN
+  UNRESOLVED 
 }
 
 // User Model Data
@@ -105,9 +111,9 @@ model User {
   profilePictureURL   String?
   verificationTokens  VerificationToken[]
   programs            Program[]
-  roleVoteBallots RoleVoteBallot[]
-  unfreezeBallots UnfreezeVoteBallot[]
-  reputationLogs ReputationLog[]
+  roleVoteBallots     RoleVoteBallot[]
+  unfreezeBallots     UnfreezeVoteBallot[]
+  reputationLogs      ReputationLog[]
 }
 
 // Reputation Log Model Data
@@ -160,6 +166,7 @@ model Program {
   withdrawals         WithdrawalRecord[]
   unfreezeVote        UnfreezeVote?
   freezeOutcome       FreezeOutcome?
+  reputationLogs      ReputationLog[]
 }
 
 // Milestone Model Data
@@ -235,8 +242,10 @@ model UnfreezeVote {
   id                 String     @id   @default(cuid())
   programId          Int        @unique
   program            Program    @relation(fields: [programId], references: [programId])
-  voteCount          Int        @default(0)
-  executed           Boolean    @default(false)
+  approveVotes       Int        @default(0)
+  rejectVotes        Int        @default(0)
+  appealStartedAt    DateTime?
+  resolved           Boolean    @default(false)
   createdAt          DateTime   @default(now())
   ballots            UnfreezeVoteBallot[]
 }
@@ -248,6 +257,7 @@ model UnfreezeVoteBallot {
   unfreezeVote       UnfreezeVote   @relation(fields: [unfreezeVoteId], references: [id])
   voterId            String
   voter              User       @relation(fields: [voterId], references: [id])
+  approve            Boolean 
   votedAt            DateTime   @default(now())
 
   @@unique([unfreezeVoteId, voterId])
