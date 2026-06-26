@@ -37,7 +37,7 @@ contract Web3Governance is EIP712, AccessControl {
      *      FROZEN : halted by auditor.
      *      COMPLETED : all milestone finished.
      */
-    enum ProposalStatus { PENDING, APPROVED, DRAWABLE, MILESTONE_ACHIEVED, FROZEN, COMPLETED }
+    enum ProposalStatus { PENDING, APPROVED, DRAWABLE, MILESTONE_ACHIEVED, FROZEN, COMPLETED, FRAUD_CONFIRMED }
 
     /**
      * @notice Core data for a funding program by a PIC.
@@ -87,8 +87,10 @@ contract Web3Governance is EIP712, AccessControl {
      * @dev executed = true once the 67% threshold is reached and program reverts to DRAWABLE.
      */
     struct UnfreezeAppeal {
-        uint256 voteCount;
-        bool executed;
+        uint256 approveVotes;
+        uint256 rejectVotes;
+        uint256 appealStartedAt;
+        bool resolved;
     }
 
     /**
@@ -234,10 +236,13 @@ contract Web3Governance is EIP712, AccessControl {
     event UnfreezeAppealSubmitted(uint256 indexed programId, address indexed picWallet);
 
     /// @notice Emitted each time a validator votes on an unfreeze appeal.
-    event UnfreezeAppealVoted(uint256 indexed programId, address indexed validator, uint256 currentVotes);
+    event UnfreezeAppealVoted(uint256 indexed programId, address indexed validator, bool approve, uint256 approveVotes, uint256 rejectVotes);
 
     /// @notice Emitted when an unfreeze appeal reaches the 67% BFT threshold and the program resumes.
     event ProgramUnfrozenViaBFT(uint256 indexed programId);
+
+    // @notice Emitted when an unfreeze appeal not reached threshold
+    event ProgramFraudConfirmed(uint256 indexed programId);
 
     /**
      * @notice Declaration of smart GOVERNANCEFUND contract.
@@ -665,8 +670,10 @@ contract Web3Governance is EIP712, AccessControl {
         require(msg.sender == prop.picWallet, "Govern: Only the program PIC can appeal");
 
         unfreezeAppeals[programId] = UnfreezeAppeal({
-            voteCount: 0,
-            executed: false
+            approveVotes: 0,
+            rejectVotes: 0,
+            appealStartedAt: block.timestamp,
+            resolved: false
         });
 
         emit UnfreezeAppealSubmitted(programId, msg.sender);
