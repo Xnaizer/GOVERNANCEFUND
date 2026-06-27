@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', "production", "test"]).default("development"),
     PORT: z.coerce.number().default(4000),
@@ -11,7 +10,13 @@ const envSchema = z.object({
     DIRECT_URL: z.string().min(1, "DIRECT_URL is required"),
     JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 chars"),
     JWT_EXPIRES_IN: z.string().default("1d"),
-    UPSTASH_REDIS_URL: z.string().min(1, "UPSTASH_REDIS_URL is required")
+    UPSTASH_REDIS_URL: z.string().min(1, "UPSTASH_REDIS_URL is required"),
+    SMTP_HOST: z.string().min(1, "SMTP_HOST is required"),
+    SMTP_PORT: z.coerce.number().default(2525),
+    SMTP_USER: z.string().min(1, "SMTP_USER is required"),
+    SMTP_PASS: z.string().min(1, "SMTP_PASS is required"),
+    EMAIL_FROM: z.string().default("http://localhost:3000"),
+    FRONTEND_URL: z.string().min(1, "FRONTEND_URL is required")
 });
 
 const parsed = envSchema.safeParse(process.env);
