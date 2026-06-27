@@ -3,6 +3,9 @@ import type { Express, Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
+import { success } from "./utils/envelope";
+import { notFoundHandler } from "./middleware/notFound";
+import { errorHandler } from "./middleware/errorHandler";
 
 const app: Express = express();
 
@@ -13,11 +16,10 @@ app.use(morgan("dev")); // log every request
 app.use(express.json());
 
 app.get("/health", (_req: Request, res: Response): void => {
-    res.json({
-        data: "ok",
-        error: null,
-        meta: {}
-    });
+    res.json(success("ok"));
 });
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export { app };
