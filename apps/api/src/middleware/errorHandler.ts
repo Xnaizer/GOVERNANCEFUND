@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError";
-import { failure } from "../utils/envelope";
+import response from "../utils/response";
 import { env } from "../config/env";
 
 export function errorHandler(
@@ -10,7 +10,7 @@ export function errorHandler(
     _next: NextFunction
 ): void {
     if(err instanceof AppError) {
-        res.status(err.statusCode).json(failure(err.message));
+        response.error(res, err.message, err.statusCode);
         return;
     }
 
@@ -18,5 +18,5 @@ export function errorHandler(
 
     const message = env.NODE_ENV === "development" ? err.message : "Internal server error";
 
-    res.status(500).json(failure(message));
+    response.error(res, message, 500);
 }

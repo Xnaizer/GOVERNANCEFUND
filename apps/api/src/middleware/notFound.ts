@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { failure } from "../utils/envelope";
+import response from "../utils/response";
 
 export function notFoundHandler(req: Request, res: Response): void {
-    res.status(404).json(failure(`Route not found: ${req.method} ${req.path}`));
+    response.notFound(res, `Route not found: ${req.method} ${req.path}`);
 }

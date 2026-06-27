@@ -3,7 +3,7 @@ import type { Express, Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
-import { success } from "./utils/envelope";
+import response from "./utils/response";
 import { notFoundHandler } from "./middleware/notFound";
 import { errorHandler } from "./middleware/errorHandler";
 
@@ -16,7 +16,7 @@ app.use(morgan("dev")); // log every request
 app.use(express.json());
 
 app.get("/health", (_req: Request, res: Response): void => {
-    res.json(success("ok"));
+    response.success(res, "ok");
 });
 
 app.use(notFoundHandler);
