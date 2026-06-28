@@ -56,5 +56,14 @@ export default {
         await authService.logoutUser(user.jti, decoded.exp);
 
         response.success(res, "Logged out successfully");
+    },
+
+    // GET /api/v1/auth/me
+    async me(req: Request, res: Response): Promise<void> {
+        const user = req.user!;
+
+        const profile = await authService.getMe(user.id);
+
+        response.success(res,profile);
     }
 }
