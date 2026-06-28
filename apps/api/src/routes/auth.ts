@@ -13,5 +13,10 @@ router.post(
     asyncHandler(authMiddleware), 
     asyncHandler(authController.logout)
 );
+router.get(
+    "/me",
+    asyncHandler(authMiddleware),
+    asyncHandler(authController.me)
+);
 
 export default router;
