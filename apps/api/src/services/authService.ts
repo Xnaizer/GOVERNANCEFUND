@@ -4,6 +4,11 @@ import { sendTemplateEmail } from "../lib/mailer";
 import { AppError } from "../utils/AppError";
 import { env } from "../config/env";
 import type { RegisterInput } from "../validators/authValidator";
+import { comparePassword } from "./hashService";
+import { signToken } from "./jwtService";
+import { redis } from "../lib/redis";
+import jwt from "jsonwebtoken";
+import type { LoginInput } from "../validators/authValidator";
 
 export async function registerUser(input: RegisterInput) : Promise<void> {
     const email = input.email.toLowerCase().trim();
@@ -99,4 +104,48 @@ export async function verifyEmail(token: string): Promise<void> {
         });
     })
 
+}
+
+export async function loginUser(input: LoginInput): Promise<{token: string}> {
+    const identifier = input.identifier.toLowerCase().trim();
+
+    const user = await prisma.user.findFirst({
+        where: {
+            OR: [
+                {
+                    email: identifier
+                },
+                {
+                    username: identifier
+                }
+            ]
+        }
+    });
+
+    if(!user) {
+        throw new AppError("Invalid credentials", 401);
+    }
+
+    if(!user.isActive) {
+        throw new AppError("Please verify your email before logging in", 403);
+    }
+
+    const valid = await comparePassword(input.password, user.passwordHash);
+
+    if(!valid) {
+        throw new AppError("Invalid credentials", 401);
+    }
+
+    const { token } = signToken(user.id, user.role);
+
+    return { token };
+
+}
+
+export async function logoutUser(jti: string, exp: number): Promise<void> {
+    const remainingTtl = exp - Math.floor(Date.now() / 1000);
+
+    if(remainingTtl > 0) {
+        await redis.set(`blocklist:${jti}`, "1", "EX", remainingTtl);
+    }
 }
