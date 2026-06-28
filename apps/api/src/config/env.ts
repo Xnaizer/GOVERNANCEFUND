@@ -15,8 +15,8 @@ const envSchema = z.object({
     SMTP_PORT: z.coerce.number().default(2525),
     SMTP_USER: z.string().min(1, "SMTP_USER is required"),
     SMTP_PASS: z.string().min(1, "SMTP_PASS is required"),
-    EMAIL_FROM: z.string().default("http://localhost:3000"),
-    FRONTEND_URL: z.string().min(1, "FRONTEND_URL is required")
+    EMAIL_FROM: z.string().default("GovernanceFund <noreply@governancefund.dev>"),
+    FRONTEND_URL: z.string().min(1, "http://localhost:3000")
 });
 
 const parsed = envSchema.safeParse(process.env);
