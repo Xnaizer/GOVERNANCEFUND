@@ -149,3 +149,31 @@ export async function logoutUser(jti: string, exp: number): Promise<void> {
         await redis.set(`blocklist:${jti}`, "1", "EX", remainingTtl);
     }
 }
+
+export async function getMe(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: {
+            id: userId
+        },
+        select: {
+            id: true,
+            username: true,
+            email: true,
+            role: true,
+            isActive: true,
+            isVerified: true,
+            reputationScore: true,
+            walletAddress: true,
+            name: true,
+            institution: true,
+            position: true,
+            createdAt: true
+        }
+    });
+
+    if(!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    return user;
+}
