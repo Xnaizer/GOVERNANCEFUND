@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
-import { registerSchema } from "../validators/authValidator";
+import { loginSchema, registerSchema } from "../validators/authValidator";
 import * as authService from "../services/authService";
 import { AppError } from "../utils/AppError";
 import response from "../utils/response";
+import jwt from "jsonwebtoken";
 
 export default {
 
@@ -16,7 +17,7 @@ export default {
 
         await authService.registerUser(parsed.data);
 
-        response.created(res, "Registration successfull. Check your email to verify.");
+        response.created(res, "Registration successful. Check your email to verify.");
     },
 
     // GET /api/v1/auth/verify-email?token=xxx
@@ -31,4 +32,29 @@ export default {
 
         response.success(res, "Email verified successfully. You can now log in.")
     },
+
+    // POST /api/v1/auth/login
+    async login(req: Request, res: Response): Promise<void> {
+        const parsed = loginSchema.safeParse(req.body);
+
+        if(!parsed.success) {
+            throw new AppError(parsed.error.errors[0].message, 400);
+        }
+
+        const result = await authService.loginUser(parsed.data);
+
+        response.success(res, result);
+    },
+
+    // POST /api/v1/auth/logout
+    async logout(req: Request, res: Response): Promise<void> {
+        const user = req.user!;
+
+        const token = req.headers.authorization!.substring(7);
+        const decoded = jwt.decode(token) as { exp: number };
+
+        await authService.logoutUser(user.jti, decoded.exp);
+
+        response.success(res, "Logged out successfully");
+    }
 }
