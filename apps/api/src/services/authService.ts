@@ -7,7 +7,6 @@ import type { RegisterInput } from "../validators/authValidator";
 import { comparePassword } from "./hashService";
 import { signToken } from "./jwtService";
 import { redis } from "../lib/redis";
-import jwt from "jsonwebtoken";
 import type { LoginInput } from "../validators/authValidator";
 
 export async function registerUser(input: RegisterInput) : Promise<void> {
