@@ -143,16 +143,28 @@ model VerificationToken {
 // Program Model Data
 model Program {
   programId           Int       @id  @default(autoincrement())
-  programHash         String    
+  programHash         String
   picWallet           String
-  totalBudget         String    
+  totalBudget         String
   totalAllocatedSoFar String    @default("0")
-  milestoneCount      Int       
+  milestoneCount      Int
   currentMilestone    Int       @default(0)
   status              ProposalStatus  @default(PENDING)
   submittedAt         DateTime?
-  title               String?    
+  title               String?
   description         String?
+  province            String?
+  regency             String?
+  district            String?
+  locationAddress     String?
+  executorName        String?
+  executorRegistration String?
+  category            String?
+  institutionName     String?
+  fiscalYear          Int?
+  plannedStartDate    DateTime?
+  plannedEndDate      DateTime?
+  ipfsCid             String?
   integrity           Integrity   @default(VERIFIED)
   displayTab          DisplayTab  @default(ACTIVE)
   isOrphan            Boolean     @default(false)
