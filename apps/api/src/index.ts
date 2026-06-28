@@ -1,6 +1,7 @@
 import { env } from "./config/env";
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
+import { redis } from "./lib/redis";
 
 async function main() {
 
@@ -17,6 +18,8 @@ async function main() {
         server.close(async () => {
             await prisma.$disconnect();
             console.log("[SERVER] Database disconnected");
+            redis.disconnect();
+            console.log("[SERVER] Redis disconnected");
             process.exit(0);
         });
     };
