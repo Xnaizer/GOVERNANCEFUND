@@ -4,9 +4,41 @@ import { computeProgramHash } from "@repo/shared";
 import { getValidatorCount } from "./contractService";
 import type { CreateProgramInput } from "../validators/programValidator";
 import { invalidate, invalidatePattern } from "../lib/cache";
+import { cacheAside } from "../lib/cache";
+import type { ListProgramQuery } from "../validators/programValidator";
 
 const MIN_VALIDATORS = 3;
 const REPUTATION_BLOCKED = 100;
+const PUBLIC_PROGRAM_SELECT = {
+    programId: true,
+    programHash: true,
+    picWallet: true,
+    totalBudget: true,
+    totalAllocatedSoFar: true,
+    milestoneCount: true,
+    currentMilestone: true,
+    status: true,
+    title: true,
+    description: true,
+    province: true,
+    regency: true,
+    district: true,
+    locationAddress: true,
+    executorName: true,
+    executorRegistration: true,
+    category: true,
+    institutionName: true,
+    fiscalYear: true,
+    plannedStartDate: true,
+    plannedEndDate: true,
+    integrity: true,
+    displayTab: true,
+    isOrphan: true,
+    isOnChain: true,
+    txHash: true,
+    submittedAt: true,
+    createdt: true
+} as const;
 
 export async function createProgram(userId: string, input: CreateProgramInput) {
     const user = await prisma.user.findUnique({
@@ -120,4 +152,87 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
     await invalidate("public:stats");
 
     return { programId: result.programId, programHash: result.programHash };
+}
+
+export async function listPrograms(query: ListProgramQuery) {
+    const { tab, page, limit } = query; 
+    const skip = (page - 1) * limit;
+    const cacheKey = `programs:list:${tab ?? "all"}:${page}:${limit}`;
+
+    return cacheAside(cacheKey, 30, async () => {
+        const where = tab ? { displayTab: tab } : {};
+
+        const [programs, total] = await Promise.all([
+            prisma.program.findMany({
+                where,
+                select: PUBLIC_PROGRAM_SELECT,
+                orderBy: { createdAt: "desc" },
+                skip,
+                take: limit
+            }),
+            prisma.program.count({ where })
+        ]);
+        
+        return {
+            programs,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        }
+    });
+
+}
+
+export async function getProgramById(programId: number) {
+    const cacheKey = `program:detail:${programId}`;
+
+    return cacheAside(cacheKey, 60, async () => {
+        const program = await prisma.program.findUnique({
+            where: {
+                programId
+            },
+            select: {
+                ...PUBLIC_PROGRAM_SELECT,
+                milestones: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        status: true,
+                        milestoneIndex: true,
+                        milestoneBudget: true,
+                        evidenceURL: true,
+                        evidenceHash: true
+                    },
+                    orderBy: { milestoneIndex: "asc" }
+                }
+            }
+        });
+
+        if(!program) {
+            throw new AppError("Program not found", 404);
+        }
+
+        return program;
+    });
+}
+
+export async function getPublicStats() {
+    return cacheAside("public:stats", 60, async () => {
+        const [active, finished, flagged, fraud, total] = await Promise.all([
+            prisma.program.count({ where: { displayTab: "ACTIVE" }}),
+            prisma.program.count({ where: { displayTab: "FINISHED" }}),
+            prisma.program.count({ where: { displayTab: "FLAGGED" }}),
+            prisma.program.count({ where: { displayTab: "FRAUD" }}),
+            prisma.program.count(),
+        ]);
+
+        return {
+            total,
+            byTab: { active, finished, flagged, fraud }
+        }
+    });
 }
