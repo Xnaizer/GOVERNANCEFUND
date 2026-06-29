@@ -18,6 +18,7 @@ const envSchema = z.object({
     EMAIL_FROM: z.string().default("GovernanceFund <noreply@governancefund.dev>"),
     FRONTEND_URL: z.string().min(1, "http://localhost:3000"),
     ALCHEMY_BASE_SEPOLIA_RPC_URL: z.string().url("Invalid Alchemy RPC URL"),
+    ALCHEMY_WEBHOOK_SECRET: z.string().min(1, "ALCHEMY_WEBHOOK_SECRET is required")
 });
 
 const parsed = envSchema.safeParse(process.env);
