@@ -30,6 +30,15 @@ export async function authMiddleware(
         throw new AppError("Token has been revoked", 401);
     }
 
+    const validAfter = await redis.get(`tokensValidAfter:${payload.sub}`);
+
+    if(validAfter) {
+        const tokenIssuesAt = payload.iat;
+        if(tokenIssuesAt && tokenIssuesAt < Number(validAfter)) {
+            throw new AppError("Token has been revoked, please log in again", 401)
+        }
+    }
+
     req.user = {
         id: payload.sub,
         role: payload.role,
