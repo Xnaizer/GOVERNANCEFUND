@@ -176,3 +176,91 @@ export async function getMe(userId: string) {
 
     return user;
 }
+
+export async function requestPasswordReset(email: string): Promise<void> {
+    const forgotEmail = email.toLowerCase().trim();
+
+    const user = await prisma.user.findUnique({
+        where: {
+            email: forgotEmail
+        }
+    });
+
+    if(!user) return;
+
+    const rawToken = generateToken();
+    const tokenHash = hashToken(rawToken);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await prisma.verificationToken.deleteMany({
+        where: {
+            userId: user.id,
+            type: "RESET_PASSWORD"
+        }
+    });
+
+    await prisma.verificationToken.create({
+        data: {
+            tokenHash,
+            type: "RESET_PASSWORD",
+            expiresAt,
+            userId: user.id
+        }
+    });
+
+    const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${rawToken}`;
+
+    await sendTemplateEmail({
+        to: forgotEmail,
+        subject: "Reset your GovernanceFund password",
+        template: "reset-password",
+        data: {
+            resetUrl,
+            year: new Date().getFullYear()
+        }
+    });
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+    const tokenHash = hashToken(token);
+
+    const record = await prisma.verificationToken.findUnique({
+        where: {
+            tokenHash
+        }
+    });
+
+    if(!record || record.type !== "RESET_PASSWORD") {
+        throw new AppError("Invalid reset token", 400);
+    }
+
+    if(record.expiresAt < new Date()) {
+        throw new AppError("Reset token has expired", 400);
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+
+    await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+            where: {
+                id: record.userId
+            },
+            data: {
+                passwordHash
+            }
+        });
+
+        await tx.verificationToken.delete({
+            where: {
+                id: record.id
+            }
+        });
+    });
+
+    await revokeAllUserTokens(record.userId);
+}
+
+export async function revokeAllUserTokens(userId: string): Promise<void> {
+    const now = Math.floor(Date.now() / 1000);
+    await redis.set(`tokensValidAfter:${userId}`, now.toString());
+}
