@@ -3,6 +3,7 @@ import { AppError } from "../utils/AppError";
 import { computeProgramHash } from "@repo/shared";
 import { getValidatorCount } from "./contractService";
 import type { CreateProgramInput } from "../validators/programValidator";
+import { invalidate, invalidatePattern } from "../lib/cache";
 
 const MIN_VALIDATORS = 3;
 const REPUTATION_BLOCKED = 100;
@@ -114,6 +115,9 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
 
         return updated;
     });
+
+    await invalidatePattern("programs:list:*");
+    await invalidate("public:stats");
 
     return { programId: result.programId, programHash: result.programHash };
 }
