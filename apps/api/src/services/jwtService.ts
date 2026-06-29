@@ -6,6 +6,7 @@ export interface JwtPayload {
     sub: string;
     role: string;
     jti: string;
+    iat?: number; 
 }
 
 export interface JwtResponse {
