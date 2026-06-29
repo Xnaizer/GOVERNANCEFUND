@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { createProgramSchema } from "../validators/programValidator";
+import { createProgramSchema, listProgramsQuerySchema } from "../validators/programValidator";
 import * as programService from "../services/programService";
 import { AppError } from "../utils/AppError";
 import response from "../utils/response";
@@ -19,5 +19,32 @@ export default {
         const result = await programService.createProgram(user.id, parsed.data);
 
         response.created(res, result);
+    },
+
+    // GET /api/v1/programs 
+    async list(req: Request, res: Response): Promise<void> {
+        const parsed = listProgramsQuerySchema.safeParse(req.query);
+
+        if(!parsed.success) {
+            throw new AppError(parsed.error.errors[0].message, 400);
+        }
+
+        const result = await programService.listPrograms(parsed.data);
+
+        response.success(res, result.programs, { pagination: result.pagination })
+    },
+
+    // GET /api/v1/programs/:id
+    async detail(req: Request, res: Response): Promise<void> {
+        const programId = Number(req.params.id);
+
+        if(!Number.isInteger(programId) || programId < 1) {
+            throw new AppError("Invalid program id", 400);
+        }
+        
+        const program = await programService.getProgramById(programId);
+
+        response.success(res, program);
     }
+
 }
