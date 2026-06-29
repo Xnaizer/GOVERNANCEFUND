@@ -114,6 +114,8 @@ model User {
   roleVoteBallots     RoleVoteBallot[]
   unfreezeBallots     UnfreezeVoteBallot[]
   reputationLogs      ReputationLog[]
+
+  @@index([role])
 }
 
 // Reputation Log Model Data
@@ -127,6 +129,9 @@ model ReputationLog {
   userId              String
   user                User       @relation(fields: [userId], references: [id])
   createdAt           DateTime   @default(now())
+
+  @@index([userId])
+  @@index([programId])
 }
 
 // Verification Model Data
@@ -179,6 +184,12 @@ model Program {
   unfreezeVote        UnfreezeVote?
   freezeOutcome       FreezeOutcome?
   reputationLogs      ReputationLog[]
+
+  @@index([displayTab])
+  @@index([status])
+  @@index([programHash])
+  @@index([picId])
+  @@index([isOnChain])
 }
 
 // Milestone Model Data
@@ -224,6 +235,8 @@ model WithdrawalRecord {
   txHash              String?
   programId           Int
   program             Program     @relation(fields: [programId], references: [programId])
+  
+  @@index([programId])
 }
 
 // Role Vote Model Data
