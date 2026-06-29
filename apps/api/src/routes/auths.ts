@@ -37,4 +37,17 @@ router.get(
     asyncHandler(authController.me)
 );
 
+router.post(
+    "/forgot-password",
+    authLimiter,
+    asyncHandler(authController.forgotPassword)
+);
+
+router.post(
+    "/reset-password",
+    authLimiter,
+    asyncHandler(authController.resetPassword)
+);
+
+
 export default router;
