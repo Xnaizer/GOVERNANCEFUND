@@ -19,7 +19,7 @@ router.get(
     "/",
     readLimiter,
     asyncHandler(authMiddleware),
-    asyncHandler(programController.detail)
+    asyncHandler(programController.list)
 );
 
 router.get(
