@@ -102,7 +102,7 @@ model User {
   isActive            Boolean   @default(false)
   isVerified          Boolean   @default(false)
   role                Role      @default(USER)
-  reputationScore     Int       @default(0)
+  reputationScore     Int       @default(50)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   walletAddress       String?   @unique
