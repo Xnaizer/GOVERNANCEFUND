@@ -84,6 +84,14 @@ enum FreezeResult {
   FRAUD_PROVEN
   UNRESOLVED 
 }
+// enum Role Change Type
+enum RoleChangeType {
+  PIC_GRANTED
+  PIC_REVOKED
+  ROLE_GRANTED      
+  ROLE_REVOKED      
+}
+
 
 // User Model Data
 model User {
@@ -302,4 +310,17 @@ model FreezeOutcome {
   program       Program      @relation(fields: [programId], references: [programId])
   createdAt     DateTime     @default(now())
   txHash        String?
+}
+
+model RoleChangeLog {
+  id            String          @id   @default(cuid())
+  changeType    RoleChangeType
+  targetWallet  String      
+  targetRole    String
+  actorWallet   String?
+  txHash        String?
+  createdAt     DateTime        @default(now())
+
+  @@index([targetWallet])
+  @@index([actorWallet])
 }
