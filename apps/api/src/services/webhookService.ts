@@ -169,8 +169,96 @@ export async function handleProposalApproved(
     return { result: "APPROVED", programId }
 }
 
-export async function handleMilestoneReleased() {}
-export async function handleMilestoneFinalized() {}
+export async function handleMilestoneReleased(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string, programId: number }> {
+    const programId = Number(args.programId);
+    const milestoneIndex = Number(args.milestoneIndex);
+    const milestoneBudget = String(args.milestoneBudget);
+
+    const existing = await prisma.program.findUnique({
+        where: {
+            programId
+        }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] MilestoneReleased for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId }
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.program.update({
+            where: { programId },
+            data: {
+                status: "DRAWABLE",
+                displayTab: "ACTIVE",
+                currentMilestone: milestoneIndex + 1,
+                totalAllocatedSoFar: (BigInt(existing.totalAllocatedSoFar) + BigInt(milestoneBudget)).toString(),
+                txHash: txHash ?? existing.txHash
+            }
+        });
+
+        await tx.milestone.updateMany({
+            where: {
+                programId,
+                milestoneIndex
+            },
+            data: {
+                status: "RELEASED"
+            }
+        });
+    });
+
+    await invalidateProgramCache(programId);
+
+    return { result: "MILESTONE_RELEASED", programId }
+}
+
+export async function handleMilestoneFinalized(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string; programId: number }> {
+    const programId = Number(args.programId);
+    const milestoneIndex = Number(args.milestoneIndex);
+
+    const existing = await prisma.program.findUnique({
+        where: {
+            programId
+        }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] MilestoneFinalized for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.program.update({
+            where: { programId },
+            data: {
+                status: "MILESTONE_ACHIEVED",
+                txHash: txHash ?? existing.txHash
+            }
+        });
+
+        await tx.milestone.updateMany({
+            where: {
+                programId,
+                milestoneIndex
+            },
+            data: {
+                status: "ACHIEVED"
+            }
+        });
+    });
+
+    await invalidateProgramCache(programId);
+
+    return { result: "MILESTONE_FINALIZED", programId };
+}
+
 export async function handleProgramCompleted() {}
 export async function handleWithdrawalLogged() {}
 export async function handleProgramForceFrozen() {}
