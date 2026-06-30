@@ -267,12 +267,14 @@ model RoleVoteBallot {
 model UnfreezeVote {
   id                 String     @id   @default(cuid())
   programId          Int        @unique
+  picWallet          String     
   program            Program    @relation(fields: [programId], references: [programId])
   approveVotes       Int        @default(0)
   rejectVotes        Int        @default(0)
   appealStartedAt    DateTime?
   resolved           Boolean    @default(false)
   createdAt          DateTime   @default(now())
+  txHash             String?
   ballots            UnfreezeVoteBallot[]
 }
 
@@ -299,4 +301,5 @@ model FreezeOutcome {
   programId     Int          @unique                      
   program       Program      @relation(fields: [programId], references: [programId])
   createdAt     DateTime     @default(now())
+  txHash        String?
 }
