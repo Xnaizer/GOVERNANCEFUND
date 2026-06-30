@@ -1,5 +1,5 @@
 import { keccak256, toBytes } from "viem";
-import type { Role } from "@repo/database";
+import type { Role, SignerRole } from "@repo/database";
 
 const ADMIN_ROLE = keccak256(toBytes("ADMIN_ROLE"));
 const VALIDATOR_ROLE = keccak256(toBytes("VALIDATOR_ROLE"));
@@ -17,7 +17,6 @@ export function mapRoleHashToRole(roleHash: string): Role | null {
   }
 }
 
-import type { SignerRole } from "@repo/database";
 export function mapRoleHashToSignerRole(roleHash: string): SignerRole | null {
   const hash = roleHash.toLowerCase();
   switch (hash) {
