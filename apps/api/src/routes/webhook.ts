@@ -11,17 +11,13 @@ router.post(
     webhookVerify,
     asyncHandler(async(req, res) => {
         const payload = JSON.parse(req.body.toString("utf8"));
-
-        console.log("[WEBHOOK] Received & verified:", JSON.stringify(payload).slice(0, 200));
         
-        if(payload.programId !== undefined) {
-            const result = await webhookService.handleProposalSubmitted({
-                programId: Number(payload.programId),
-                programHash: payload.programHash,
-                picWallet: payload.picWallet,
+        if(payload.eventName) {
+            await webhookService.dispactEvent({
+                eventName: payload.eventName,
+                args: payload.args ?? {},
                 txHash: payload.txHash
             });
-            console.log("[WEBHOOK] Classified:", result);
         }
 
         response.success(res, "Webhook received");
