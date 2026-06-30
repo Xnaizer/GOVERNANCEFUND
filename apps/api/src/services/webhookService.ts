@@ -1,6 +1,8 @@
 import { prisma } from "../lib/prisma";
 import { computeProgramHash } from "@repo/shared";
 import { invalidate, invalidatePattern } from "../lib/cache";
+import { mapRoleHashToSignerRole, mapRoleHashToRole  } from "./roleMapper";
+import { Role } from "@repo/database";
 
 export interface DecodedEvent {
     eventName: string;
@@ -137,7 +139,17 @@ async function handleProposalSubmitted(
 
 }
 
-export async function handleProposalVoted() {}
+export async function handleProposalVoted(
+    args: Record<string, unknown>,
+    _txHash?: string
+): Promise<{ result: string; programId: number }> {
+    const programId = Number(args.programId);
+    const currentVotes = Number(args.currentVotes);
+
+    console.log(`[WEBHOOK] ProposalVoted program ${programId}, votes: ${currentVotes}`);
+
+    return { result: "PROPOSAL_VOTED_LOGGED", programId };
+}
 
 export async function handleProposalApproved(
     args: Record<string, unknown>,
@@ -551,13 +563,138 @@ export async function handleProgramFraudConfirmed(
     // TODO(reputation): PIC -FRAUD_PROVEN, auditor +VALID_FREEZE
 
     await invalidateProgramCache(programId);
-    
+
     return { result: "FRAUD_CONFIRMED", programId };
 }
 
-export async function handleRoleVoteCreated() {}
-export async function handleRoleVoteCast() {}
-export async function handleRoleGrantedViaGovernance() {}
-export async function handleRoleRevokedViaGovernance() {}
+export async function handleRoleVoteCreated(
+    args: Record<string, unknown>,
+    _txHash?: string
+): Promise<{ result: string; voteId: number }> {
+    const voteId = Number(args.voteId);
+    const candidate = String(args.candidate).toLowerCase();
+    const roleHash = String(args.roleToTarget);
+    const isDevote = Boolean(args.isDevote);
+
+    const roleToTarget = mapRoleHashToSignerRole(roleHash);
+      
+    if (!roleToTarget) {
+        console.warn(`[WEBHOOK] RoleVoteCreated unknown role hash ${roleHash}`);
+        return { result: "SKIPPED_UNKNOWN_ROLE", voteId };
+    }
+
+    await prisma.roleVote.upsert({
+        where: { voteId },
+        create: {
+            voteId,
+            candidate,
+            roleToTarget,
+            voteCount: 0,
+            isDevote,
+            executed: false
+        },
+        update: {}
+    });
+
+    return { result: "ROLE_VOTE_CREATED", voteId };
+}
+
+export async function handleRoleVoteCast(
+    args: Record<string, unknown>,
+    _txHash?: string
+): Promise<{ result: string; voteId: number }> {
+    const voteId = Number(args.voteId);
+    const adminWallet = String(args.admin).toLowerCase();
+    const currentVotes = Number(args.currentVotes);
+
+    const roleVote = await prisma.roleVote.findUnique({
+        where : { voteId }
+    });
+
+    if (!roleVote) {
+        console.warn(`[WEBHOOK] RoleVoteCast for unknown vote ${voteId}`);
+        return { result: "SKIPPED_NOT_FOUND", voteId };
+    }
+
+    await prisma.roleVote.update({
+        where: { voteId },
+        data: {
+            voteCount: currentVotes
+        }
+    });
+
+    const voter = await prisma.user.findUnique({
+        where: { walletAddress: adminWallet }
+    });
+
+    if (voter) {
+        await prisma.roleVoteBallot.upsert({
+        where: {
+            roleVoteId_voterId: { roleVoteId: voteId, voterId: voter.id },
+        },
+        create: { roleVoteId: voteId, voterId: voter.id },
+        update: {},
+        });
+    } else {
+        console.warn(`[WEBHOOK] Admin ${adminWallet} not found as User, skip ballot`);
+    }
+
+    return { result: "ROLE_VOTE_CAST", voteId };
+}
+
+export async function handleRoleGrantedViaGovernance(
+    args: Record<string, unknown>,
+    _txHash?: string
+): Promise<{ result: string }> {
+    const roleHash = String(args.role);
+    const account = String(args.account).toLowerCase();
+
+    const role = mapRoleHashToRole(roleHash);
+
+    if(!role) {
+        console.warn(`[WEBHOOK] RoleGranted unknown role hash ${roleHash}`);
+        return { 
+            result: "SKIPPED_UNKNOWN_ROLE"
+        };
+    }
+
+    const user = await prisma.user.findUnique({ where: { walletAddress: account }});
+
+    if (!user) {
+        console.warn(`[WEBHOOK] RoleGranted: user ${account} not found`);
+        return { result: "SKIPPED_USER_NOT_FOUND" };
+    }
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { role }
+    });
+
+    return { result: `ROLE_GRANTED_${role}`}
+}
+
+export async function handleRoleRevokedViaGovernance(
+    args: Record<string, unknown>,
+    _txHash?: string
+): Promise<{ result: string }> {
+    const account = String(args.account).toLowerCase();
+
+    const user = await prisma.user.findUnique({
+        where: { walletAddress: account }
+    });
+
+    if (!user) {
+        console.warn(`[WEBHOOK] RoleRevoked: user ${account} not found`);
+        return { result: "SKIPPED_USER_NOT_FOUND" };
+    }
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { role: "USER" }
+    });
+
+    return { result: "ROLE_REVOKED" }
+}
+
 export async function handlePicRoleGrantedByAdmin() {}
 export async function handlePicRoleRevokedByAdmin() {}
