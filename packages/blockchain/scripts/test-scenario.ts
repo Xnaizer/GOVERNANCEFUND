@@ -175,6 +175,30 @@ async function main() {
     logTest("Admin 2,3,4", "Vote for Auditor 2 Grant Auditor (3/4 Vote)", true, "- Auditor 2 Active");
     voteId++;
 
+    // Test Double-Grant Prevention (Race Condition)
+    const dummyUser = ethers.Wallet.createRandom().address;
+    let currentNonce = Number(await web3Governance.roleVoteNonce());
+    await(await web3Governance.connect(rootAdmin).proposeRoleGrant(dummyUser, VALIDATOR_ROLE)).wait();
+    const voteId1 = currentNonce;
+    await(await web3Governance.connect(rootAdmin).proposeRoleGrant(dummyUser, AUDITOR_ROLE)).wait();
+    const voteId2 = currentNonce + 1;
+    voteId = currentNonce + 2;
+
+    // Vote for first proposal to pass
+    await(await web3Governance.connect(rootAdmin).voteRoleProposal(voteId1)).wait();
+    await(await web3Governance.connect(admin2).voteRoleProposal(voteId1)).wait();
+    await(await web3Governance.connect(admin3).voteRoleProposal(voteId1)).wait();
+
+    // Vote for second proposal (should revert at threshold)
+    await(await web3Governance.connect(rootAdmin).voteRoleProposal(voteId2)).wait();
+    await(await web3Governance.connect(admin2).voteRoleProposal(voteId2)).wait();
+    try {
+        await(await web3Governance.connect(admin3).voteRoleProposal(voteId2)).wait(); 
+        logTest("System", "Testing double-grant prevention (Validator + Auditor)", false);
+    } catch (e) {
+        logTest("System", "Testing double-grant prevention (Validator + Auditor)", true, "- Revert (Candidate now holds a role)");
+    }
+
 
     // =================================================================
     // PHASE 4: PIC REGISTRATION & BYPASS ATTEMPT BY HACKER
@@ -452,6 +476,14 @@ async function main() {
     // PIC submit unfreeze appeal
     await(await web3Governance.connect(pic1).proposeUnfreezeAppeal(programId)).wait();
     logTest("PIC 1", "Submit unfreeze appeal", true, "- Appeal opened for voting");
+
+    // Spam appeal test (PIC trying to reset votes)
+    try {
+        await(await web3Governance.connect(pic1).proposeUnfreezeAppeal(programId)).wait();
+        logTest("PIC 1", "Trying to spam unfreeze appeal to reset votes", false);
+    } catch(e) {
+        logTest("PIC 1", "Trying to spam unfreeze appeal to reset votes", true, "- Revert (Appeal already in progress)");
+    }
 
     // Hacker trying to vote
     try {
