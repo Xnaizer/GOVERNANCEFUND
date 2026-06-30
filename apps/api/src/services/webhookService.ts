@@ -290,9 +290,119 @@ export async function handleProgramCompleted(
     return { result: "COMPLETED", programId };
 }
 
-export async function handleWithdrawalLogged() {}
-export async function handleProgramForceFrozen() {}
-export async function handleUnfreezeAppealSubmitted() {}
+export async function handleWithdrawalLogged(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result : string; programId: number; }> {
+    const programId = Number(args.programId);
+    const picWallet = String(args.picWallet).toLowerCase();
+    const amount = String(args.amount);
+    const recipient = String(args.recipient ?? "");
+    const description = String(args.description ?? "");
+
+    const existing = await prisma.program.findUnique({
+        where: { programId }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] Withdrawal for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    await prisma.withdrawalRecord.create({
+        data: {
+            amount,
+            recipientName: recipient,
+            description,
+            timestamp: new Date(),
+            txHash: txHash ?? null,
+            picWallet,
+            programId,
+            
+        }
+    });
+
+    await invalidateProgramCache(programId);
+
+    return { result: "WITHDRAWAL_LOGGED", programId };
+}
+
+export async function handleProgramForceFrozen(
+    args: Record<string, unknown>,
+    txHash?: string 
+): Promise<{ result: string; programId: number }> {
+    const programId = Number(args.programId);
+    const auditorWallet = String(args.auditor).toLowerCase();
+
+    const existing = await prisma.program.findUnique({
+        where: { programId }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] ForceFrozen for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.program.update({
+            where: { programId },
+            data: {
+                status: "FROZEN",
+                displayTab: "FLAGGED",
+                txHash: txHash ?? existing.txHash
+            }
+        });
+
+        await tx.freezeOutcome.create({
+            data: {
+                programId,
+                auditorWallet,
+                outcome: "PENDING",
+                frozenAt: new Date(),
+                txHash: txHash ?? null
+            }
+        });
+    });
+
+    await invalidateProgramCache(programId);
+
+    return { result: "FROZEN", programId };
+}
+
+export async function handleUnfreezeAppealSubmitted(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string; programId: number }> {
+    const programId = Number(args.programId);
+    const picWallet = String(args.picWallet).toLowerCase();
+
+    const existing = await prisma.program.findUnique({
+        where: { programId }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] UnfreezeAppeal for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId }
+    }
+
+    await prisma.unfreezeVote.create({
+        data: {
+            programId,
+            picWallet,
+            approveVotes: 0,
+            rejectVotes: 0,
+            resolved: false,
+            appealStartedAt: new Date(),
+            txHash: txHash ?? null
+        }
+    });
+
+    await invalidateProgramCache(programId);
+
+    return { result: "APPEAL_SUBMITTED", programId}
+}
+
+
 export async function handleUnfreezeAppealVoted() {}
 export async function handleProgramUnfrozenViaBFT() {}
 export async function handleProgramFraudConfirmed() {}
