@@ -259,7 +259,37 @@ export async function handleMilestoneFinalized(
     return { result: "MILESTONE_FINALIZED", programId };
 }
 
-export async function handleProgramCompleted() {}
+export async function handleProgramCompleted(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string; programId: number }> {
+    const programId = Number(args.programId);
+
+    const existing = await prisma.program.findUnique({
+        where: { programId }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] ProgramCompleted for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId }
+    }
+
+    await prisma.program.update({
+        where: { programId },
+        data: {
+            status: "COMPLETED",
+            displayTab: "FINISHED",
+            txHash: txHash ?? existing.txHash
+        }
+    });
+
+    // TODO(reputation): enqueue reputation-update (PIC +PROGRAM_COMPLETED)
+
+    await invalidateProgramCache(programId);
+
+    return { result: "COMPLETED", programId };
+}
+
 export async function handleWithdrawalLogged() {}
 export async function handleProgramForceFrozen() {}
 export async function handleUnfreezeAppealSubmitted() {}
