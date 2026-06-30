@@ -37,7 +37,7 @@ async function invalidateProgramCache(programId: number): Promise<void> {
     await invalidate("public:stats");
 }
 
-export async function dispacthEvent(event: DecodedEvent): Promise<void> {
+export async function dispatchEvent(event: DecodedEvent): Promise<void> {
     const handler = eventHandlers[event.eventName];
 
     if(!handler) {

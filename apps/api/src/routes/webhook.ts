@@ -13,7 +13,7 @@ router.post(
         const payload = JSON.parse(req.body.toString("utf8"));
         
         if(payload.eventName) {
-            await webhookService.dispacthEvent({
+            await webhookService.dispatchEvent({
                 eventName: payload.eventName,
                 args: payload.args ?? {},
                 txHash: payload.txHash
