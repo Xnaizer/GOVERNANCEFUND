@@ -349,6 +349,14 @@ contract Web3Governance is EIP712, AccessControl {
                 }
                 emit RoleRevokedViaGovernance(rVote.roleToTarget, rVote.candidate);
             } else {
+                require(
+                    !hasRole(ADMIN_ROLE, rVote.candidate) &&
+                    !hasRole(VALIDATOR_ROLE, rVote.candidate) &&
+                    !hasRole(AUDITOR_ROLE, rVote.candidate) &&
+                    !hasRole(PIC_ROLE, rVote.candidate),
+                    "Govern: Candidate now holds a role"
+                );
+
                 _grantRole(rVote.roleToTarget, rVote.candidate);
 
                 if (rVote.roleToTarget == ADMIN_ROLE) {
@@ -665,9 +673,14 @@ contract Web3Governance is EIP712, AccessControl {
      */
     function proposeUnfreezeAppeal(uint256 programId) external {
         Proposal storage prop = proposals[programId];
+        UnfreezeAppeal storage existingAppeal = unfreezeAppeals[programId];
 
         require(prop.status == ProposalStatus.FROZEN, "Govern: Program is not frozen");
         require(msg.sender == prop.picWallet, "Govern: Only the program PIC can appeal");
+        require(
+            existingAppeal.appealStartedAt == 0 || existingAppeal.resolved,
+            "Govern: Appeal already in progress"
+        );
 
         unfreezeAppeals[programId] = UnfreezeAppeal({
             approveVotes: 0,
