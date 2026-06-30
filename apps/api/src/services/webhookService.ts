@@ -138,7 +138,37 @@ async function handleProposalSubmitted(
 }
 
 export async function handleProposalVoted() {}
-export async function handleProposalApproved() {}
+
+export async function handleProposalApproved(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result : string, programId: number }> {
+    const programId = Number(args.programId);
+
+    const exitsing = await prisma.program.findUnique({
+        where: {
+            programId
+        }
+    });
+
+    if(!exitsing) {
+        console.warn(`[WEBHOOK] ProposalApproved for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    await prisma.program.update({
+        where: { programId },
+        data: {
+            status: "APPROVED",
+            displayTab: "ACTIVE",
+            txHash: txHash ?? exitsing.txHash
+        }
+    });
+
+    await invalidateProgramCache(programId);
+    return { result: "APPROVED", programId }
+}
+
 export async function handleMilestoneReleased() {}
 export async function handleMilestoneFinalized() {}
 export async function handleProgramCompleted() {}
