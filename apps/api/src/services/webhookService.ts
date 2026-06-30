@@ -66,7 +66,7 @@ async function handleProposalSubmitted(
             data: {
                 programId,
                 programHash: onChainHash,
-                picWallet: picWallet.toLowerCase(),
+                picWallet: picWallet,
                 totalBudget: "0",
                 milestoneCount: 0,
                 integrity: "ORPHAN",
@@ -145,13 +145,13 @@ export async function handleProposalApproved(
 ): Promise<{ result : string, programId: number }> {
     const programId = Number(args.programId);
 
-    const exitsing = await prisma.program.findUnique({
+    const existing = await prisma.program.findUnique({
         where: {
             programId
         }
     });
 
-    if(!exitsing) {
+    if(!existing) {
         console.warn(`[WEBHOOK] ProposalApproved for unknown program ${programId}`);
         return { result: "SKIPPED_NOT_FOUND", programId };
     }
@@ -161,7 +161,7 @@ export async function handleProposalApproved(
         data: {
             status: "APPROVED",
             displayTab: "ACTIVE",
-            txHash: txHash ?? exitsing.txHash
+            txHash: txHash ?? existing.txHash
         }
     });
 
@@ -402,10 +402,159 @@ export async function handleUnfreezeAppealSubmitted(
     return { result: "APPEAL_SUBMITTED", programId}
 }
 
+export async function handleUnfreezeAppealVoted(
+    args : Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string, programId: number }> {
+    const programId = Number(args.programId);
+    const validatorWallet = String(args.validator).toLowerCase();
+    const approve = Boolean(args.approve);
+    const approveVotes = Number(args.approveVotes);
+    const rejectVotes = Number(args.rejectVotes);
 
-export async function handleUnfreezeAppealVoted() {}
-export async function handleProgramUnfrozenViaBFT() {}
-export async function handleProgramFraudConfirmed() {}
+    const unfreezeVote = await prisma.unfreezeVote.findUnique({
+        where: { programId }
+    });
+
+    if(!unfreezeVote) {
+        console.warn(`[WEBHOOK] UnfreezeVote not found for program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    await prisma.unfreezeVote.update({
+        where: { programId },
+        data: {
+            approveVotes,
+            rejectVotes
+        }
+    });
+
+    const voter = await prisma.user.findUnique({
+        where: {
+            walletAddress: validatorWallet
+        }
+    });
+
+    if(voter) {
+        await prisma.unfreezeVoteBallot.upsert({
+            where: {
+                unfreezeVoteId_voterId: {
+                    unfreezeVoteId: unfreezeVote.id,
+                    voterId: voter.id
+                }
+            },
+            create: {
+                unfreezeVoteId: unfreezeVote.id,
+                voterId: voter.id,
+                approve,
+            },
+            update: {
+                approve
+            }
+        });
+    } else {
+        console.warn(`[WEBHOOK] Validator ${validatorWallet} not found as User, skip ballot`);
+    }
+
+    await invalidateProgramCache(programId);
+
+    return { result: "APPEAL_VOTED", programId };
+}
+
+export async function handleProgramUnfrozenViaBFT(
+    args: Record<string, unknown>, 
+    txHash? : string
+): Promise<{ result: string; programId: number }> {
+    const programId = Number(args.programId);
+
+    const existing = await prisma.program.findUnique({
+        where: { programId }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] Unfrozen for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.program.update({
+            where: { programId },
+            data: {
+                status: "DRAWABLE",
+                displayTab: "ACTIVE",
+                txHash: txHash ?? existing.txHash
+            }
+        });
+
+        await tx.freezeOutcome.update({
+            where: { programId },
+            data: {
+                outcome: "CLEARED",
+                resolvedAt: new Date()
+            }
+        });
+
+        await tx.unfreezeVote.update({
+            where: { programId },
+            data: { resolved: true }
+        });
+    });
+
+    // TODO(reputation): auditor -FALSE_FREEZE (freeze keliru), PIC tidak dihukum
+
+    await invalidateProgramCache(programId);
+
+    return { result: "UNFROZEN", programId };
+}
+
+export async function handleProgramFraudConfirmed(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string; programId: number }> {
+    const programId = Number(args.programId);
+
+    const existing = await prisma.program.findUnique({
+        where: { programId }
+    });
+
+    if (!existing) {
+        console.warn(`[WEBHOOK] FraudConfirmed for unknown program ${programId}`);
+        return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.program.update({
+            where: { programId },
+            data: {
+                status: "FRAUD_CONFIRMED",
+                displayTab: "FRAUD",
+                txHash: txHash ?? existing.txHash
+            }
+        });
+
+        await tx.freezeOutcome.update({
+            where: { programId },
+            data: {
+                outcome: "FRAUD_PROVEN",
+                resolvedAt: new Date()
+            }
+        });
+
+        await tx.unfreezeVote.update({
+            where: { programId },
+            data: { 
+                resolved: true
+            }
+        });
+    });
+
+    // TODO(reputation): PIC -FRAUD_PROVEN, auditor +VALID_FREEZE
+
+    await invalidateProgramCache(programId);
+    
+    return { result: "FRAUD_CONFIRMED", programId };
+}
+
 export async function handleRoleVoteCreated() {}
 export async function handleRoleVoteCast() {}
 export async function handleRoleGrantedViaGovernance() {}
