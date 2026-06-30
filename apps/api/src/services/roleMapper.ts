@@ -1,0 +1,29 @@
+import { keccak256, toBytes } from "viem";
+import type { Role } from "@repo/database";
+
+const ADMIN_ROLE = keccak256(toBytes("ADMIN_ROLE"));
+const VALIDATOR_ROLE = keccak256(toBytes("VALIDATOR_ROLE"));
+const AUDITOR_ROLE = keccak256(toBytes("AUDITOR_ROLE"));
+const PIC_ROLE = keccak256(toBytes("PIC_ROLE"));
+
+export function mapRoleHashToRole(roleHash: string): Role | null {
+  const hash = roleHash.toLowerCase();
+  switch (hash) {
+    case ADMIN_ROLE.toLowerCase():     return "ADMIN";
+    case VALIDATOR_ROLE.toLowerCase(): return "VALIDATOR";
+    case AUDITOR_ROLE.toLowerCase():   return "AUDITOR";
+    case PIC_ROLE.toLowerCase():       return "PIC";
+    default:                            return null;
+  }
+}
+
+import type { SignerRole } from "@repo/database";
+export function mapRoleHashToSignerRole(roleHash: string): SignerRole | null {
+  const hash = roleHash.toLowerCase();
+  switch (hash) {
+    case ADMIN_ROLE.toLowerCase():     return "ADMIN";
+    case VALIDATOR_ROLE.toLowerCase(): return "VALIDATOR";
+    case AUDITOR_ROLE.toLowerCase():   return "AUDITOR";
+    default:                            return null; 
+  }
+}
