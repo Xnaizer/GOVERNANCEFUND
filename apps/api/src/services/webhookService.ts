@@ -644,7 +644,7 @@ export async function handleRoleVoteCast(
 
 export async function handleRoleGrantedViaGovernance(
     args: Record<string, unknown>,
-    _txHash?: string
+    txHash?: string
 ): Promise<{ result: string }> {
     const roleHash = String(args.role);
     const account = String(args.account).toLowerCase();
@@ -665,9 +665,17 @@ export async function handleRoleGrantedViaGovernance(
         return { result: "SKIPPED_USER_NOT_FOUND" };
     }
 
-    await prisma.user.update({
-        where: { id: user.id },
-        data: { role }
+    await prisma.$transaction(async (tx) => {
+        await tx.user.update({ where: { id: user.id }, data: { role } });
+        await tx.roleChangeLog.create({
+            data: {
+            changeType: "ROLE_GRANTED",
+            targetWallet: account,
+            targetRole: role,         
+            actorWallet: null,        
+            txHash: txHash ?? null,
+            },
+        });
     });
 
     return { result: `ROLE_GRANTED_${role}`}
@@ -675,7 +683,7 @@ export async function handleRoleGrantedViaGovernance(
 
 export async function handleRoleRevokedViaGovernance(
     args: Record<string, unknown>,
-    _txHash?: string
+    txHash?: string
 ): Promise<{ result: string }> {
     const account = String(args.account).toLowerCase();
 
@@ -688,13 +696,96 @@ export async function handleRoleRevokedViaGovernance(
         return { result: "SKIPPED_USER_NOT_FOUND" };
     }
 
-    await prisma.user.update({
-        where: { id: user.id },
-        data: { role: "USER" }
+
+
+    await prisma.$transaction(async (tx) => {
+        await tx.user.update({ where: { id: user.id }, data: { role: "USER"  } });
+        await tx.roleChangeLog.create({
+            data: {
+            changeType: "ROLE_REVOKED",
+            targetWallet: account,
+            targetRole: "USER",         
+            actorWallet: null,        
+            txHash: txHash ?? null,
+            },
+        });
     });
 
     return { result: "ROLE_REVOKED" }
 }
 
-export async function handlePicRoleGrantedByAdmin() {}
-export async function handlePicRoleRevokedByAdmin() {}
+export async function handlePicRoleGrantedByAdmin(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string }> {
+    const account = String(args.account).toLowerCase();
+    const admin = String(args.admin).toLowerCase();
+
+    const user = await prisma.user.findUnique({
+        where: { walletAddress: account }
+    });
+
+    if (!user) {
+        console.warn(`[WEBHOOK] PicRoleGranted: user ${account} not found`);
+        return { result: "SKIPPED_USER_NOT_FOUND" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+            where: { id: user.id },
+            data: {
+                role: "PIC"
+            }
+        });
+
+        await tx.roleChangeLog.create({
+            data: {
+                changeType: "PIC_GRANTED",
+                targetWallet: account,
+                targetRole: "PIC",
+                actorWallet: admin,
+                txHash: txHash ?? null
+            }
+        });
+    });
+
+    return { result: "PIC_GRANTED" }
+}
+
+export async function handlePicRoleRevokedByAdmin(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string }> {
+    const account = String(args.account).toLowerCase();
+    const admin = String(args.admin).toLowerCase();
+
+    const user = await prisma.user.findUnique({
+        where: { walletAddress: account }
+    });
+
+    if (!user) {
+        console.warn(`[WEBHOOK] PicRoleRevoked: user ${account} not found`);
+        return { result: "SKIPPED_USER_NOT_FOUND" };
+    }
+
+    await prisma.$transaction(async (tx) => {
+        await tx.user.update({
+            where: { id: user.id },
+            data: {
+                role: "USER"
+            }
+        });
+
+        await tx.roleChangeLog.create({
+            data: {
+                changeType: "PIC_REVOKED",
+                targetWallet: account,
+                targetRole: "USER",
+                actorWallet: admin,
+                txHash: txHash ?? null
+            }
+        });
+    });
+
+    return { result: "PIC_REVOKED" }
+}
