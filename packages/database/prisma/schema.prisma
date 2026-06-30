@@ -233,6 +233,7 @@ model WithdrawalRecord {
   description         String
   timestamp           DateTime
   txHash              String?
+  picWallet           String
   programId           Int
   program             Program     @relation(fields: [programId], references: [programId])
   
