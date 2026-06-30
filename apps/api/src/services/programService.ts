@@ -8,7 +8,7 @@ import { cacheAside } from "../lib/cache";
 import type { ListProgramQuery } from "../validators/programValidator";
 
 const MIN_VALIDATORS = 3;
-const REPUTATION_BLOCKED = 100;
+const REPUTATION_BLOCKED = 50;
 const PUBLIC_PROGRAM_SELECT = {
     programId: true,
     programHash: true,
@@ -37,7 +37,7 @@ const PUBLIC_PROGRAM_SELECT = {
     isOnChain: true,
     txHash: true,
     submittedAt: true,
-    createdt: true
+    createdAt: true
 } as const;
 
 export async function createProgram(userId: string, input: CreateProgramInput) {
