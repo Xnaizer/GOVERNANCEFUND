@@ -26,3 +26,11 @@ export function mapRoleHashToSignerRole(roleHash: string): SignerRole | null {
     default:                            return null; 
   }
 }
+
+export function mapSignerRoleToRoleHash(role: SignerRole): `0x${string}` {
+    switch(role) {
+        case "ADMIN": return ADMIN_ROLE;
+        case "VALIDATOR": return VALIDATOR_ROLE;
+        case "AUDITOR": return AUDITOR_ROLE
+    }
+}
