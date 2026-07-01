@@ -8,7 +8,7 @@ import { cacheAside } from "../lib/cache";
 import type { ListProgramQuery } from "../validators/programValidator";
 
 const MIN_VALIDATORS = 3;
-const REPUTATION_BLOCKED = 50;
+const REPUTATION_BLOCKED = 35;
 const PUBLIC_PROGRAM_SELECT = {
     programId: true,
     programHash: true,
