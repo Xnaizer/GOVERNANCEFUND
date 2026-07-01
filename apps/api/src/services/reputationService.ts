@@ -4,7 +4,7 @@ import type { Prisma, ReputationReason } from "@repo/database";
 export const REPUTATION_DELTAS: Record<ReputationReason, number> = {
     PROGRAM_COMPLETED: 15,
     MILESTONE_FINALIZED: 5,
-    FRAUD_PROVEN: -40,
+    FRAUD_PROVEN: -60,
     FALSE_FREEZE: -20,
     VALID_FREEZE: 20,
 }
@@ -49,14 +49,18 @@ export async function applyReputation({
             }
         }
 
-        const user = await db.user.findUniqueOrThrow({
+        const user = await db.user.findUnique({
             where: { id: userId },
             select: {
                 reputationScore: true
             }
         });
 
+        if(!user) return { applied: false, scoreAfter: 0 }
+
+        const oldScore = user.reputationScore;
         const newScore = Math.max(0, Math.min(100, user.reputationScore + delta));
+        const actualChange = newScore - oldScore;
         
         const updatedUser = await db.user.update({
             where: {
@@ -73,7 +77,7 @@ export async function applyReputation({
         await db.reputationLog.create({
             data: {
                 userId,
-                change: delta,
+                change: actualChange,
                 reason,
                 scoreAfter: updatedUser.reputationScore,
                 programId
