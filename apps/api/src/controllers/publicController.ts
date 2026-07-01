@@ -39,5 +39,18 @@ export default {
         const stats = await programService.getPublicStats();
 
         response.success(res, stats);
+    },
+
+    // GET /api/v1/public/programs/:id/withdrawals
+    async programWithdrawals(req: Request, res: Response): Promise<void> {
+        const programId = Number(req.params.id);
+
+        if(!Number.isInteger(programId) || programId < 1) {
+            throw new AppError("Invalid program id", 400);
+        }
+
+        const result = await programService.getProgramWithdrawals(programId);
+
+        response.success(res, result);
     }
 }
