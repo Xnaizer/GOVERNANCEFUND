@@ -2,7 +2,7 @@ import { prisma } from "../lib/prisma";
 import { computeProgramHash } from "@repo/shared";
 import { invalidate, invalidatePattern } from "../lib/cache";
 import { mapRoleHashToSignerRole, mapRoleHashToRole  } from "./roleMapper";
-import { Role } from "@repo/database";
+import { applyReputation, resolvePicUserId, resolveAuditorUserId } from "./reputationService";
 
 export interface DecodedEvent {
     eventName: string;
@@ -255,6 +255,20 @@ export async function handleMilestoneFinalized(
             }
         });
 
+        const picUserId = await resolvePicUserId(programId, tx);
+
+        if(picUserId) {
+            await applyReputation({
+                userId: picUserId,
+                reason: "MILESTONE_FINALIZED",
+                programId,
+                tx,
+                idempotent: false
+            });
+        } else {
+            console.warn(`[REPUTATION] MilestoneFinalized PIC for unknown program ${programId}`);
+        }
+
         await tx.milestone.updateMany({
             where: {
                 programId,
@@ -286,16 +300,30 @@ export async function handleProgramCompleted(
         return { result: "SKIPPED_NOT_FOUND", programId }
     }
 
-    await prisma.program.update({
-        where: { programId },
-        data: {
-            status: "COMPLETED",
-            displayTab: "FINISHED",
-            txHash: txHash ?? existing.txHash
+    await prisma.$transaction(async (tx) => {
+        await tx.program.update({
+            where: { programId },
+            data: {
+                status: "COMPLETED",
+                displayTab: "FINISHED",
+                txHash: txHash ?? existing.txHash
+            }
+        });
+
+        const picUserId = await resolvePicUserId(programId, tx);
+
+        if(picUserId) {
+            await applyReputation({
+                userId: picUserId,
+                reason: "PROGRAM_COMPLETED",
+                programId,
+                tx,
+                idempotent: true
+            });
+        } else {
+            console.warn(`[REPUTATION] ProgramCompleted for unknown prgoram ${programId}`);
         }
     });
-
-    // TODO(reputation): enqueue reputation-update (PIC +PROGRAM_COMPLETED)
 
     await invalidateProgramCache(programId);
 
@@ -510,9 +538,21 @@ export async function handleProgramUnfrozenViaBFT(
             where: { programId },
             data: { resolved: true }
         });
-    });
 
-    // TODO(reputation): auditor -FALSE_FREEZE (freeze keliru), PIC tidak dihukum
+        const auditorUserId = await resolveAuditorUserId(programId, tx);
+
+        if(auditorUserId) {
+            await applyReputation({
+                userId: auditorUserId,
+                reason: "FALSE_FREEZE",
+                programId,
+                tx,
+                idempotent: true
+            });
+        } else {
+            console.warn(`[REPUTATION] Unfrozen Auditor for unknown program ${programId}`);
+        }
+    });
 
     await invalidateProgramCache(programId);
 
@@ -558,9 +598,35 @@ export async function handleProgramFraudConfirmed(
                 resolved: true
             }
         });
-    });
 
-    // TODO(reputation): PIC -FRAUD_PROVEN, auditor +VALID_FREEZE
+        const picUserId = await resolvePicUserId(programId, tx);
+
+        if(picUserId) {
+            await applyReputation({
+                userId: picUserId,
+                reason: "FRAUD_PROVEN",
+                programId,
+                tx,
+                idempotent : true
+            })
+        } else {
+            console.warn(`[REPUTATION] FraudConfirmed PIC for unknown program ${programId}`);
+        }
+
+        const auditorUserId = await resolveAuditorUserId(programId, tx);
+
+        if(auditorUserId) {
+            await applyReputation({
+                userId: auditorUserId,
+                reason: "VALID_FREEZE",
+                programId,
+                tx,
+                idempotent: true
+            });
+        } else {
+            console.warn(`[REPUTATION] FraudConfirmed Auditor for unknown program ${programId}`);
+        }
+    });
 
     await invalidateProgramCache(programId);
 
