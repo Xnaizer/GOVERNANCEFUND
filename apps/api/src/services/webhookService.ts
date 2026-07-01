@@ -35,6 +35,7 @@ const eventHandlers: Record<string, EventHandler> = {
 
 async function invalidateProgramCache(programId: number): Promise<void> {
     await invalidate(`program:detail:${programId}`);
+    await invalidate(`program:withdrawals:${programId}`);
     await invalidatePattern("programs:list:*");
     await invalidate("public:stats");
 }
