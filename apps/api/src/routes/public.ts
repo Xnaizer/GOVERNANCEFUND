@@ -21,6 +21,12 @@ router.get(
     "/stats",
     readLimiter,
     asyncHandler(publicController.stats)
-)
+);
+
+router.get(
+    "/programs/:id/withdrawals",
+    readLimiter,
+    asyncHandler(publicController.programWithdrawals)
+);
 
 export default router;
