@@ -236,3 +236,33 @@ export async function getPublicStats() {
         }
     });
 }
+
+export async function getProgramWithdrawals(programId: number) {
+    const cacheKey = `program:withdrawals:${programId}`;
+
+    return cacheAside(cacheKey, 30, async () => {
+        const program = await prisma.program.findUnique({
+            where: { programId },
+            select: { programId: true }
+        });
+
+        if(!program) {
+            throw new AppError("Program not found", 404);
+        }
+
+        const withdrawals = await prisma.withdrawalRecord.findMany({
+            where: { programId },
+            select: {
+                id: true,
+                amount: true,
+                recipientName: true,
+                description: true,
+                timestamp: true,
+                txHash: true
+            },
+            orderBy: { timestamp: "desc" }
+        });
+
+        return { programId, withdrawals, count: withdrawals.length }
+    });
+}
