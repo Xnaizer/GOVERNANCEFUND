@@ -17,3 +17,14 @@ export async function getValidatorCount(): Promise<number> {
         }
     );
 }
+
+export async function hasRole(account: string, roleHash: `0x${string}`): Promise<boolean> {
+   const result = await publicClient.readContract({
+        address: CONTRACT_ADDRESS.web3Governance as `0x${string}`,
+        abi: Web3GovernanceABI,
+        functionName: "hasRole",
+        args: [roleHash, account as `0x${string}`]
+   });
+
+   return Boolean(result);
+}
