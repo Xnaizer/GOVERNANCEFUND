@@ -263,7 +263,7 @@ export async function handleMilestoneFinalized(
                 reason: "MILESTONE_FINALIZED",
                 programId,
                 tx,
-                idempotent: false
+                idempotent: false // NOTE: not idempotent per-milestone; duplicate webhook may double-count (known limitation) *future work
             });
         } else {
             console.warn(`[REPUTATION] MilestoneFinalized PIC for unknown program ${programId}`);
