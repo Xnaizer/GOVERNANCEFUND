@@ -18,7 +18,10 @@ const envSchema = z.object({
     EMAIL_FROM: z.string().default("GovernanceFund <noreply@governancefund.dev>"),
     FRONTEND_URL: z.string().min(1, "http://localhost:3000"),
     ALCHEMY_BASE_SEPOLIA_RPC_URL: z.string().url("Invalid Alchemy RPC URL"),
-    ALCHEMY_WEBHOOK_SECRET: z.string().min(1, "ALCHEMY_WEBHOOK_SECRET is required")
+    ALCHEMY_WEBHOOK_SECRET: z.string().min(1, "ALCHEMY_WEBHOOK_SECRET is required"),
+    QUEUE_ADMIN_USER: z.string().default("admin"),
+    QUEUE_ADMIN_PASS: z.string().min(1, "QUEUE_ADMIN_PASS is required"),
+
 });
 
 const parsed = envSchema.safeParse(process.env);
