@@ -81,7 +81,7 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
         throw new AppError(`System requires at least ${MIN_VALIDATORS} validators on-chain`, 400);
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
         const program = await tx.program.create({
             data: {
                 programHash: "",
