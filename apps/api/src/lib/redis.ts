@@ -1,7 +1,7 @@
-import Redis from "ioredis";
+import IORedis from "ioredis";
 import { env } from "../config/env";
 
-export const redis = new Redis(env.UPSTASH_REDIS_URL, {
+export const redis = new IORedis(env.UPSTASH_REDIS_URL, {
     maxRetriesPerRequest: null
 });
 
