@@ -6,9 +6,12 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "@bull-board/api": "^8.0.2",
+    "@bull-board/express": "^8.0.2",
     "@repo/database": "workspace:*",
     "@repo/shared": "workspace:*",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.79.2",
     "cors": "2.8.5",
     "dotenv": "^17.4.2",
     "ejs": "^6.0.1",
