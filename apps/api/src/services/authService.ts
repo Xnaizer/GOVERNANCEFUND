@@ -34,7 +34,7 @@ export async function registerUser(input: RegisterInput) : Promise<void> {
     const tokenHash = hashToken(rawToken);
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); 
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         const user = await tx.user.create({
             data: {
                 username: input.username,
@@ -86,7 +86,7 @@ export async function verifyEmail(token: string): Promise<void> {
         throw new AppError("Verification token has expired", 400);
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         await tx.user.update({
             where: {
                 id: record.userId
@@ -240,7 +240,7 @@ export async function resetPassword(token: string, newPassword: string): Promise
 
     const passwordHash = await hashPassword(newPassword);
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         await tx.user.update({
             where: {
                 id: record.userId
