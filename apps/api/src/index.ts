@@ -2,6 +2,7 @@ import { env } from "./config/env";
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
 import { redis } from "./lib/redis";
+import { startWorkers, stopWorkers } from "./workers";
 
 async function main() {
 
@@ -12,6 +13,9 @@ async function main() {
         console.log(`[SERVER] Server is running on http://localhost:${env.PORT}`);
     });
 
+    await startWorkers();
+    console.log("[SERVER] Worker start listening...");
+
     const shutdown = async (signal: string) => {
         console.log(`\n[SERVER] ${signal} received. Shutting down gracefully...`);
 
@@ -20,6 +24,8 @@ async function main() {
             console.log("[SERVER] Database disconnected");
             redis.disconnect();
             console.log("[SERVER] Redis disconnected");
+            await stopWorkers();
+            console.log("[SERVER] Worker offline");
             process.exit(0);
         });
     };
