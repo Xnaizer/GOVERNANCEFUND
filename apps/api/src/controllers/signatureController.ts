@@ -32,7 +32,21 @@ export default {
         const result = await signatureService.getSignatures(milestoneId);
 
         response.success(res, result);
-    }
+    },
+
+    // DELETE /api/v1/signatures/:milestoneId
+    async reset(req: Request, res: Response): Promise<void> {
+        const user = req.user!;
+        const milestoneId = req.params.milestoneId;
+
+        if (!milestoneId) {
+            throw new AppError("milestoneId is required", 400);
+        }
+
+        const result = await signatureService.resetSignatures(user.id, milestoneId);
+
+        response.success(res, result);
+    },
 
 
 

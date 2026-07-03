@@ -149,3 +149,35 @@ export async function getSignatures(milestoneId: string) {
         complete
     }
 }
+
+export async function resetSignatures(userId: string, milestoneId: string) {
+    const milestone = await prisma.milestone.findUnique({
+        where: { id: milestoneId },
+        include: { program: { select: { picId: true } } }
+    });
+
+    if (!milestone) throw new AppError("Milestone not found", 404);
+
+    if (milestone.program.picId !== userId) {
+        throw new AppError("Only the program PIC can reset signatures", 403);
+    }
+    
+    if (milestone.status !== "PLANNED") {
+        throw new AppError("Cannot reset signatures after milestone is released", 409);
+    }
+
+    const deleted = await prisma.$transaction(async (tx) => {
+        const del = await tx.milestoneSignature.deleteMany({ 
+            where: { milestoneId } 
+        });
+
+        await tx.milestone.update({ 
+            where: { id: milestoneId }, 
+            data: { evidenceHash: null } 
+        });
+        
+        return del.count;
+    });
+
+    return { milestoneId, deleted };
+}
