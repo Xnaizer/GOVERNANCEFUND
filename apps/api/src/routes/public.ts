@@ -29,4 +29,41 @@ router.get(
     asyncHandler(publicController.programWithdrawals)
 );
 
+router.get(
+    "/votes",
+    readLimiter,
+    asyncHandler(publicController.listVotes)
+);
+
+router.get(
+    "/votes/:id",
+    readLimiter,
+    asyncHandler(publicController.detailVote)
+);
+
+router.get(
+    "/unfreeze-votes",
+    readLimiter,
+    asyncHandler(publicController.listUnfreezeVotes)
+);
+
+router.get(
+    "/unfreeze-votes/:programId",
+    readLimiter,
+    asyncHandler(publicController.detailUnfreezeVote)
+);
+
+router.get(
+    "/logs/roles",
+    readLimiter,
+    asyncHandler(publicController.listRoleLogs)
+);
+
+router.get(
+    "/users/:id",
+    readLimiter,
+    asyncHandler(publicController.userProfile)
+);
+
+
 export default router;
