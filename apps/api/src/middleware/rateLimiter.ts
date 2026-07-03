@@ -4,7 +4,7 @@ import { redis } from "../lib/redis";
 
 function makeStore(prefix: string) {
   return new RedisStore({
-    sendCommand: (...args: string[]) => redis.call(...args) as Promise<any>,
+    sendCommand: (...args: string[]) => redis.call(args[0] as string, ...args.slice(1)) as Promise<any>,
     prefix: `ratelimit:${prefix}`,
   });
 }
