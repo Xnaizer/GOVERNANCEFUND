@@ -205,9 +205,48 @@ export async function getProgramById(programId: number) {
                         milestoneIndex: true,
                         milestoneBudget: true,
                         evidenceURL: true,
-                        evidenceHash: true
+                        evidenceHash: true,
+                        signatures: {
+                            select: {
+                                id: true,
+                                signerWallet: true,
+                                signerRole: true,
+                                signedAt: true
+                            },
+                            orderBy: { signedAt: "asc" }
+                        }
                     },
                     orderBy: { milestoneIndex: "asc" }
+                },
+                withdrawals: {
+                    select: {
+                        id: true,
+                        amount: true,
+                        recipientName: true,
+                        description: true,
+                        timestamp: true,
+                        txHash: true
+                    },
+                    orderBy: { timestamp: "desc" }
+                },
+                freezeOutcome: {
+                    select: {
+                        auditorWallet: true,
+                        outcome: true,
+                        frozenAt: true,
+                        resolvedAt: true,
+                        txHash: true
+                    }
+                },
+                unfreezeVote: {
+                    select: {
+                        approveVotes: true,
+                        rejectVotes: true,
+                        appealStartedAt: true,
+                        resolved: true,
+                        picWallet: true,
+                        txHash: true
+                    }
                 }
             }
         });
