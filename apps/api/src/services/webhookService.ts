@@ -33,6 +33,10 @@ const eventHandlers: Record<string, EventHandler> = {
     PicRoleRevokedByAdmin: handlePicRoleRevokedByAdmin
 }
 
+export function isKnownEvent(name: string): boolean {
+    return name in eventHandlers;
+}
+
 async function invalidateProgramCache(programId: number): Promise<void> {
     await invalidate(`program:detail:${programId}`);
     await invalidate(`program:withdrawals:${programId}`);
@@ -348,6 +352,16 @@ export async function handleWithdrawalLogged(
     if(!existing) {
         console.warn(`[WEBHOOK] Withdrawal for unknown program ${programId}`);
         return { result: "SKIPPED_NOT_FOUND", programId };
+    }
+
+    if(txHash) {
+        const dup = await prisma.withdrawalRecord.findFirst({
+            where: { programId, txHash },
+            select: { id: true }
+        });
+        if(dup) {
+            return { result: "DUPLICATE_SKIPPED", programId };
+        }
     }
 
     await prisma.withdrawalRecord.create({
