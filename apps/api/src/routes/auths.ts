@@ -2,7 +2,7 @@ import express, { type Router } from "express";
 import authController from "../controllers/authController";
 import { asyncHandler } from "../utils/asyncHandler";
 import { authMiddleware } from "../middleware/auth";
-import { authLimiter, readLimiter } from "../middleware/rateLimiter";
+import { authLimiter, mutationLimiter, readLimiter } from "../middleware/rateLimiter";
 
 const router: Router  = express.Router();
 
@@ -47,6 +47,13 @@ router.post(
     "/reset-password",
     authLimiter,
     asyncHandler(authController.resetPassword)
+);
+
+router.patch(
+    "/me",
+    mutationLimiter,
+    asyncHandler(authMiddleware),
+    asyncHandler(authController.updateMe)
 );
 
 

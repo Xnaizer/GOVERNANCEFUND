@@ -8,6 +8,28 @@ import { comparePassword } from "./hashService";
 import { signToken } from "./jwtService";
 import { redis } from "../lib/redis";
 import type { LoginInput } from "../validators/authValidator";
+import type { UpdateProfileInput } from "../validators/authValidator";
+
+const PROFILE_SELECT = {
+    id: true, 
+    username: true, 
+    email: true, 
+    role: true,
+    name: true, 
+    nik: true, 
+    nip: true, 
+    institution: true, 
+    position: true,
+    birthPlace: true, 
+    birthDate: true, 
+    address: true, 
+    phone: true,
+    nationality: true, 
+    profilePictureURL: true,
+    isActive: true, 
+    isVerified: true, 
+    walletAddress: true
+} as const;
 
 export async function registerUser(input: RegisterInput) : Promise<void> {
     const email = input.email.toLowerCase().trim();
@@ -263,4 +285,19 @@ export async function resetPassword(token: string, newPassword: string): Promise
 export async function revokeAllUserTokens(userId: string): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
     await redis.set(`tokensValidAfter:${userId}`, now.toString());
+}
+
+export async function updateProfile(userId: string, data: UpdateProfileInput) {
+    try {
+        return await prisma.user.update({
+            where: { id: userId },
+            data,                      
+            select: PROFILE_SELECT
+        });
+    } catch (err: any) {
+        if (err?.code === "P2002") {
+            throw new AppError("NIK or NIP already registered", 409);
+        }
+        throw err;
+    }
 }

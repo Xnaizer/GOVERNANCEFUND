@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema } from "../validators/authValidator";
+import { forgotPasswordSchema, loginSchema, registerSchema, resetPasswordSchema, updateProfileSchema } from "../validators/authValidator";
 import * as authService from "../services/authService";
 import { AppError } from "../utils/AppError";
 import response from "../utils/response";
@@ -91,5 +91,21 @@ export default {
         await authService.resetPassword(parsed.data.token, parsed.data.newPassword);
 
         response.success(res, "Password reset successful. Please log in with your new password.")
-    }
+    },
+
+    // PATCH /api/v1/auth/me
+    async updateMe(req: Request, res: Response): Promise<void> {
+        const user = req.user!;
+
+        const parsed = updateProfileSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            throw new AppError(parsed.error.errors[0].message, 400);
+        }
+
+        const updated = await authService.updateProfile(user.id, parsed.data);
+
+        response.success(res, updated);
+    },
+
 }
