@@ -154,13 +154,17 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
     return { programId: result.programId, programHash: result.programHash };
 }
 
-export async function listPrograms(query: ListProgramQuery) {
+export async function listPrograms(query: ListProgramQuery, onlyOnChain = false) {
     const { tab, page, limit } = query; 
     const skip = (page - 1) * limit;
-    const cacheKey = `programs:list:${tab ?? "all"}:${page}:${limit}`;
+    const cacheKey = `programs:list:${onlyOnChain ? "chain" : "all"}:${tab ?? "all"}:${page}:${limit}`;
+
 
     return cacheAside(cacheKey, 30, async () => {
-        const where = tab ? { displayTab: tab } : {};
+        const where = {
+            ...(tab ? { displayTab: tab } : {}),
+            ...(onlyOnChain ? { isOnChain: true } : {}) 
+        };
 
         const [programs, total] = await Promise.all([
             prisma.program.findMany({
@@ -304,4 +308,25 @@ export async function getProgramWithdrawals(programId: number) {
 
         return { programId, withdrawals, count: withdrawals.length }
     });
+}
+
+export async function getSubmissionPayload(userId: string, programId: number) {
+    const program = await prisma.program.findUnique({ 
+        where: { programId } 
+    });
+
+    if (!program) throw new AppError("Program not found", 404);
+    if (program.picId !== userId) throw new AppError("Not your program", 403);
+    if (program.isOnChain) throw new AppError("Program already anchored on-chain", 409);
+
+    const programHash = computeProgramHash({
+        programId: program.programId, title: program.title, description: program.description,
+        totalBudget: program.totalBudget, picWallet: program.picWallet, milestoneCount: program.milestoneCount,
+        province: program.province, regency: program.regency, district: program.district,
+        locationAddress: program.locationAddress, executorName: program.executorName,
+        executorRegistration: program.executorRegistration, category: program.category,
+        institutionName: program.institutionName, fiscalYear: program.fiscalYear,
+    });
+
+    return { programId: program.programId, programHash, milestoneCount: program.milestoneCount };
 }

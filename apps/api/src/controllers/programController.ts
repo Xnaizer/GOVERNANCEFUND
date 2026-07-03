@@ -45,6 +45,20 @@ export default {
         const program = await programService.getProgramById(programId);
 
         response.success(res, program);
-    }
+    },
+    
+    // GET /api/v1/programs/:id/onchain-payload
+    async onchainPayload(req: Request, res: Response): Promise<void> {
+        const user = req.user!;
+        const programId = Number(req.params.id);
+
+        if (!Number.isInteger(programId) || programId < 1) {
+            throw new AppError("Invalid program id", 400);
+        }
+
+        const payload = await programService.getSubmissionPayload(user.id, programId);
+
+        response.success(res, payload);
+    },
 
 }

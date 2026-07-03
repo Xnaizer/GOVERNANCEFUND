@@ -29,4 +29,13 @@ router.get(
     asyncHandler(programController.detail)
 );
 
+router.get(
+    "/:id/onchain-payload",
+    readLimiter,
+    asyncHandler(authMiddleware),
+    requireRole(["PIC"]),
+    asyncHandler(programController.onchainPayload)
+);
+
+
 export default router;
