@@ -3,6 +3,20 @@ import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/AppError";
 import { ListUserQueryInput } from "../validators/userValidator";
 
+const PUBLIC_USER_SELECT = {
+    id: true,
+    username: true,
+    name: true,
+    role: true,
+    walletAddress: true,
+    isVerified: true,
+    reputationScore: true,
+    institution: true,
+    position: true,
+    nationality: true,
+    profilePictureURL: true,
+    createdAt: true
+} as const;
 
 export async function listUsers(query: ListUserQueryInput) {
     const { page, role, limit, isVerified } = query;
@@ -75,4 +89,83 @@ export async function setVerified(userId: string, isVerified: boolean) {
     });
 
     return updated;
+}
+
+export async function getPublicUserProfile(userId: string) {
+    const cacheKey = `public:user:${userId}`;
+
+    return cacheAside(cacheKey, 30, async () => {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                ...PUBLIC_USER_SELECT,
+                programs: {
+                    select: {
+                        programId: true,
+                        title: true,
+                        status: true,
+                        displayTab: true,
+                        totalBudget: true,
+                        integrity: true,
+                        createdAt: true
+                    },
+                    orderBy: { createdAt: "desc" }
+                }
+            }
+        });
+
+        if(!user) {
+            throw new AppError("User not found", 404);
+        }
+
+        let roleVoteBallots = undefined;
+        let unfreezeBallots = undefined;
+        let reputationLogs = undefined;
+
+        if(user.role === "ADMIN") {
+            roleVoteBallots = await prisma.roleVoteBallot.findMany({
+                where: { voterId: userId },
+                select: {
+                    votedAt: true,
+                    roleVote: {
+                        select: {
+                            voteId: true,
+                            candidate: true,
+                            roleToTarget: true,
+                            isDevote: true,
+                            executed: true
+                        }
+                    }
+                },
+                orderBy: { votedAt: "desc" },
+                take: 50
+            });
+        } else if (user.role === "VALIDATOR") {
+            unfreezeBallots = await prisma.unfreezeVoteBallot.findMany({
+                where: { voterId: userId},
+                select: {
+                    approve: true,
+                    votedAt: true,
+                    unfreezeVote: { select: { programId: true, resolved: true } }
+                },
+                orderBy: { votedAt: "desc" },
+                take: 50
+            });
+        } else if (user.role === "AUDITOR" || user.role === "PIC") {
+            reputationLogs = await prisma.reputationLog.findMany({
+                where: { userId },
+                select: {
+                    change: true,
+                    reason: true,
+                    scoreAfter: true,
+                    programId: true,
+                    createdAt: true
+                },
+                orderBy: { createdAt: "desc" },
+                take: 50
+            });
+        }
+
+        return { ...user, roleVoteBallots, unfreezeBallots, reputationLogs };
+    });
 }

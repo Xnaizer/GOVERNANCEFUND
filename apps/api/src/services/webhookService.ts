@@ -453,6 +453,8 @@ export async function handleUnfreezeAppealSubmitted(
     });
 
     await invalidateProgramCache(programId);
+    await invalidatePattern("votes:unfreeze:*");
+
 
     return { result: "APPEAL_SUBMITTED", programId}
 }
@@ -512,6 +514,7 @@ export async function handleUnfreezeAppealVoted(
     }
 
     await invalidateProgramCache(programId);
+    await invalidatePattern("votes:unfreeze:*");
 
     return { result: "APPEAL_VOTED", programId };
 }
@@ -570,6 +573,7 @@ export async function handleProgramUnfrozenViaBFT(
     });
 
     await invalidateProgramCache(programId);
+    await invalidatePattern("votes:unfreeze:*");
 
     return { result: "UNFROZEN", programId };
 }
@@ -644,6 +648,7 @@ export async function handleProgramFraudConfirmed(
     });
 
     await invalidateProgramCache(programId);
+    await invalidatePattern("votes:unfreeze:*");
 
     return { result: "FRAUD_CONFIRMED", programId };
 }
@@ -676,6 +681,8 @@ export async function handleRoleVoteCreated(
         },
         update: {}
     });
+
+    await invalidatePattern("votes:role:*");
 
     return { result: "ROLE_VOTE_CREATED", voteId };
 }
@@ -719,6 +726,8 @@ export async function handleRoleVoteCast(
     } else {
         console.warn(`[WEBHOOK] Admin ${adminWallet} not found as User, skip ballot`);
     }
+
+    await invalidatePattern("votes:role:*");
 
     return { result: "ROLE_VOTE_CAST", voteId };
 }
