@@ -18,7 +18,7 @@ export default {
             throw new AppError(parsed.error.errors[0].message, 400);
         }
 
-        const result = await programService.listPrograms(parsed.data);
+        const result = await programService.listPrograms(parsed.data, true);
 
         response.success(res, result.programs, {
             pagination: result.pagination
