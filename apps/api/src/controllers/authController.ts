@@ -4,6 +4,7 @@ import * as authService from "../services/authService";
 import { AppError } from "../utils/AppError";
 import response from "../utils/response";
 import jwt from "jsonwebtoken";
+import { env } from "../config/env";
 
 export default {
 
@@ -43,6 +44,13 @@ export default {
 
         const result = await authService.loginUser(parsed.data);
 
+        res.cookie("token", result.token, {
+            httpOnly: true,
+            secure: env.NODE_ENV === "production",
+            sameSite: env.NODE_ENV === "production" ? "none" : "lax",
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
         response.success(res, result);
     },
 
@@ -50,10 +58,21 @@ export default {
     async logout(req: Request, res: Response): Promise<void> {
         const user = req.user!;
 
-        const token = req.headers.authorization!.substring(7);
-        const decoded = jwt.decode(token) as { exp: number };
+        const token = req.cookies?.token ?? (
+            req.headers.authorization?.startsWith("Bearer ") ? 
+            req.headers.authorization!.substring(7) : undefined
+        );
 
-        await authService.logoutUser(user.jti, decoded.exp);
+        const decoded = token ?  (jwt.decode(token) as { exp: number } | null) : null;
+        const exp = decoded?.exp ?? Math.floor(Date.now() / 1000) + 60;
+
+        await authService.logoutUser(user.jti, exp);
+
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: env.NODE_ENV === "production",
+            sameSite: env.NODE_ENV === "production" ? "none": "lax",
+        });
 
         response.success(res, "Logged out successfully");
     },

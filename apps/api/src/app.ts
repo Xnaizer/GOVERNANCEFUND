@@ -2,7 +2,7 @@ import express from "express";
 import type { Express, Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
-import response from "./utils/response";
+import cookieParser from "cookie-parser";
 import { notFoundHandler } from "./middleware/notFound";
 import { errorHandler } from "./middleware/errorHandler";
 import apiRouter from "./routes";
@@ -22,7 +22,8 @@ import { asyncHandler } from "./utils/asyncHandler";
 const app: Express = express();
 
 app.use(helmet()); 
-app.use(cors()); 
+app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
+app.use(cookieParser()); 
 app.use(pinoHttp({
     logger,
     autoLogging: {

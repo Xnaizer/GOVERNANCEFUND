@@ -8,13 +8,19 @@ export async function authMiddleware(
     _res: Response,
     next: NextFunction
 ): Promise<void> {
+    const cookieToken = req.cookies?.token as string | undefined;
     const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : undefined;
 
     if(!authHeader || !authHeader.startsWith("Bearer ")) {
         throw new AppError("Authentication required", 401);
     }
 
-    const token = authHeader.substring(7);
+    const token = cookieToken ?? bearerToken;
+
+    if (!token) {
+        throw new AppError("Authentication required", 401);
+    }
 
     let payload;
 
