@@ -1,3 +1,4 @@
+import "./instrument"; 
 import { env } from "./config/env";
 import { app } from "./app";
 import { prisma } from "./lib/prisma";
