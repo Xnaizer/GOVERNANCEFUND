@@ -2,7 +2,6 @@ import express from "express";
 import type { Express, Request, Response } from "express";
 import helmet from "helmet";
 import cors from "cors";
-import morgan from "morgan";
 import response from "./utils/response";
 import { notFoundHandler } from "./middleware/notFound";
 import { errorHandler } from "./middleware/errorHandler";
@@ -13,12 +12,24 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { ExpressAdapter } from "@bull-board/express";
 import { allQueues } from "./queues/queues";
 import { env } from "./config/env";
+import { pinoHttp } from "pino-http";
+import { logger } from "./lib/logger";
+import * as Sentry from "@sentry/node";
+import { prisma } from "./lib/prisma";
+import { redis } from "./lib/redis";
+import { asyncHandler } from "./utils/asyncHandler";
 
 const app: Express = express();
 
-app.use(helmet()); // security headers
-app.use(cors()); // cross origin
-app.use(morgan("dev")); // log every request
+app.use(helmet()); 
+app.use(cors()); 
+app.use(pinoHttp({
+    logger,
+    autoLogging: {
+        ignore: (req) => req.url === "/health"
+    },
+    customLogLevel: (_req, res, err) => res.statusCode >= 500 || err ? "error" : res.statusCode >= 400 ? "warn" : "info",
+}));
 
 app.use(
     "/webhook",
@@ -31,9 +42,18 @@ app.use(
 
 app.use(express.json());
 
-app.get("/health", (_req: Request, res: Response): void => {
-    response.success(res, "ok");
-});
+app.get("/health", asyncHandler(async (_req: Request, res: Response) => {
+    const checks = { db: false, redis: false };
+    try { await prisma.$queryRaw`SELECT 1`; checks.db = true; } catch {}
+    try { await redis.ping(); checks.redis = true; } catch {}
+
+    const ok = checks.db && checks.redis;
+    res.status(ok ? 200 : 503).json({
+        data: ok ? "ok" : "degraded",
+        error: ok ? null : "dependency down",
+        meta: checks,
+    });
+}));
 
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/admin/queues");
@@ -53,8 +73,8 @@ function queueAuth(req: Request, res: Response, next: express.NextFunction): voi
 app.use("/admin/queues", queueAuth, serverAdapter.getRouter());
 
 app.use("/api/v1", apiRouter);
-
 app.use(notFoundHandler);
+Sentry.setupExpressErrorHandler(app);
 app.use(errorHandler);
 
 export { app };

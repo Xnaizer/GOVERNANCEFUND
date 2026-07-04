@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError";
 import response from "../utils/response";
 import { env } from "../config/env";
+import { logger } from "../lib/logger";
 
 export function errorHandler(
     err: Error,
@@ -14,7 +15,7 @@ export function errorHandler(
         return;
     }
 
-    console.error("[UNHANDLED ERROR]: ", err);
+    logger.error({ err }, "[UNHANDLED ERROR]");
 
     const message = env.NODE_ENV === "development" ? err.message : "Internal server error";
 
