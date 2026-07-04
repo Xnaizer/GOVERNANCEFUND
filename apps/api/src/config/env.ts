@@ -21,7 +21,8 @@ const envSchema = z.object({
     ALCHEMY_WEBHOOK_SECRET: z.string().min(1, "ALCHEMY_WEBHOOK_SECRET is required"),
     QUEUE_ADMIN_USER: z.string().default("admin"),
     QUEUE_ADMIN_PASS: z.string().min(1, "QUEUE_ADMIN_PASS is required"),
-
+    LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
+    SENTRY_DSN: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
