@@ -1,3 +1,17 @@
+# ─── Dependencies ───────────────────────────────────────────
+node_modules/
+
+# ─── Environment (JWT_SECRET, DATABASE_URL, ALCHEMY_*…) ──────
 .env
-.env.local
-node_modules
+.env.*
+!.env.example
+
+# ─── tsup build output ──────────────────────────────────────
+dist/
+
+# ─── Logs (Pino) ────────────────────────────────────────────
+logs/
+*.log
+
+# ─── TypeScript ─────────────────────────────────────────────
+*.tsbuildinfo

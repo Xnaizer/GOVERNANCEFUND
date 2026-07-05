@@ -1,4 +1,48 @@
+# ─── Dependencies ───────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ─── Environment (NEVER commit secrets) ─────────────────────
 .env
-.env.local
-node_modules
-CLAUDE.MD 
+.env.*
+!.env.example
+
+# ─── Build outputs (also ignored per-package) ───────────────
+dist/
+build/
+*.tsbuildinfo
+
+# ─── Turborepo ──────────────────────────────────────────────
+.turbo/
+
+# ─── Logs ───────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# ─── Test / coverage ────────────────────────────────────────
+coverage/
+.nyc_output/
+
+# ─── OS ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ─── Editor / IDE ───────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# ─── Secrets / keys ─────────────────────────────────────────
+*.pem
+*.key
+
+# ─── Claude artifacts ─────────────────────────────────
+CLAUDE.md
+.claude/settings.local.json
