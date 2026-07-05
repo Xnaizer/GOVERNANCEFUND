@@ -1,28 +1,29 @@
 import { z } from "zod";
+import { plainTextRequired, plainText } from "./common";
 
 const milestoneSchema = z.object({
-    title: z.string().min(1, "Milestone title required"),
-    description: z.string().optional(),
+    title: plainTextRequired(200),
+    description: plainText(2000).optional(),
     milestoneBudget: z.string().regex(/^\d+$/, "milestoneBudget must be numeric (Wei)"),
 });
 
 export const createProgramSchema = z.object({
-    title: z.string().min(1, "Title required"),
-    description: z.string().min(1, "Description required"),
+    title: plainTextRequired(200),
+    description: plainTextRequired(2000),
     totalBudget: z.string().regex(/^\d+$/, "totalBudget must be numeric (Wei)"),
     milestoneCount: z.number().int().positive(),
-    province: z.string().min(1),
-    regency: z.string().min(1),
-    district: z.string().optional(),
-    locationAddress: z.string().min(1),
-    executorName: z.string().min(1),
-    executorRegistration: z.string().min(1),
-    category: z.string().min(1),
-    institutionName: z.string().min(1),
+    province: plainTextRequired(100),
+    regency: plainTextRequired(100),
+    district: plainText(100).optional(),
+    locationAddress: plainTextRequired(300),
+    executorName: plainTextRequired(200),
+    executorRegistration: plainTextRequired(100),
+    category: plainTextRequired(100),
+    institutionName: plainTextRequired(200),
     fiscalYear: z.number().int(),
     plannedStartDate: z.string().datetime().optional(),
     plannedEndDate: z.string().datetime().optional(),
-    milestones: z.array(milestoneSchema).min(1, "At least 1 milestone required")
+    milestones: z.array(milestoneSchema).min(1, "At least 1 milestone required"),
 });
 
 export type CreateProgramInput = z.infer<typeof createProgramSchema>;

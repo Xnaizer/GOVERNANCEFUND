@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { plainText } from "./common";
 
 export const registerSchema = z.object({
     username: z.string().min(3, "Username min 3 chars").max(30),
@@ -29,16 +30,16 @@ export const resetPasswordSchema = z.object({
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 export const updateProfileSchema = z.object({
-    name: z.string().min(1).max(120).optional(),
+    name: plainText(120).optional(),
     nik: z.string().regex(/^\d{16}$/, "NIK must be 16 digits").optional(),
     nip: z.string().min(1).max(30).optional(),
-    institution: z.string().max(150).optional(),
-    position: z.string().max(120).optional(),
-    birthPlace: z.string().max(100).optional(),
+    institution: plainText(150).optional(),
+    position:    plainText(120).optional(),
+    birthPlace:  plainText(100).optional(),
     birthDate: z.coerce.date().optional(),         
-    address: z.string().max(300).optional(),
+    address:     plainText(300).optional(),
     phone: z.string().regex(/^[0-9+\-\s]{6,20}$/, "Invalid phone").optional(),
-    nationality: z.string().max(60).optional(),
+    nationality: plainText(60).optional(),
     profilePictureURL: z.string().url().optional()
 }).refine((d) => Object.keys(d).length > 0, { message: "At least one field is required" });
 

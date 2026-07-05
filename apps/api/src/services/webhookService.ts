@@ -3,6 +3,7 @@ import { computeProgramHash } from "@repo/shared";
 import { invalidate, invalidatePattern } from "../lib/cache";
 import { mapRoleHashToSignerRole, mapRoleHashToRole  } from "./roleMapper";
 import { applyReputation, resolvePicUserId, resolveAuditorUserId } from "./reputationService";
+import { sanitizeText } from "../utils/sanitize";
 
 export interface DecodedEvent {
     eventName: string;
@@ -342,8 +343,8 @@ export async function handleWithdrawalLogged(
     const programId = Number(args.programId);
     const picWallet = String(args.picWallet).toLowerCase();
     const amount = String(args.amount);
-    const recipient = String(args.recipient ?? "");
-    const description = String(args.description ?? "");
+    const recipient = sanitizeText(String(args.recipient ?? ""));
+    const description = sanitizeText(String(args.description ?? ""));
 
     const existing = await prisma.program.findUnique({
         where: { programId }
