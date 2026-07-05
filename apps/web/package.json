@@ -2,15 +2,34 @@
   "name": "@repo/web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "next": "14.2.13",
+    "@heroui/react": "^2.8.10",
+    "@rainbow-me/rainbowkit": "^2.2.8",
+    "@repo/shared": "workspace:*",
+    "@tanstack/react-query": "^5.90.2",
+    "axios": "^1.13.2",
+    "framer-motion": "^12.23.24",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "react-router-dom": "^7.9.4",
+    "viem": "^2.53.1",
+    "wagmi": "^2.16.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/node": "20.16.10",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.1.0",
+    "typescript": "5.6.2",
+    "vite": "^6.0.7"
   }
 }
