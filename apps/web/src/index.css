@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-brand-mint: #67F3CE;
+  --color-brand-blue: #4899EA;
+}
