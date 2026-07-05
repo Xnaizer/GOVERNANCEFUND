@@ -1,0 +1,23 @@
+# ─── Dependencies ───────────────────────────────────────────
+node_modules/
+
+# ─── Environment ────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Vite build output ──────────────────────────────────────
+dist/
+dist-ssr/
+
+# ─── Vite / bundler cache ───────────────────────────────────
+.vite/
+
+# ─── Local override files (vite convention) ─────────────────
+*.local
+
+# ─── TypeScript ─────────────────────────────────────────────
+*.tsbuildinfo
+
+# ─── Logs ───────────────────────────────────────────────────
+*.log

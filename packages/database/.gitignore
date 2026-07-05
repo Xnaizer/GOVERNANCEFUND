@@ -1,4 +1,16 @@
+# ─── Dependencies ───────────────────────────────────────────
+node_modules/
+
+# ─── Environment (DATABASE_URL / DIRECT_URL — never commit) ──
 .env
-.env.local
-node_modules
-/generated/prisma
+.env.*
+!.env.example
+
+# ─── Generated Prisma Client (custom output path) ───────────
+/generated
+generated/
+
+# ─── TypeScript ─────────────────────────────────────────────
+*.tsbuildinfo
+
+# NOTE: prisma/migrations/ is intentionally NOT ignored — commit migrations.

@@ -15,6 +15,10 @@
 
 # Typechain output
 /types
+/typechain-types
+
+# Hardhat Ignition local deployment state (keep deployed addresses in CLAUDE.md instead)
+/ignition/deployments
 
 # Environment files
 .env
@@ -23,6 +27,7 @@
 
 # Hardhat coverage reports
 /coverage
+coverage.json
 
 # Gas snapshot files
 /.gas-snapshot

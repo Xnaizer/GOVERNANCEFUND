@@ -1,3 +1,13 @@
+# ─── Dependencies ───────────────────────────────────────────
+node_modules/
+
+# ─── Environment ────────────────────────────────────────────
 .env
-.env.local
-node_modules
+.env.*
+!.env.example
+
+# ─── Build output (if a tsup build step is added later) ─────
+dist/
+
+# ─── TypeScript ─────────────────────────────────────────────
+*.tsbuildinfo
