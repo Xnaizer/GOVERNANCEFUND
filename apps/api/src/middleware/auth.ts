@@ -12,10 +12,6 @@ export async function authMiddleware(
     const authHeader = req.headers.authorization;
     const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : undefined;
 
-    if(!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new AppError("Authentication required", 401);
-    }
-
     const token = cookieToken ?? bearerToken;
 
     if (!token) {
