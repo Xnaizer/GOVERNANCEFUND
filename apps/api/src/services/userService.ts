@@ -15,7 +15,8 @@ const PUBLIC_USER_SELECT = {
     position: true,
     nationality: true,
     profilePictureURL: true,
-    createdAt: true
+    profileBannerURL: true,   
+    createdAt: true,
 } as const;
 
 export async function listUsers(query: ListUserQueryInput) {
@@ -40,6 +41,7 @@ export async function listUsers(query: ListUserQueryInput) {
                 walletAddress: true,
                 name: true,
                 reputationScore: true,
+                profilePictureURL: true, 
                 createdAt: true
             },
             orderBy: { createdAt: "desc" },

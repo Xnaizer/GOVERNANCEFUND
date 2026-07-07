@@ -37,7 +37,9 @@ const PUBLIC_PROGRAM_SELECT = {
     isOnChain: true,
     txHash: true,
     submittedAt: true,
-    createdAt: true
+    createdAt: true,
+    programURLs: true,
+    ipfsCid: true, 
 } as const;
 
 export async function createProgram(userId: string, input: CreateProgramInput) {
@@ -229,7 +231,8 @@ export async function getProgramById(programId: number) {
                         recipientName: true,
                         description: true,
                         timestamp: true,
-                        txHash: true
+                        txHash: true,
+                        receiptUrl: true,
                     },
                     orderBy: { timestamp: "desc" }
                 },
@@ -301,7 +304,8 @@ export async function getProgramWithdrawals(programId: number) {
                 recipientName: true,
                 description: true,
                 timestamp: true,
-                txHash: true
+                txHash: true,
+                receiptUrl: true
             },
             orderBy: { timestamp: "desc" }
         });
