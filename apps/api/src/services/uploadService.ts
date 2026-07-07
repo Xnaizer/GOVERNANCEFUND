@@ -192,3 +192,41 @@ export async function attachWithdrawalReceipt(
 
   return { url, publicId };
 }
+
+export async function updateUserAvatar(userId: string, file: UploadedFile) {
+    const { url, publicId } = await uploadImage(file.buffer, {
+        folder: `governancefund/users/${userId}`,
+        publicId: "avatar"
+    });
+
+    await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            profilePictureURL: url
+        }
+    });
+
+    await invalidate(`public:user:${userId}`);
+
+    return { url, publicId };
+}
+
+export async function updateUserBanner(userId: string, file: UploadedFile) {
+    const { url, publicId } = await uploadImage(file.buffer, {
+        folder: `governancefund/users/${userId}`,
+        publicId: "banner",
+    });
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: {
+            profileBannerURL: url
+        }
+    });
+
+    await invalidate(`public:user:${userId}`);
+
+    return { url, publicId };
+}

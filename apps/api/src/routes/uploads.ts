@@ -43,4 +43,20 @@ router.post(
   asyncHandler(uploadController.withdrawalReceipt),
 );
 
+router.post(
+  "/user/avatar",
+  mutationLimiter,
+  asyncHandler(authMiddleware),
+  imageUpload,
+  asyncHandler(uploadController.userAvatar),
+);
+
+router.post(
+  "/user/banner",
+  mutationLimiter,
+  asyncHandler(authMiddleware),
+  imageUpload,
+  asyncHandler(uploadController.userBanner),
+);
+
 export default router;

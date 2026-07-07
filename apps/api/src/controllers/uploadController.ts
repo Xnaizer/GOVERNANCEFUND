@@ -72,4 +72,20 @@ export default {
 
     response.created(res, result);
   },
+
+  async userAvatar(req: Request, res: Response): Promise<void> {
+    const result = await uploadService.updateUserAvatar(
+      req.user!.id,
+      requireFile(req),
+    );
+    response.success(res, result);
+  },
+
+  async userBanner(req: Request, res: Response): Promise<void> {
+    const result = await uploadService.updateUserBanner(
+      req.user!.id,
+      requireFile(req),
+    );
+    response.success(res, result);
+  },
 };
