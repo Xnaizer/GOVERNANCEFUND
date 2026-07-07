@@ -25,7 +25,9 @@ const envSchema = z.object({
     SENTRY_DSN: z.string().url().optional(),
     CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
     CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
-    CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required")
+    CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
+    PINATA_JWT: z.string().min(1, "PINATA_JWT is required"),
+    PINATA_GATEWAY: z.string().min(1, "PINATA_GATEWAY is required")
 });
 
 const parsed = envSchema.safeParse(process.env);
