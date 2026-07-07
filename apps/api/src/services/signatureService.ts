@@ -133,6 +133,7 @@ export async function getSignatures(milestoneId: string) {
             id: true,
             signerWallet: true,
             signerRole: true,
+            signature: true,
             signedAt: true
         },
         orderBy: { signedAt: "asc" }
