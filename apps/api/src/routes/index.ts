@@ -4,6 +4,7 @@ import userRouter from "./users";
 import programRouter from "./programs";
 import publicRouter from "./public";
 import signatureRouter from "./signatures";
+import uploadRouter from "./uploads";
 
 const router: Router  = express.Router();
 
@@ -12,5 +13,6 @@ router.use("/users", userRouter);
 router.use("/programs", programRouter);
 router.use("/public", publicRouter);
 router.use("/signatures", signatureRouter);
+router.use("/uploads", uploadRouter);
 
 export default router;

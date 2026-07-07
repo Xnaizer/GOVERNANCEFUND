@@ -188,6 +188,8 @@ export async function getMe(userId: string) {
             name: true,
             institution: true,
             position: true,
+            profilePictureURL: true,   
+            profileBannerURL: true,
             createdAt: true
         }
     });

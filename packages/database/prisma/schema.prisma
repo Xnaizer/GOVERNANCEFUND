@@ -117,6 +117,7 @@ model User {
   phone               String?
   nationality         String?
   profilePictureURL   String?
+  profileBannerURL    String?
   verificationTokens  VerificationToken[]
   programs            Program[]
   roleVoteBallots     RoleVoteBallot[]
@@ -187,6 +188,7 @@ model Program {
   pic                 User?       @relation(fields: [picId], references: [id])
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
+  programURLs         String[]
   milestones          Milestone[]
   withdrawals         WithdrawalRecord[]
   unfreezeVote        UnfreezeVote?
@@ -243,6 +245,7 @@ model WithdrawalRecord {
   txHash              String?
   picWallet           String
   programId           Int
+  receiptUrl          String?
   program             Program     @relation(fields: [programId], references: [programId])
   
   @@index([programId])
