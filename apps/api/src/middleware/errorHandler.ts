@@ -3,6 +3,7 @@ import { AppError } from "../utils/AppError";
 import response from "../utils/response";
 import { env } from "../config/env";
 import { logger } from "../lib/logger";
+import { MulterError } from "multer";
 
 export function errorHandler(
     err: Error,
@@ -14,6 +15,13 @@ export function errorHandler(
         response.error(res, err.message, err.statusCode);
         return;
     }
+
+    if (err instanceof MulterError) {
+        const msg = err.code === "LIMIT_FILE_SIZE" ? "File too large (max exceeded)" : err.message;
+        response.error(res, msg, 400);
+        return;
+    }
+
 
     logger.error({ err }, "[UNHANDLED ERROR]");
 
