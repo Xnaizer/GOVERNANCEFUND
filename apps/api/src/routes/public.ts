@@ -60,6 +60,12 @@ router.get(
 );
 
 router.get(
+    "/users",
+    readLimiter,
+    asyncHandler(publicController.listUsers)
+);
+
+router.get(
     "/users/:id",
     readLimiter,
     asyncHandler(publicController.userProfile)
