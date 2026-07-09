@@ -186,9 +186,16 @@ export async function getMe(userId: string) {
             reputationScore: true,
             walletAddress: true,
             name: true,
+            nik: true,
+            nip: true,
             institution: true,
             position: true,
-            profilePictureURL: true,   
+            birthPlace: true,
+            birthDate: true,
+            address: true,
+            phone: true,
+            nationality: true,
+            profilePictureURL: true,
             profileBannerURL: true,
             createdAt: true
         }
