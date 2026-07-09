@@ -612,25 +612,48 @@ async function main() {
         logTest("PIC 1", "Transfer eIDR token to hacker", true, '-Revert (Cannot transfer token unless to Gateway address)');
     }
 
-    // PIC approve to gateway to spend eIDR Balance
+    // Two-phase (DvP) redemption: request (escrow) → confirm (burn) → cancel (refund).
+    const half = pic1Balance3 / 2n;
+    const rest = pic1Balance3 - half;
+
+    // PIC approve the gateway to pull eIDR into escrow (covers both requests).
     await(await rupiahToken.connect(pic1).approve(gatewayAddress, pic1Balance3)).wait();
-    logTest('PIC 1', "Approve gateway contract to spend 2.5 mill eIDR", true);
+    logTest('PIC 1', "Approve gateway to escrow eIDR", true);
 
-    // System check totalSupply of eIDR Token
-    const currentTotalSupply = await rupiahToken.connect(rootAdmin).totalSupply();
-    logTest("System", "Checking total supply of eIDR token", true, `Total Supply Before Burned: ${ethers.formatEther(currentTotalSupply)} eIDR`);
+    const supplyBefore = await rupiahToken.totalSupply();
+    logTest("System", "Total supply before redemption", true, `${ethers.formatEther(supplyBefore)} eIDR`);
 
-    // PIC trigger Gateway Burner
-    await(await gateway.connect(pic1).depositAndBurnToken(pic1Balance3)).wait();
-    logTest('Gateway', "Burn 2.5 mill eIDR token and transfer FIAT to PIC", true, "- Burned 2.5 Mill eIDR");
+    // Phase 1 — PIC requests redemption of half → tokens held in gateway custody (NOT burned).
+    await(await gateway.connect(pic1).requestRedemption(half)).wait();
+    const escrowBal = await rupiahToken.balanceOf(gatewayAddress);
+    const picAfterReq = await rupiahToken.balanceOf(pic1.address);
+    logTest('PIC 1', "requestRedemption(half) → escrow in gateway", true,
+        `- gateway holds ${ethers.formatEther(escrowBal)} eIDR, PIC left ${ethers.formatEther(picAfterReq)} eIDR`);
 
-    // System checking total suppply of eIDR Token
-    const afterTotalSupply = await rupiahToken.connect(pic1).totalSupply();
-    logTest("System", "Checking total supply of eIDR tokens", true, `- Total Supply After Burned : ${ethers.formatEther(afterTotalSupply)}`);
+    const supplyMid = await rupiahToken.totalSupply();
+    logTest("System", "Supply unchanged after request (not burned yet)", supplyMid === supplyBefore,
+        `${ethers.formatEther(supplyMid)} eIDR`);
 
-    // System checking total balance of eIDR Token from PIC's wallet
+    // Phase 2 — operator confirms fiat paid → burn escrowed tokens (finalize request #1).
+    await(await gateway.connect(rootAdmin).confirmRedemption(1)).wait();
+    const supplyAfterBurn = await rupiahToken.totalSupply();
+    logTest('Gateway', "confirmRedemption(1) → burn escrow + fiat paid", supplyAfterBurn === supplyBefore - half,
+        `- Total Supply After Burn: ${ethers.formatEther(supplyAfterBurn)} eIDR`);
+
+    // Escape hatch — PIC requests the rest, operator cancels → escrow returned to PIC.
+    await(await gateway.connect(pic1).requestRedemption(rest)).wait();
+    await(await gateway.connect(rootAdmin).cancelRedemption(2)).wait();
     const pic1Balance4 = await rupiahToken.balanceOf(pic1.address);
-    logTest("System", "Checking Amount of eIDR Token balance from PIC's wallet", true, `PIC's eIDR Balance ${ethers.formatEther(pic1Balance4)} eIDR`);
+    logTest('Gateway', "cancelRedemption(2) → escrow refunded to PIC", pic1Balance4 === rest,
+        `- PIC's eIDR Balance restored: ${ethers.formatEther(pic1Balance4)} eIDR`);
+
+    // Operator cannot double-settle a finalized request.
+    try {
+        await gateway.connect(rootAdmin).confirmRedemption(1);
+        logTest("Gateway", "Re-confirm settled request", false);
+    } catch {
+        logTest("Gateway", "Re-confirm settled request", true, "- Revert (request not pending)");
+    }
 
     console.log("\n======================================================================================");
     console.log("AUDIT COMPLETE — ALL PHASES PASSED");
