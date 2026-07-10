@@ -31,7 +31,11 @@ const eventHandlers: Record<string, EventHandler> = {
     RoleGrantedViaGovernance: handleRoleGrantedViaGovernance,
     RoleRevokedViaGovernance: handleRoleRevokedViaGovernance,
     PicRoleGrantedByAdmin: handlePicRoleGrantedByAdmin,
-    PicRoleRevokedByAdmin: handlePicRoleRevokedByAdmin
+    PicRoleRevokedByAdmin: handlePicRoleRevokedByAdmin,
+    RedemptionRequested: handleRedemptionRequested,
+    RedemptionSettled: handleRedemptionSettled,
+    RedemptionCancelled: handleRedemptionCancelled,
+    ExchangeTokenToFiat: handleExchangeTokenToFiat,
 }
 
 export function isKnownEvent(name: string): boolean {
@@ -43,6 +47,10 @@ async function invalidateProgramCache(programId: number): Promise<void> {
     await invalidate(`program:withdrawals:${programId}`);
     await invalidatePattern("programs:list:*");
     await invalidate("public:stats");
+}
+
+async function invalidateRedemptionCache(): Promise<void> {
+    await invalidatePattern("redemptions:*");
 }
 
 export async function dispatchEvent(event: DecodedEvent): Promise<void> {
@@ -409,13 +417,20 @@ export async function handleProgramForceFrozen(
             }
         });
 
-        await tx.freezeOutcome.create({
-            data: {
+        // Upsert: auditor mungkin sudah melampirkan bukti (FreezeOutcome dibuat) sebelum event masuk.
+        // On-chain adalah sumber kebenaran untuk auditorWallet/txHash; reason/description dibiarkan.
+        await tx.freezeOutcome.upsert({
+            where: { programId },
+            create: {
                 programId,
                 auditorWallet,
                 outcome: "PENDING",
                 frozenAt: new Date(),
                 txHash: txHash ?? null
+            },
+            update: {
+                auditorWallet,
+                txHash: txHash ?? undefined
             }
         });
     });
@@ -879,4 +894,103 @@ export async function handlePicRoleRevokedByAdmin(
     });
 
     return { result: "PIC_REVOKED" }
+}
+
+export async function handleRedemptionRequested(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string; redemptionId: number; }> {
+    const redemptionId = Number(args.id);
+    const picWallet = String(args.pic).toLowerCase();
+    const amount = String(args.amount);
+
+    const pic = await prisma.user.findUnique({
+        where: { walletAddress: picWallet },
+        select: { id: true }
+    });
+
+    await prisma.redemption.upsert({
+        where: { redemptionId },
+        create: {
+            redemptionId,
+            picWallet,
+            amount,
+            status: "PENDING",
+            requestedAt: new Date(),
+            requestTxHash: txHash ?? null,
+            picId: pic?.id ?? null,
+        },
+        update: {}
+    });
+
+    await invalidateRedemptionCache();
+
+    return { result: "REDEMPTION_REQUESTED", redemptionId };
+}
+
+export async function handleRedemptionSettled(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string; redemptionId: number }> {
+    const redemptionId = Number(args.id);
+
+    const existing = await prisma.redemption.findUnique({
+        where: { redemptionId }
+    });
+
+    if(!existing) {
+        console.warn(`[WEBHOOK] RedemptionSettled unknown redemption ${redemptionId}`);
+        return { result: "SKIPPED_NOT_FOUND", redemptionId };
+    }
+
+    if (existing.status === "SETTLED") return { result: "ALREADY_SETTLED", redemptionId };
+
+    await prisma.redemption.update({
+        where: { redemptionId },
+        data: {
+            status: "SETTLED",
+            settledAt: new Date(),
+            settleTxHash: txHash ?? existing.settleTxHash,
+        }
+    });
+
+    await invalidateRedemptionCache();
+
+    return { result: "REDEMPTION_SETTLED", redemptionId };
+}
+
+export async function handleRedemptionCancelled(
+    args: Record<string, unknown>,
+    txHash?: string
+): Promise<{ result: string; redemptionId: number }> {
+    const redemptionId = Number(args.id);
+    const byPic = Boolean(args.byPic);
+
+    const existing = await prisma.redemption.findUnique({ where: { redemptionId } });
+    if (!existing) {
+        console.warn(`[WEBHOOK] RedemptionCancelled unknown redemption ${redemptionId}`);
+        return { result: "SKIPPED_NOT_FOUND", redemptionId };
+    }
+    if (existing.status === "CANCELLED") return { result: "ALREADY_CANCELLED", redemptionId };
+
+    await prisma.redemption.update({
+        where: { redemptionId },
+        data: {
+            status: "CANCELLED",
+            cancelledAt: new Date(),
+            cancelledByPic: byPic,
+            cancelTxHash: txHash ?? existing.cancelTxHash,
+        }
+    });
+
+    await invalidateRedemptionCache();
+    return { result: "REDEMPTION_CANCELLED", redemptionId };
+}
+
+export async function handleExchangeTokenToFiat(
+    args: Record<string, unknown>,
+    _txHash?: string
+): Promise<{ result: string }> {
+    console.log(`[WEBHOOK] ExchangeTokenToFiat pic=${String(args.picWallet).toLowerCase()} amount=${String(args.amount)}`);
+    return { result: "FIAT_EXCHANGE_LOGGED" };
 }
