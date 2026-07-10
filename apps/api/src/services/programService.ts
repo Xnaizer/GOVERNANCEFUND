@@ -252,6 +252,9 @@ export async function getProgramById(programId: number) {
                         outcome: true,
                         frozenAt: true,
                         resolvedAt: true,
+                        reason: true,
+                        description: true,
+                        evidenceUrl: true,
                         txHash: true
                     }
                 },
