@@ -335,11 +335,14 @@ model UnfreezeVoteBallot {
 // Freeze Outcome Model Data
 model FreezeOutcome {
   id            String       @id @default(cuid())
-  auditorWallet String                                    
+  auditorWallet String
   outcome       FreezeResult @default(PENDING)
   frozenAt      DateTime
-  resolvedAt    DateTime?                                 
-  programId     Int          @unique                      
+  resolvedAt    DateTime?
+  reason        String?                                   
+  description   String?                                   
+  evidenceUrl   String?                                   
+  programId     Int          @unique
   program       Program      @relation(fields: [programId], references: [programId])
   createdAt     DateTime     @default(now())
   txHash        String?
