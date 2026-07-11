@@ -1,83 +1,300 @@
-{
-  "_format": "hh3-artifact-1",
-  "contractName": "TrustedGatewayBurner",
-  "sourceName": "contracts/TrustedGatewayBurner.sol",
-  "abi": [
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_rupiahTokenAddress",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "picWallet",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "ExchangeTokenToFiat",
-      "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "depositAndBurnToken",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "gatewayOwner",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "rupiahToken",
-      "outputs": [
-        {
-          "internalType": "contract IRupiahToken",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    }
-  ],
-  "bytecode": "0x608034607d57601f6103d238819003918201601f19168301916001600160401b03831184841017608157808492602094604052833981010312607d57516001600160a01b03811690819003607d57600180546001600160a01b031990811633179091555f805490911691909117905560405161033c90816100968239f35b5f80fd5b634e487b7160e01b5f52604160045260245ffdfe6080806040526004361015610012575f80fd5b5f905f3560e01c908163355d1a7f146100915750806363b9e1ad146100685763a57221981461003f575f80fd5b34610065578060031936011261006557546040516001600160a01b039091168152602090f35b80fd5b50346100655780600319360112610065576001546040516001600160a01b039091168152602090f35b9050346101b05760203660031901126101b05760043590811561027157505f546040516370a0823160e01b81523360048201526001600160a01b0390911690602081602481855afa80156101a55783915f9161023c575b50106101eb5760205f916064604051809481936323b872dd60e01b83523360048401523060248401528760448401525af180156101a5576101b4575b505f546001600160a01b0316803b156101b0575f8091602460405180948193630852cd8d60e31b83528760048401525af180156101a557610190575b506040519081527f029f35180fa2d891b2f948751f83d24c1a943c07f21b016fc17207f0c520efd260203392a280f35b61019d9192505f906102d0565b5f905f610160565b6040513d5f823e3d90fd5b5f80fd5b6020813d6020116101e3575b816101cd602093836102d0565b810103126101b057518015158114610124575f80fd5b3d91506101c0565b60405162461bcd60e51b815260206004820152602360248201527f476174657761793a20496e73756666696369656e7420652d4944522062616c616044820152626e636560e81b6064820152608490fd5b9150506020813d602011610269575b81610258602093836102d0565b810103126101b0578290515f6100e8565b3d915061024b565b62461bcd60e51b815260206004820152603460248201527f476174657761793a20526564656d7074696f6e20616d6f756e74206d7573742060448201527362652067726561746572207468616e207a65726f60601b6064820152608490fd5b90601f8019910116810190811067ffffffffffffffff8211176102f257604052565b634e487b7160e01b5f52604160045260245ffdfea2646970667358221220859b0d7d862dc30faab58aa2d35b4eb360b76ad9268bd706341a4e7bd9340b2064736f6c63430008230033",
-  "deployedBytecode": "0x6080806040526004361015610012575f80fd5b5f905f3560e01c908163355d1a7f146100915750806363b9e1ad146100685763a57221981461003f575f80fd5b34610065578060031936011261006557546040516001600160a01b039091168152602090f35b80fd5b50346100655780600319360112610065576001546040516001600160a01b039091168152602090f35b9050346101b05760203660031901126101b05760043590811561027157505f546040516370a0823160e01b81523360048201526001600160a01b0390911690602081602481855afa80156101a55783915f9161023c575b50106101eb5760205f916064604051809481936323b872dd60e01b83523360048401523060248401528760448401525af180156101a5576101b4575b505f546001600160a01b0316803b156101b0575f8091602460405180948193630852cd8d60e31b83528760048401525af180156101a557610190575b506040519081527f029f35180fa2d891b2f948751f83d24c1a943c07f21b016fc17207f0c520efd260203392a280f35b61019d9192505f906102d0565b5f905f610160565b6040513d5f823e3d90fd5b5f80fd5b6020813d6020116101e3575b816101cd602093836102d0565b810103126101b057518015158114610124575f80fd5b3d91506101c0565b60405162461bcd60e51b815260206004820152602360248201527f476174657761793a20496e73756666696369656e7420652d4944522062616c616044820152626e636560e81b6064820152608490fd5b9150506020813d602011610269575b81610258602093836102d0565b810103126101b0578290515f6100e8565b3d915061024b565b62461bcd60e51b815260206004820152603460248201527f476174657761793a20526564656d7074696f6e20616d6f756e74206d7573742060448201527362652067726561746572207468616e207a65726f60601b6064820152608490fd5b90601f8019910116810190811067ffffffffffffffff8211176102f257604052565b634e487b7160e01b5f52604160045260245ffdfea2646970667358221220859b0d7d862dc30faab58aa2d35b4eb360b76ad9268bd706341a4e7bd9340b2064736f6c63430008230033",
-  "linkReferences": {},
-  "deployedLinkReferences": {},
-  "immutableReferences": {},
-  "inputSourceName": "project/contracts/TrustedGatewayBurner.sol",
-  "buildInfoId": "solc-0_8_35-246cbbc79216c3c88b40f5db63c49d86bdc6d50b"
+﻿{
+    "contractName":  "TrustedGatewayBurner",
+    "abi":  [
+                {
+                    "inputs":  [
+                                   {
+                                       "internalType":  "address",
+                                       "name":  "_rupiahTokenAddress",
+                                       "type":  "address"
+                                   }
+                               ],
+                    "stateMutability":  "nonpayable",
+                    "type":  "constructor"
+                },
+                {
+                    "anonymous":  false,
+                    "inputs":  [
+                                   {
+                                       "indexed":  true,
+                                       "internalType":  "address",
+                                       "name":  "picWallet",
+                                       "type":  "address"
+                                   },
+                                   {
+                                       "indexed":  false,
+                                       "internalType":  "uint256",
+                                       "name":  "amount",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "ExchangeTokenToFiat",
+                    "type":  "event"
+                },
+                {
+                    "anonymous":  false,
+                    "inputs":  [
+                                   {
+                                       "indexed":  true,
+                                       "internalType":  "uint256",
+                                       "name":  "id",
+                                       "type":  "uint256"
+                                   },
+                                   {
+                                       "indexed":  true,
+                                       "internalType":  "address",
+                                       "name":  "pic",
+                                       "type":  "address"
+                                   },
+                                   {
+                                       "indexed":  false,
+                                       "internalType":  "uint256",
+                                       "name":  "amount",
+                                       "type":  "uint256"
+                                   },
+                                   {
+                                       "indexed":  false,
+                                       "internalType":  "bool",
+                                       "name":  "byPic",
+                                       "type":  "bool"
+                                   }
+                               ],
+                    "name":  "RedemptionCancelled",
+                    "type":  "event"
+                },
+                {
+                    "anonymous":  false,
+                    "inputs":  [
+                                   {
+                                       "indexed":  true,
+                                       "internalType":  "uint256",
+                                       "name":  "id",
+                                       "type":  "uint256"
+                                   },
+                                   {
+                                       "indexed":  true,
+                                       "internalType":  "address",
+                                       "name":  "pic",
+                                       "type":  "address"
+                                   },
+                                   {
+                                       "indexed":  false,
+                                       "internalType":  "uint256",
+                                       "name":  "amount",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "RedemptionRequested",
+                    "type":  "event"
+                },
+                {
+                    "anonymous":  false,
+                    "inputs":  [
+                                   {
+                                       "indexed":  true,
+                                       "internalType":  "uint256",
+                                       "name":  "id",
+                                       "type":  "uint256"
+                                   },
+                                   {
+                                       "indexed":  true,
+                                       "internalType":  "address",
+                                       "name":  "pic",
+                                       "type":  "address"
+                                   },
+                                   {
+                                       "indexed":  false,
+                                       "internalType":  "uint256",
+                                       "name":  "amount",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "RedemptionSettled",
+                    "type":  "event"
+                },
+                {
+                    "inputs":  [
+
+                               ],
+                    "name":  "RECLAIM_TIMEOUT",
+                    "outputs":  [
+                                    {
+                                        "internalType":  "uint256",
+                                        "name":  "",
+                                        "type":  "uint256"
+                                    }
+                                ],
+                    "stateMutability":  "view",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+                                   {
+                                       "internalType":  "uint256",
+                                       "name":  "id",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "cancelRedemption",
+                    "outputs":  [
+
+                                ],
+                    "stateMutability":  "nonpayable",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+                                   {
+                                       "internalType":  "uint256",
+                                       "name":  "id",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "confirmRedemption",
+                    "outputs":  [
+
+                                ],
+                    "stateMutability":  "nonpayable",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+
+                               ],
+                    "name":  "gatewayOwner",
+                    "outputs":  [
+                                    {
+                                        "internalType":  "address",
+                                        "name":  "",
+                                        "type":  "address"
+                                    }
+                                ],
+                    "stateMutability":  "view",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+                                   {
+                                       "internalType":  "uint256",
+                                       "name":  "id",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "getRedemption",
+                    "outputs":  [
+                                    {
+                                        "components":  [
+                                                           {
+                                                               "internalType":  "address",
+                                                               "name":  "pic",
+                                                               "type":  "address"
+                                                           },
+                                                           {
+                                                               "internalType":  "uint256",
+                                                               "name":  "amount",
+                                                               "type":  "uint256"
+                                                           },
+                                                           {
+                                                               "internalType":  "uint256",
+                                                               "name":  "createdAt",
+                                                               "type":  "uint256"
+                                                           },
+                                                           {
+                                                               "internalType":  "enum TrustedGatewayBurner.RedemptionStatus",
+                                                               "name":  "status",
+                                                               "type":  "uint8"
+                                                           }
+                                                       ],
+                                        "internalType":  "struct TrustedGatewayBurner.RedemptionRequest",
+                                        "name":  "",
+                                        "type":  "tuple"
+                                    }
+                                ],
+                    "stateMutability":  "view",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+
+                               ],
+                    "name":  "redemptionNonce",
+                    "outputs":  [
+                                    {
+                                        "internalType":  "uint256",
+                                        "name":  "",
+                                        "type":  "uint256"
+                                    }
+                                ],
+                    "stateMutability":  "view",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+                                   {
+                                       "internalType":  "uint256",
+                                       "name":  "",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "redemptions",
+                    "outputs":  [
+                                    {
+                                        "internalType":  "address",
+                                        "name":  "pic",
+                                        "type":  "address"
+                                    },
+                                    {
+                                        "internalType":  "uint256",
+                                        "name":  "amount",
+                                        "type":  "uint256"
+                                    },
+                                    {
+                                        "internalType":  "uint256",
+                                        "name":  "createdAt",
+                                        "type":  "uint256"
+                                    },
+                                    {
+                                        "internalType":  "enum TrustedGatewayBurner.RedemptionStatus",
+                                        "name":  "status",
+                                        "type":  "uint8"
+                                    }
+                                ],
+                    "stateMutability":  "view",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+                                   {
+                                       "internalType":  "uint256",
+                                       "name":  "amount",
+                                       "type":  "uint256"
+                                   }
+                               ],
+                    "name":  "requestRedemption",
+                    "outputs":  [
+                                    {
+                                        "internalType":  "uint256",
+                                        "name":  "id",
+                                        "type":  "uint256"
+                                    }
+                                ],
+                    "stateMutability":  "nonpayable",
+                    "type":  "function"
+                },
+                {
+                    "inputs":  [
+
+                               ],
+                    "name":  "rupiahToken",
+                    "outputs":  [
+                                    {
+                                        "internalType":  "contract IRupiahToken",
+                                        "name":  "",
+                                        "type":  "address"
+                                    }
+                                ],
+                    "stateMutability":  "view",
+                    "type":  "function"
+                }
+            ]
 }

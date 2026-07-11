@@ -39,7 +39,17 @@ const PUBLIC_PROGRAM_SELECT = {
     submittedAt: true,
     createdAt: true,
     programURLs: true,
-    ipfsCid: true, 
+    ipfsCid: true,
+    pic: {
+        select: {
+            id: true,
+            name: true,
+            username: true,
+            profilePictureURL: true,
+            reputationScore: true,
+            role: true,
+        }
+    },
 } as const;
 
 export async function createProgram(userId: string, input: CreateProgramInput) {
@@ -242,6 +252,9 @@ export async function getProgramById(programId: number) {
                         outcome: true,
                         frozenAt: true,
                         resolvedAt: true,
+                        reason: true,
+                        description: true,
+                        evidenceUrl: true,
                         txHash: true
                     }
                 },

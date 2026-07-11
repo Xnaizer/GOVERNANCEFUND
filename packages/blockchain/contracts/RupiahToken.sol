@@ -174,7 +174,12 @@ contract RupiahToken is ERC20, IRupiahToken {
      * @return success True if transfer succeeded.
      */
     function transfer(address to, uint256 amount) public override(ERC20, IRupiahToken) returns(bool success) {
-        require(to == gatewayContract, "RupiahToken: Only transfers to gateway allowed");
+        // Non-transferable EXCEPT: anyone may send TO the gateway (redemption deposit),
+        // and the gateway may send tokens OUT (returning escrow on a cancelled redemption).
+        require(
+            to == gatewayContract || msg.sender == gatewayContract,
+            "RupiahToken: Only transfers to/from gateway allowed"
+        );
         return super.transfer(to, amount);
     }
 

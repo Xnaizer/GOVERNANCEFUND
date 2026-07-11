@@ -114,6 +114,18 @@ export default {
         response.success(res, result.logs, { pagination: result.pagination });
     },
 
+    // GET /api/v1/public/users
+    async listUsers(req: Request, res: Response): Promise<void> {
+        const page = Math.max(1, Number(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+        const role = typeof req.query.role === "string" ? req.query.role : undefined;
+        const sort = req.query.sort === "reputation" ? "reputation" : "recent";
+
+        const result = await userService.listPublicUsers({ page, limit, role, sort });
+
+        response.success(res, result.users, { pagination: result.pagination });
+    },
+
     // GET /api/v1/public/users/:id
     async userProfile(req: Request, res: Response): Promise<void> {
         const id = req.params.id;

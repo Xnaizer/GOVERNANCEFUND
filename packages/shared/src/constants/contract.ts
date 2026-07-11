@@ -1,6 +1,6 @@
 export const CONTRACT_ADDRESS = {
-    rupiahToken: "0xA7CA6a97ae8445f05c56c4Be3B6DE1384D682631",
-    trustedGatewayBurner: "0x58B88c693c6B0e82cdFd175611d651A8f11fE284",
-    web3Governance: "0x9528B0c7990a3EdF12c4D49310F5b72f8d82c5De",
+    rupiahToken: "0xECfa4Bde55D1EA9408e07948fDf0f8df04d1623a",
+    trustedGatewayBurner: "0x6be4bB45658Eb844Ff3685Ea7E25fc51Ab1cd332",
+    web3Governance: "0x1D4e8fD4F037830f463C3dCB0272DAcDD8dc7766",
     deployerAddress: "0x3ff8C245C6499062A98Ed214EA606Ec5fa2627Dd"
 } as const;

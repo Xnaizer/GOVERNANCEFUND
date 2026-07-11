@@ -92,6 +92,35 @@ enum RoleChangeType {
   ROLE_REVOKED      
 }
 
+// enum Redemption Status 
+enum RedemptionStatus {
+  PENDING
+  SETTLED
+  CANCELLED
+}
+
+// Redemption (two-phase escrow) Model Data
+model Redemption {
+  id             String           @id @default(cuid())
+  redemptionId   Int              @unique          
+  picWallet      String                            
+  amount         String                            
+  status         RedemptionStatus @default(PENDING)
+  requestedAt    DateTime
+  settledAt      DateTime?
+  cancelledAt    DateTime?
+  cancelledByPic Boolean          @default(false)
+  requestTxHash  String?
+  settleTxHash   String?
+  cancelTxHash   String?
+  picId          String?
+  pic            User?            @relation(fields: [picId], references: [id])
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([picWallet])
+  @@index([status])
+}
 
 // User Model Data
 model User {
@@ -123,6 +152,7 @@ model User {
   roleVoteBallots     RoleVoteBallot[]
   unfreezeBallots     UnfreezeVoteBallot[]
   reputationLogs      ReputationLog[]
+  redemptions         Redemption[]
 
   @@index([role])
 }
@@ -305,11 +335,14 @@ model UnfreezeVoteBallot {
 // Freeze Outcome Model Data
 model FreezeOutcome {
   id            String       @id @default(cuid())
-  auditorWallet String                                    
+  auditorWallet String
   outcome       FreezeResult @default(PENDING)
   frozenAt      DateTime
-  resolvedAt    DateTime?                                 
-  programId     Int          @unique                      
+  resolvedAt    DateTime?
+  reason        String?                                   
+  description   String?                                   
+  evidenceUrl   String?                                   
+  programId     Int          @unique
   program       Program      @relation(fields: [programId], references: [programId])
   createdAt     DateTime     @default(now())
   txHash        String?

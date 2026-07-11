@@ -31,7 +31,7 @@ export type CreateProgramInput = z.infer<typeof createProgramSchema>;
 export const listProgramsQuerySchema = z.object({
     tab: z.enum(["ACTIVE", "FINISHED", "FLAGGED", "FRAUD"]).optional(),
     page: z.coerce.number().int().positive().default(1),
-    limit: z.coerce.number().int().positive().max(50).default(10)
+    limit: z.coerce.number().int().positive().max(100).default(10)
 });
 
 export type ListProgramQuery = z.infer<typeof listProgramsQuerySchema>;

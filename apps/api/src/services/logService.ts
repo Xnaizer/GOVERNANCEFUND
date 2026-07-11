@@ -1,11 +1,13 @@
 import { cacheAside } from "../lib/cache";
 import { prisma } from "../lib/prisma";
 
-const USER_MINI = { 
-    id: true, 
-    name: true, 
-    username: true, 
-    walletAddress: true 
+const USER_MINI = {
+    id: true,
+    name: true,
+    username: true,
+    walletAddress: true,
+    profilePictureURL: true,
+    role: true
 } as const;
 
 export async function listRoleChangeLogs(page: number, limit: number) {

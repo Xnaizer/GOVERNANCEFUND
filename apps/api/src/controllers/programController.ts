@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import { createProgramSchema, listProgramsQuerySchema } from "../validators/programValidator";
+import { freezeEvidenceSchema } from "../validators/freezeValidator";
 import * as programService from "../services/programService";
+import * as freezeService from "../services/freezeService";
 import { AppError } from "../utils/AppError";
 import response from "../utils/response";
 
@@ -59,6 +61,26 @@ export default {
         const payload = await programService.getSubmissionPayload(user.id, programId);
 
         response.success(res, payload);
+    },
+
+    // POST /api/v1/programs/:id/freeze-evidence  
+    async freezeEvidence(req: Request, res: Response): Promise<void> {
+        const user = req.user!;
+        const programId = Number(req.params.id);
+
+        if (!Number.isInteger(programId) || programId < 1) {
+            throw new AppError("Invalid program id", 400);
+        }
+
+        const parsed = freezeEvidenceSchema.safeParse(req.body);
+
+        if (!parsed.success) {
+            throw new AppError(parsed.error.errors[0].message, 400);
+        }
+
+        const result = await freezeService.submitFreezeEvidence(programId, user.id, parsed.data);
+
+        response.success(res, result);
     },
 
 }

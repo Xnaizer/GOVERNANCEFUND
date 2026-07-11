@@ -37,5 +37,13 @@ router.get(
     asyncHandler(programController.onchainPayload)
 );
 
+router.post(
+    "/:id/freeze-evidence",
+    mutationLimiter,
+    asyncHandler(authMiddleware),
+    requireRole(["AUDITOR"]),
+    asyncHandler(programController.freezeEvidence)
+);
+
 
 export default router;

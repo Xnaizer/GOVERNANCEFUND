@@ -1,0 +1,57 @@
+import { Component, type ReactNode } from "react";
+import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface Props { children: ReactNode; }
+interface State { error: Error | null; }
+
+/**
+ * Menangkap error render di seluruh pohon komponen agar tidak jadi layar putih.
+ * (React error boundary hanya bisa class component.)
+ */
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { error: null };
+
+  static getDerivedStateFromError(error: Error): State {
+    return { error };
+  }
+
+  componentDidCatch(error: Error) {
+    // Sengaja hanya console — Sentry ada di backend; FE cukup untuk debug lokal.
+    console.error("[ErrorBoundary]", error);
+  }
+
+  private reset = () => {
+    this.setState({ error: null });
+    window.location.reload();
+  };
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background p-6 text-center">
+          {/* Aksen aurora samar */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -left-24 top-[-10%] h-96 w-96 rounded-full bg-destructive/10 blur-[120px]" />
+            <div className="absolute -right-24 bottom-[-10%] h-96 w-96 rounded-full bg-brand-blue/10 blur-[120px]" />
+          </div>
+
+          <div className="relative flex flex-col items-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+              <AlertTriangle className="h-6 w-6" />
+            </span>
+            <h1 className="mt-6 font-display text-xl font-semibold tracking-tight sm:text-2xl">Terjadi kesalahan tak terduga</h1>
+            <p className="mt-3 max-w-md text-sm text-muted-foreground">
+              Halaman gagal dirender. Coba muat ulang; bila berulang, laporkan pesan berikut.
+            </p>
+            <pre className="mt-5 max-w-md overflow-x-auto rounded-xl border bg-muted/50 p-3 text-left font-mono text-xs text-muted-foreground">
+              {this.state.error.message}
+            </pre>
+            <Button onClick={this.reset} size="lg" className="mt-6 font-medium">Muat ulang</Button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}

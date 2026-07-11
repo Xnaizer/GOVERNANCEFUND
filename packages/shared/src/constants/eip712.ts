@@ -2,7 +2,7 @@ export const EIP712_DOMAIN = {
     name: "GovernanceAntiCorruption",
     version: "1",
     chainId: 84532,
-    verifyingContract: "0x9528B0c7990a3EdF12c4D49310F5b72f8d82c5De"
+    verifyingContract: "0x1D4e8fD4F037830f463C3dCB0272DAcDD8dc7766"
 } as const;
 
 export const EIP712_TYPES = {
