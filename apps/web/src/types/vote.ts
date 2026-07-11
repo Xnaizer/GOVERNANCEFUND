@@ -12,5 +12,8 @@ export interface FreezeOutcome {
   outcome: string;
   frozenAt: string;
   resolvedAt: string | null;
+  reason: string | null;
+  description: string | null;
+  evidenceUrl: string | null;
   txHash: string | null;
 }
