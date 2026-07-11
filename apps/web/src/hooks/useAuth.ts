@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useDisconnect } from "wagmi";
 import * as authApi from "../api/authApi";
 import type { AuthUser } from "../types/auth";
 
@@ -9,7 +10,7 @@ export function useMe() {
       try {
         return await authApi.getMe();
       } catch {
-        return null; // 401 = belum login
+        return null;
       }
     },
     staleTime: 60_000,
@@ -20,16 +21,25 @@ export function useMe() {
 export function useLogin() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: authApi.login,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
+    // login hanya balas { token }; langsung ambil profil agar cache ["me"] terisi SEBELUM
+    // navigate → ProtectedRoute tak memantul balik ke /login.
+    mutationFn: async (input: { identifier: string; password: string }) => {
+      await authApi.login(input);
+      return authApi.getMe();
+    },
+    onSuccess: (me) => qc.setQueryData(["me"], me),
   });
 }
 
 export function useLogout() {
   const qc = useQueryClient();
+  const { disconnect } = useDisconnect();
   return useMutation({
     mutationFn: authApi.logout,
-    onSuccess: () => qc.setQueryData(["me"], null),
+    onSuccess: () => {
+      qc.setQueryData(["me"], null);
+      disconnect(); // putuskan wallet saat logout
+    },
   });
 }
 
