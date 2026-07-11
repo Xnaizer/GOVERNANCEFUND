@@ -40,6 +40,17 @@ export type ProgramStatus =
   txHash: string | null;
   submittedAt: string | null;
   createdAt: string;
+  programURLs?: string[];
+  pic?: ProgramPic | null;
+}
+
+export interface ProgramPic {
+  id: string;
+  name: string | null;
+  username: string;
+  profilePictureURL: string | null;
+  reputationScore: number;
+  role: string;
 }
 
 export interface ProgramDetail extends ProgramListItem {
@@ -56,4 +67,5 @@ export interface Withdrawal {
   description: string | null;
   timestamp: string;
   txHash: string | null;
+  receiptUrl: string | null;
 }
