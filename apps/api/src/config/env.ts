@@ -3,6 +3,25 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const redisUrl = z
+    .string()
+    .min(1, "UPSTASH_REDIS_URL is required")
+    .refine(
+        (val) => {
+            try {
+                const u = new URL(val);
+                return u.protocol === "redis:" || u.protocol === "rediss:";
+            } catch {
+                return false;
+            }
+        },
+        {
+            message:
+                "UPSTASH_REDIS_URL must be a valid redis:// or rediss:// URL " +
+                "(paste ONLY the connection string, not the `redis-cli --tls -u ...` command)",
+        }
+    );
+
 const envSchema = z.object({
     NODE_ENV: z.enum(['development', "production", "test"]).default("development"),
     PORT: z.coerce.number().default(4000),
@@ -10,7 +29,7 @@ const envSchema = z.object({
     DIRECT_URL: z.string().min(1, "DIRECT_URL is required"),
     JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 chars"),
     JWT_EXPIRES_IN: z.string().default("1d"),
-    UPSTASH_REDIS_URL: z.string().min(1, "UPSTASH_REDIS_URL is required"),
+    UPSTASH_REDIS_URL: redisUrl,
     SMTP_HOST: z.string().min(1, "SMTP_HOST is required"),
     SMTP_PORT: z.coerce.number().default(2525),
     SMTP_USER: z.string().min(1, "SMTP_USER is required"),
@@ -21,6 +40,7 @@ const envSchema = z.object({
     ALCHEMY_WEBHOOK_SECRET: z.string().min(1, "ALCHEMY_WEBHOOK_SECRET is required"),
     QUEUE_ADMIN_USER: z.string().default("admin"),
     QUEUE_ADMIN_PASS: z.string().min(1, "QUEUE_ADMIN_PASS is required"),
+    ENABLE_WORKERS: z.enum(["true", "false"]).default("true").transform((v) => v === "true"),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
     SENTRY_DSN: z.string().url().optional(),
     CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
