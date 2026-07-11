@@ -1,30 +1,40 @@
-import { Link, useNavigate } from "react-router-dom";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Button } from "@heroui/react";
-import { useMe, useLogout } from "../../hooks/useAuth";
+import { Link, NavLink } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useMe } from "../../hooks/useAuth";
+import { cn } from "../../utils/cn";
+
+const NAV = [
+  { to: "/programs", label: "Program" },
+  { to: "/users", label: "Pengguna" },
+  { to: "/governance/votes", label: "Voting" },
+  { to: "/governance/roles", label: "Log Peran" },
+  { to: "/gateway/redemptions", label: "Penukaran" },
+];
 
 export function PublicHeader() {
   const { data: me } = useMe();
-  const { mutateAsync: logout } = useLogout();
-  const navigate = useNavigate();
-
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-default-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-30 w-full border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="bg-gradient-to-br from-brand-mint to-brand-blue bg-clip-text text-xl font-bold text-transparent">
-          GovernanceFund
-        </Link>
-        <div className="flex items-center gap-3">
-          <ConnectButton showBalance={false} chainStatus="icon" />
-          {me ? (
-            <>
-              <span className="text-sm text-default-600">{me.username}</span>
-              <Button size="sm" variant="flat" onPress={async () => { await logout(); navigate("/"); }}>Keluar</Button>
-            </>
-          ) : (
-            <Button as={Link} to="/login" size="sm" color="primary">Masuk</Button>
-          )}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="text-gradient text-xl font-bold">GovernanceFund</Link>
+          <nav className="hidden items-center gap-5 text-sm md:flex">
+            {NAV.map((n) => (
+              <NavLink
+                key={n.to}
+                to={n.to}
+                className={({ isActive }) =>
+                  cn("transition-colors", isActive ? "font-semibold text-brand-blue" : "text-muted-foreground hover:text-brand-blue")
+                }
+              >
+                {n.label}
+              </NavLink>
+            ))}
+          </nav>
         </div>
+        <Button asChild size="sm">
+          <Link to={me ? "/dashboard" : "/login"}>{me ? "Dashboard" : "Masuk"}</Link>
+        </Button>
       </div>
     </header>
   );
