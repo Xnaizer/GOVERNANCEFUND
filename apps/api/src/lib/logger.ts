@@ -5,7 +5,15 @@ export const logger = pino({
     level: env.LOG_LEVEL,
     base: { service: "governancefund-api" },
     redact: {
-        paths: ["req.headers.authorization", "req.headers.cookie", "*.password", "*.passwordHash", "*.signature"],
+        paths: [
+            "req.headers.authorization",
+            "req.headers.cookie",
+            "*.password",
+            "*.passwordHash",
+            "*.signature",
+            "err.input",
+            "*.input",
+        ],
         remove: true
     },
     transport: env.NODE_ENV === "development" ? { 
