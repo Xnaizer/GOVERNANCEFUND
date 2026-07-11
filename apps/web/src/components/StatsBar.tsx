@@ -1,23 +1,25 @@
-import { Card, CardBody } from "@heroui/react";
 import { useStats } from "../hooks/usePrograms";
+import { Card, CardContent } from "@/components/ui/card";
 
 const ITEMS = [
   { key: "active", label: "Active", cls: "text-brand-blue" },
-  { key: "finished", label: "Finished", cls: "text-success" },
-  { key: "flagged", label: "Flagged", cls: "text-warning" },
-  { key: "fraud", label: "Fraud", cls: "text-danger" },
+  { key: "finished", label: "Finished", cls: "text-emerald-600" },
+  { key: "flagged", label: "Flagged", cls: "text-amber-600" },
+  { key: "fraud", label: "Fraud", cls: "text-destructive" },
 ] as const;
 
 export function StatsBar() {
   const { data } = useStats();
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {ITEMS.map((it) => (
-        <Card key={it.key} shadow="sm">
-          <CardBody className="py-3">
-            <p className="text-xs uppercase text-default-500">{it.label}</p>
-            <p className={`text-2xl font-bold ${it.cls}`}>{data?.byTab[it.key] ?? "—"}</p>
-          </CardBody>
+        <Card key={it.key}>
+          <CardContent className="p-4">
+            <p className="text-xs uppercase text-muted-foreground">{it.label}</p>
+            <p className={`font-display text-2xl font-semibold ${it.cls}`}>
+              {data ? data.byTab[it.key].toLocaleString("id-ID") : "—"}
+            </p>
+          </CardContent>
         </Card>
       ))}
     </div>
