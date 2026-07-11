@@ -5,7 +5,7 @@ import type { DisplayTab } from "../types/common";
 export function usePrograms(tab: DisplayTab, page = 1) {
     return useQuery({
         queryKey: ["programs", tab, page],
-        queryFn: () => fetchPrograms({ tab, page, limit: 10 }),
+        queryFn: () => fetchPrograms({ tab, page, limit: 100 }),
         placeholderData: (prev) => prev
     });
 }
