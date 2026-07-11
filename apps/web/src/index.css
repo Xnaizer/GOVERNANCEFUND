@@ -1,9 +1,197 @@
 @import "tailwindcss";
-@plugin "../hero.ts";
-@source "../node_modules/@heroui/theme/dist/**/*.{js,ts}";
+@import "tw-animate-css";
+
 @custom-variant dark (&:is(.dark *));
 
+/* ── Design tokens (Tailwind v4 CSS-first) ── */
 @theme {
-  --color-brand-mint: #67F3CE;
-  --color-brand-blue: #4899EA;
+  /* Tipografi */
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk Variable", "Inter Variable", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, monospace;
+
+  /* Brand */
+  --color-brand-mint: #67f3ce;
+  --color-brand-blue: #4899ea;
+
+  /* Ramp biru (surface → aksen) */
+  --color-brand-50: #eff6fe;
+  --color-brand-100: #dceafc;
+  --color-brand-200: #c1dbf9;
+  --color-brand-300: #96c4f3;
+  --color-brand-400: #64a6ea;
+  --color-brand-500: #4899ea;
+  --color-brand-600: #2f79d4;
+  --color-brand-700: #2762ac;
+  --color-brand-800: #26548c;
+  --color-brand-900: #244873;
+
+  /* Easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* ── shadcn/ui tokens (mapping var → utility color) ── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.65rem;
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222 20% 12%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222 20% 12%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222 20% 12%);
+  --primary: hsl(210 79% 60%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222 20% 20%);
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215 16% 47%);
+  --accent: hsl(210 40% 96.1%);
+  --accent-foreground: hsl(222 20% 20%);
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(214 20% 90%);
+  --input: hsl(214 20% 90%);
+  --ring: hsl(210 79% 60%);
+}
+
+.dark {
+  --background: hsl(222 22% 8%);
+  --foreground: hsl(0 0% 98%);
+  --card: hsl(222 20% 11%);
+  --card-foreground: hsl(0 0% 98%);
+  --popover: hsl(222 20% 11%);
+  --popover-foreground: hsl(0 0% 98%);
+  --primary: hsl(210 79% 60%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(217 19% 18%);
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(217 19% 18%);
+  --muted-foreground: hsl(215 14% 65%);
+  --accent: hsl(217 19% 18%);
+  --accent-foreground: hsl(0 0% 98%);
+  --destructive: hsl(0 62% 45%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(217 19% 20%);
+  --input: hsl(217 19% 20%);
+  --ring: hsl(210 79% 60%);
+}
+
+@layer base {
+  :root {
+    --shadow-soft: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -8px rgba(16, 24, 40, 0.1);
+    --shadow-glow: 0 0 0 1px rgba(72, 153, 234, 0.14), 0 16px 48px -16px rgba(72, 153, 234, 0.4);
+    --gradient-brand: linear-gradient(135deg, #67f3ce 0%, #4899ea 100%);
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  ::selection {
+    background: rgba(72, 153, 234, 0.18);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+}
+
+/* ── Utilitas kecil dipakai lintas komponen ── */
+@utility text-gradient {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* ── Marquee ── */
+@keyframes marquee-x {
+  to { transform: translateX(-100%); }
+}
+@utility animate-marquee {
+  animation: marquee-x var(--marquee-dur, 32s) linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee { animation: none; }
+}
+
+/* ── Scrollbar (branded, slim) ── */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-500) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--color-brand-mint), var(--color-brand-blue));
+  border-radius: 9999px;
+  border: 2px solid var(--background);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-600);
+}
+
+/* ── Route progress bar (digerakkan status loading via JS) ── */
+.route-progress-bar {
+  background: linear-gradient(90deg, var(--color-brand-mint) 0%, var(--color-brand-blue) 100%);
+  box-shadow: 0 0 12px 1px rgba(72, 153, 234, 0.75), 0 0 6px rgba(103, 243, 206, 0.8);
+  border-radius: 0 3px 3px 0;
+  transition: width 0.18s ease-out, opacity 0.32s ease-out 0.08s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-progress-bar { transition: opacity 0.2s linear; }
 }
