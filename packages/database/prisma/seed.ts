@@ -7,6 +7,7 @@ import type {
   MilestoneStatus,
   SignerRole,
   FreezeResult,
+  RedemptionStatus,
 } from "@prisma/client";
 import { fakerID_ID as faker } from "@faker-js/faker";
 import { computeProgramHash } from "@repo/shared";
@@ -74,7 +75,7 @@ async function main() {
     TRUNCATE TABLE
       "RoleChangeLog","ReputationLog","MilestoneSignature","UnfreezeVoteBallot","UnfreezeVote",
       "FreezeOutcome","WithdrawalRecord","Milestone","RoleVoteBallot","RoleVote",
-      "VerificationToken","Program","User"
+      "Redemption","VerificationToken","Program","User"
     RESTART IDENTITY CASCADE;
   `);
 
@@ -561,6 +562,51 @@ async function main() {
       },
     ],
   });
+
+  console.log("💱 Seeding redemptions…");
+  const redemptionSpecs: {
+    status: RedemptionStatus;
+    amount: number;
+    cancelledByPic?: boolean;
+  }[] = [
+    { status: "SETTLED", amount: 120 },
+    { status: "SETTLED", amount: 80 },
+    { status: "SETTLED", amount: 200 },
+    { status: "PENDING", amount: 60 },
+    { status: "PENDING", amount: 150 },
+    { status: "CANCELLED", amount: 40, cancelledByPic: true },
+    { status: "CANCELLED", amount: 90 },
+    { status: "SETTLED", amount: 175 },
+  ];
+  for (let i = 0; i < redemptionSpecs.length; i++) {
+    const rs = redemptionSpecs[i];
+    const redemptionId = i + 1;
+    const pic = pics[i % pics.length];
+    const requestedAt = faker.date.recent({ days: 40 });
+    await prisma.redemption.create({
+      data: {
+        redemptionId,
+        picWallet: pic.walletAddress,
+        picId: pic.id,
+        amount: String(rs.amount),
+        status: rs.status,
+        requestedAt,
+        settledAt:
+          rs.status === "SETTLED"
+            ? faker.date.between({ from: requestedAt, to: new Date() })
+            : null,
+        cancelledAt:
+          rs.status === "CANCELLED"
+            ? faker.date.between({ from: requestedAt, to: new Date() })
+            : null,
+        cancelledByPic: rs.cancelledByPic ?? false,
+        requestTxHash: hex(32),
+        settleTxHash: rs.status === "SETTLED" ? hex(32) : null,
+        cancelTxHash: rs.status === "CANCELLED" ? hex(32) : null,
+      },
+    });
+  }
+  console.log(`   → ${redemptionSpecs.length} redemptions`);
 
   console.log("✉️  Seeding verification tokens…");
   for (const u of plainUsers.slice(0, 2)) {
