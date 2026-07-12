@@ -13,11 +13,14 @@ const connection = redis;
 
 let workers: WorkerType[] = [];
 
+// Tuning hemat-Upstash: idle re-poll lebih jarang (drainDelay) + stalled-check jarang.
+// Pickup job TIDAK melambat — BullMQ pakai marker, worker bangun seketika saat Queue.add.
+// 180s < idle-timeout Upstash agar tak memicu reconnect storm (jauh lebih mahal).
 const workerOptions = {
   connection,
   concurrency: 1,
-  drainDelay: 60,
-  stalledInterval: 300_000,
+  drainDelay: 180,
+  stalledInterval: 1_800_000,
 } as const;
 
 export async function startWorkers(): Promise<void> {
@@ -69,10 +72,18 @@ export async function startWorkers(): Promise<void> {
     });
   }
 
+  // Buang scheduler lama (1 jam) bila masih tersisa di Redis agar tak dobel-fire.
+  try {
+    await reconciliationQueue.removeJobScheduler("reconciliation-hourly");
+  } catch {
+    /* belum ada — abaikan */
+  }
+
+  // Reconciliation tiap 12 jam (jaring pengaman — webhook diproses realtime oleh worker).
   await reconciliationQueue.upsertJobScheduler(
-    "reconciliation-hourly",
+    "reconciliation-12h",
     {
-      every: 60 * 60 * 1000,
+      every: 12 * 60 * 60 * 1000,
     },
     {
       name: "reconcile",
