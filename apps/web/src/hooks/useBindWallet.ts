@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useSignMessage } from "wagmi";
-import { getWalletNonce, bindWallet } from "../api/walletApi";
+import { getWalletNonce, bindWallet } from "../services/walletApi";
 
 export function useBindWallet() {
   const { address } = useAccount();
@@ -10,9 +10,9 @@ export function useBindWallet() {
   return useMutation({
     mutationFn: async () => {
       if (!address) throw new Error("Connect wallet first.");
-      const { message } = await getWalletNonce(); 
+      const { message } = await getWalletNonce();
       const signature = await signMessageAsync({ message });
-      return bindWallet(address, signature); 
+      return bindWallet(address, signature);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["me"] }),
   });
