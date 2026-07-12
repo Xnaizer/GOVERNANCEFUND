@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateProfile } from "../api/authApi";
+import { updateProfile } from "../services/authApi";
 import { type UpdateProfileInput } from "../types/auth";
-import { uploadUserAvatar, uploadUserBanner } from "../api/uploadApi";
+import { uploadUserAvatar, uploadUserBanner } from "../services/uploadApi";
 
 export function useUpdateProfile() {
   const qc = useQueryClient();
