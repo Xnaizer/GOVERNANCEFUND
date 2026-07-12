@@ -2,19 +2,24 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/utils/cn";
 
 interface Props {
   title: string;
   subtitle?: ReactNode;
   actions?: ReactNode;
+  /** Label kecil uppercase brand di atas judul (mis. "Explorer publik"). */
+  eyebrow?: string;
+  /** Judul memakai gradient brand (mint→blue) untuk tampilan display besar. */
+  gradient?: boolean;
   /** Tampilkan tombol "Kembali". `true` = history back; string = navigate ke path itu. */
   back?: boolean | string;
 }
 
-export function PageHeader({ title, subtitle, actions, back }: Props) {
+export function PageHeader({ title, subtitle, actions, eyebrow, gradient, back }: Props) {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex items-start gap-2">
         {back && (
           <Button
@@ -28,8 +33,19 @@ export function PageHeader({ title, subtitle, actions, back }: Props) {
           </Button>
         )}
         <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
-          {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
+          {eyebrow && (
+            <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">{eyebrow}</span>
+          )}
+          <h1
+            className={cn(
+              "font-display text-2xl font-semibold tracking-tight sm:text-3xl",
+              eyebrow && "mt-2",
+              gradient && "text-gradient",
+            )}
+          >
+            {title}
+          </h1>
+          {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
