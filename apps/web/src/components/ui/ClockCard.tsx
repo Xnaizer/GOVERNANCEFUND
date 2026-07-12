@@ -28,7 +28,7 @@ export function ClockCard() {
   const today = now.getDate();
 
   return (
-    <Card>
+    <Card className="border-none bg-muted/30 shadow-none">
       <CardContent className="flex flex-col gap-3 p-4">
         <div>
           <p className="font-mono text-3xl font-bold tracking-tight text-brand-blue">{time}</p>
