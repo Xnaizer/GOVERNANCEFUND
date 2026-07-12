@@ -14,6 +14,7 @@ interface Props {
   skeleton?: ReactNode;
   emptyTitle?: string;
   emptyDescription?: string;
+  emptyIcon?: ReactNode;
   emptyAction?: ReactNode;
   children: ReactNode;
 }
@@ -31,6 +32,7 @@ export function QueryState({
   skeleton,
   emptyTitle = "Belum ada data",
   emptyDescription,
+  emptyIcon,
   emptyAction,
   children,
 }: Props) {
@@ -47,7 +49,7 @@ export function QueryState({
   }
 
   if (isEmpty) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />;
+    return <EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} action={emptyAction} />;
   }
 
   return <>{children}</>;
