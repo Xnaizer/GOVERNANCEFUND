@@ -25,7 +25,7 @@ function PendingRow({ r }: { r: RedemptionRow }) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 border-b py-3 text-sm last:border-0">
+    <div className="flex flex-wrap items-center gap-3 border-b border-black/5 py-3 text-sm last:border-0">
       <span className="font-mono text-muted-foreground">#{r.redemptionId}</span>
       <UserCell user={r.pic} wallet={r.picWallet} />
       <span className="font-mono font-medium">{formatIDR(r.amount)}</span>
@@ -72,14 +72,15 @@ export function GatewayOperatorPage() {
   const pendingQ = useRedemptions("PENDING");
   const statsQ = useRedemptionStats();
   const stats = statsQ.data;
+  const pendingRows = pendingQ.data?.rows ?? [];
 
   if (isLoading) return <Spinner />;
 
   if (!isOperator) {
     return (
       <>
-        <PageHeader title="Gateway (Operator)" subtitle="Kelola penyelesaian penukaran token." />
-        <Card className="max-w-lg border-amber-400">
+        <PageHeader eyebrow="Gateway" title="Gateway (Operator)" gradient subtitle="Kelola penyelesaian penukaran token." />
+        <Card className="max-w-lg rounded-2xl border-amber-400 shadow-none">
           <CardContent className="flex flex-col gap-2 p-4 text-sm">
             <p className="font-semibold text-amber-600">Akses operator saja</p>
             <p className="text-muted-foreground">
@@ -95,12 +96,12 @@ export function GatewayOperatorPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Gateway (Operator)" subtitle="Selesaikan penukaran: konfirmasi (burn + fiat) atau batalkan (refund)." />
+      <PageHeader eyebrow="Gateway" title="Gateway (Operator)" gradient subtitle="Selesaikan penukaran: konfirmasi (burn + fiat) atau batalkan (refund)." />
 
       {stats && <RedemptionStatsCards stats={stats} />}
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0 font-semibold">
+      <Card className="rounded-2xl border-black/5 shadow-none">
+        <CardHeader className="flex-row items-center justify-between space-y-0 font-display font-semibold tracking-tight">
           <span>Penukaran Menunggu</span>
           <RedemptionStatusChip status="PENDING" />
         </CardHeader>
@@ -109,12 +110,12 @@ export function GatewayOperatorPage() {
             isLoading={pendingQ.isLoading}
             isError={pendingQ.isError}
             error={pendingQ.error}
-            isEmpty={(pendingQ.data?.length ?? 0) === 0}
+            isEmpty={pendingRows.length === 0}
             onRetry={pendingQ.refetch}
             emptyTitle="Tidak ada penukaran menunggu"
             emptyDescription="Permintaan penukaran dari PIC akan muncul di sini."
           >
-            {pendingQ.data?.map((r) => <PendingRow key={r.id} r={r} />)}
+            {pendingRows.map((r) => <PendingRow key={r.id} r={r} />)}
           </QueryState>
         </CardContent>
       </Card>
