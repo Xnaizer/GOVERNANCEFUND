@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDisconnect } from "wagmi";
-import * as authApi from "../api/authApi";
+import * as authApi from "../services/authApi";
 import type { AuthUser } from "../types/auth";
 
 export function useMe() {
@@ -45,4 +45,15 @@ export function useLogout() {
 
 export function useRegister() {
   return useMutation({ mutationFn: authApi.register });
+}
+
+export function useForgotPassword() {
+  return useMutation({ mutationFn: (email: string) => authApi.forgotPassword(email) });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (input: { token: string; newPassword: string }) =>
+      authApi.resetPassword(input.token, input.newPassword),
+  });
 }
