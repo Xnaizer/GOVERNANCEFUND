@@ -1,16 +1,20 @@
 import { useTxThenSync } from "./useTxThenSync";
 import { governanceContract, CHAIN_ID } from "../config/contracts";
-import { getOnchainPayload, getProgramDetailAuthed } from "../api/programApi";
+import {
+  getOnchainPayload,
+  getProgramDetailAuthed,
+} from "../services/programApi";
 
 export function useSubmitProposal(programId: number) {
   const tx = useTxThenSync({
-    waitForSync: async () => (await getProgramDetailAuthed(programId)).isOnChain === true,
+    waitForSync: async () =>
+      (await getProgramDetailAuthed(programId)).isOnChain === true,
   });
 
   const submit = async () => {
     const [payload, detail] = await Promise.all([
-      getOnchainPayload(programId),          
-      getProgramDetailAuthed(programId),     
+      getOnchainPayload(programId),
+      getProgramDetailAuthed(programId),
     ]);
     return tx.execute({
       ...governanceContract,
