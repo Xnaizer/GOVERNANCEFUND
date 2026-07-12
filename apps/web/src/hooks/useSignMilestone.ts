@@ -1,13 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSignTypedData } from "wagmi";
 import { EIP712_DOMAIN, EIP712_TYPES } from "@repo/shared";
-import { submitSignature } from "../api/signatureApi";
+import { submitSignature } from "../services/signatureApi";
 import { useWalletGuard } from "./useWalletGuard";
 import type { SignerRole } from "../types/common";
 
 interface SignArgs {
-  milestoneId: string; programId: number; milestoneIndex: number;
-  milestoneBudget: string; evidenceHash: string; signerRole: SignerRole;
+  milestoneId: string;
+  programId: number;
+  milestoneIndex: number;
+  milestoneBudget: string;
+  evidenceHash: string;
+  signerRole: SignerRole;
 }
 
 export function useSignMilestone() {
@@ -30,11 +34,15 @@ export function useSignMilestone() {
         },
       });
       return submitSignature({
-        milestoneId: a.milestoneId, milestoneIndex: a.milestoneIndex,
-        milestoneBudget: a.milestoneBudget, evidenceHash: a.evidenceHash,
-        signature, signerRole: a.signerRole,
+        milestoneId: a.milestoneId,
+        milestoneIndex: a.milestoneIndex,
+        milestoneBudget: a.milestoneBudget,
+        evidenceHash: a.evidenceHash,
+        signature,
+        signerRole: a.signerRole,
       });
     },
-    onSuccess: (_d, a) => qc.invalidateQueries({ queryKey: ["signatures", a.milestoneId] }),
+    onSuccess: (_d, a) =>
+      qc.invalidateQueries({ queryKey: ["signatures", a.milestoneId] }),
   });
 }
