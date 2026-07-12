@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-
 import { Menu, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useSectionTheme } from "../../hooks/useSectionTheme";
+import { useMe } from "../../hooks/useAuth";
 
 // Item mengikuti route publik nyata.
 const LINKS = [
@@ -12,6 +13,7 @@ const LINKS = [
   { label: "Voting", to: "/governance/votes" },
   { label: "Log Peran", to: "/governance/roles" },
   { label: "Penukaran", to: "/gateway/redemptions" },
+  { label: "Tentang", to: "/about" },
 ];
 
 export function LandingNav() {
@@ -20,6 +22,7 @@ export function LandingNav() {
   const [atTop, setAtTop] = useState(true);
   const [open, setOpen] = useState(false);
   const theme = useSectionTheme();
+  const { data: me } = useMe();
 
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = scrollY.getPrevious() ?? 0;
@@ -77,21 +80,32 @@ export function LandingNav() {
         </div>
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
-          <Link
-            to="/login"
-            className={cn(
-              "hidden rounded-md border px-4 py-1.5 text-sm font-medium transition-colors sm:inline-block",
-              textLight ? "border-white/30 hover:bg-white/10" : "border-black/10 hover:bg-muted",
-            )}
-          >
-            Masuk
-          </Link>
-          <Link
-            to="/register"
-            className="rounded-md bg-foreground px-3.5 py-1.5 text-sm font-medium text-background transition-transform hover:scale-[1.03]"
-          >
-            Mulai
-          </Link>
+          {me ? (
+            <Link
+              to="/dashboard"
+              className="rounded-md bg-foreground px-3.5 py-1.5 text-sm font-medium text-background transition-transform hover:scale-[1.03]"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={cn(
+                  "hidden rounded-md border px-4 py-1.5 text-sm font-medium transition-colors sm:inline-block",
+                  textLight ? "border-white/30 hover:bg-white/10" : "border-black/10 hover:bg-muted",
+                )}
+              >
+                Masuk
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-md bg-foreground px-3.5 py-1.5 text-sm font-medium text-background transition-transform hover:scale-[1.03]"
+              >
+                Mulai
+              </Link>
+            </>
+          )}
           {/* Tombol menu (mobile) */}
           <button
             type="button"
@@ -129,11 +143,11 @@ export function LandingNav() {
               </Link>
             ))}
             <Link
-              to="/login"
+              to={me ? "/dashboard" : "/login"}
               onClick={() => setOpen(false)}
               className="mt-1 block rounded-lg border border-black/10 px-4 py-2.5 text-center text-sm font-medium text-foreground transition-colors hover:bg-muted sm:hidden"
             >
-              Masuk
+              {me ? "Dashboard" : "Masuk"}
             </Link>
           </motion.div>
         )}
