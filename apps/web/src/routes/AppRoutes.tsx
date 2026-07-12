@@ -10,10 +10,13 @@ import type { Role } from "../types/auth";
 // Lazy-load agar tiap halaman jadi chunk terpisah (code splitting).
 const Landing = lazy(() => import("../pages/Landing").then((m) => ({ default: m.Landing })));
 const ExplorerPage = lazy(() => import("../pages/ExplorerPage").then((m) => ({ default: m.ExplorerPage })));
+const AboutPage = lazy(() => import("../pages/AboutPage").then((m) => ({ default: m.AboutPage })));
 const ProgramDetailPage = lazy(() => import("../pages/ProgramDetailPage").then((m) => ({ default: m.ProgramDetailPage })));
 const RegisterPage = lazy(() => import("../pages/RegisterPage").then((m) => ({ default: m.RegisterPage })));
 const LoginPage = lazy(() => import("../pages/LoginPage").then((m) => ({ default: m.LoginPage })));
 const VerifyEmailPage = lazy(() => import("../pages/VerifyEmailPage").then((m) => ({ default: m.VerifyEmailPage })));
+const ForgotPasswordPage = lazy(() => import("../pages/ForgotPasswordPage").then((m) => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import("../pages/ResetPasswordPage").then((m) => ({ default: m.ResetPasswordPage })));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage").then((m) => ({ default: m.NotFoundPage })));
 
 const UsersPage = lazy(() => import("../pages/public/UsersPage").then((m) => ({ default: m.UsersPage })));
@@ -53,6 +56,7 @@ export function AppRoutes() {
       <Routes>
         {/* ── Public ── */}
         <Route path="/" element={<Landing />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/programs" element={<ExplorerPage />} />
         <Route path="/programs/:id" element={<ProgramDetailPage />} />
         <Route path="/users" element={<UsersPage />} />
@@ -63,6 +67,8 @@ export function AppRoutes() {
         <Route path="/gateway/redemptions" element={<RedemptionsPage />} />
         <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
         <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+        <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
 
         {/* ── Authenticated: layout route (sidebar/topbar dirender sekali via Outlet) ── */}
@@ -72,7 +78,7 @@ export function AppRoutes() {
 
           {/* PIC */}
           <Route path="/dashboard/programs" element={role(["PIC"], <MyProgramsPage />)} />
-          <Route path="/dashboard/programs/new" element={role(["PIC"], <CreateProgramPage />)} />
+          <Route path="/dashboard/create-program" element={role(["PIC"], <CreateProgramPage />)} />
           <Route path="/dashboard/programs/:id/manage" element={role(["PIC"], <ProgramManagePage />)} />
           <Route path="/dashboard/redeem" element={role(["PIC"], <RedeemPage />)} />
 
