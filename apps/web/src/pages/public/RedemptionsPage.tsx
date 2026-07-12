@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
+import { ArrowLeftRight } from "lucide-react";
 import { ListShell } from "../../components/layout/ListShell";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { QueryState } from "../../components/ui/QueryState";
-import { Paginator, usePaginated } from "../../components/ui/Paginator";
+import { Reveal } from "../../components/motion/Reveal";
+import { Paginator } from "../../components/ui/Paginator";
 import { SearchInput } from "../../components/ui/SearchInput";
 import { FilterTabs } from "../../components/ui/FilterTabs";
 import { DataTable } from "../../components/ui/DataTable";
@@ -12,7 +14,9 @@ import { RedemptionStatusChip } from "../../components/RedemptionStatusChip";
 import { RedemptionStatsCards } from "../../components/RedemptionStatsCards";
 import { useRedemptions, useRedemptionStats } from "../../hooks/useRedemptions";
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
+import { useBriefLoading } from "../../hooks/useBriefLoading";
 import { formatIDR, formatDate } from "../../utils/format";
+import type { RedemptionStatus } from "../../types/redemption";
 
 const FILTERS = [
   { key: "ALL", label: "Semua" }, { key: "PENDING", label: "Menunggu" },
@@ -20,27 +24,31 @@ const FILTERS = [
 ] as const;
 
 export function RedemptionsPage() {
-  const q = useRedemptions();
-  const statsQ = useRedemptionStats();
   const [filter, setFilter] = useState<string>("ALL");
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const debounced = useDebouncedValue(search);
 
+  const q = useRedemptions(filter === "ALL" ? undefined : (filter as RedemptionStatus), page, 12);
+  const statsQ = useRedemptionStats();
+  const rows = q.data?.rows ?? [];
+  const totalPages = q.data?.pagination?.totalPages ?? 1;
+
+  // Status difilter server; pencarian teks client atas halaman aktif.
   const filtered = useMemo(() => {
     const s = debounced.trim().toLowerCase();
-    return (q.data ?? []).filter((r) => {
-      if (filter !== "ALL" && r.status !== filter) return false;
+    return rows.filter((r) => {
       if (!s) return true;
       const hay = [r.picWallet, r.pic?.name, r.pic?.username, String(r.redemptionId)]
         .filter(Boolean).join(" ").toLowerCase();
       return hay.includes(s);
     });
-  }, [q.data, filter, debounced]);
+  }, [rows, debounced]);
 
-  const { page, setPage, totalPages, pageItems } = usePaginated(filtered, 12);
+  const flashing = useBriefLoading(`${filter}|${debounced}|${page}`);
   const stats = statsQ.data;
 
-  type RedemptionRow = NonNullable<typeof q.data>[number];
+  type RedemptionRow = (typeof rows)[number];
   const columns: ColumnDef<RedemptionRow, unknown>[] = [
     { id: "id", header: "ID", cell: ({ row }) => <span className="font-mono text-muted-foreground">#{row.original.redemptionId}</span> },
     { id: "pic", header: "PIC", cell: ({ row }) => <UserCell user={row.original.pic} wallet={row.original.picWallet} /> },
@@ -52,7 +60,9 @@ export function RedemptionsPage() {
   return (
     <ListShell max="max-w-5xl">
       <PageHeader
+        eyebrow="Gateway"
         title="Penukaran Token → Rupiah"
+        gradient
         subtitle="Transparansi penukaran e-IDR di Trusted Gateway (two-phase escrow): request → burn/fiat → atau dibatalkan."
       />
 
@@ -64,14 +74,18 @@ export function RedemptionsPage() {
       </div>
 
       <QueryState
-        isLoading={q.isLoading}
+        isLoading={q.isLoading || flashing}
         isError={q.isError}
         error={q.error}
         isEmpty={filtered.length === 0}
         onRetry={q.refetch}
+        emptyIcon={<ArrowLeftRight />}
         emptyTitle="Belum ada penukaran"
+        emptyDescription="Permintaan penukaran token ke rupiah akan muncul di sini."
       >
-        <DataTable columns={columns} data={pageItems} minWidth={640} />
+        <Reveal>
+          <DataTable columns={columns} data={filtered} minWidth={640} />
+        </Reveal>
       </QueryState>
       <Paginator page={page} totalPages={totalPages} onChange={setPage} />
     </ListShell>
