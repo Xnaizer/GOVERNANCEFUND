@@ -166,16 +166,27 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
     return { programId: result.programId, programHash: result.programHash };
 }
 
+const VALID_PROGRAM_STATUS = [
+    "PENDING", "APPROVED", "DRAWABLE", "MILESTONE_ACHIEVED", "FROZEN", "COMPLETED", "FRAUD_CONFIRMED",
+] as const;
+
 export async function listPrograms(query: ListProgramQuery, onlyOnChain = false) {
-    const { tab, page, limit } = query; 
+    const { tab, status, page, limit } = query;
     const skip = (page - 1) * limit;
-    const cacheKey = `programs:list:${onlyOnChain ? "chain" : "all"}:${tab ?? "all"}:${page}:${limit}`;
 
+    // Parse CSV status → hanya nilai enum valid.
+    const statuses = (status ?? "")
+        .split(",")
+        .map((s) => s.trim().toUpperCase())
+        .filter((s): s is (typeof VALID_PROGRAM_STATUS)[number] => (VALID_PROGRAM_STATUS as readonly string[]).includes(s));
 
-    return cacheAside(cacheKey, 30, async () => {
+    const cacheKey = `programs:list:${onlyOnChain ? "chain" : "all"}:${tab ?? "all"}:${statuses.join("+") || "all"}:${page}:${limit}`;
+
+    return cacheAside(cacheKey, 180, async () => {
         const where = {
             ...(tab ? { displayTab: tab } : {}),
-            ...(onlyOnChain ? { isOnChain: true } : {}) 
+            ...(statuses.length ? { status: { in: statuses } } : {}),
+            ...(onlyOnChain ? { isOnChain: true } : {})
         };
 
         const [programs, total] = await Promise.all([
@@ -205,7 +216,7 @@ export async function listPrograms(query: ListProgramQuery, onlyOnChain = false)
 export async function getProgramById(programId: number) {
     const cacheKey = `program:detail:${programId}`;
 
-    return cacheAside(cacheKey, 60, async () => {
+    return cacheAside(cacheKey, 300, async () => {
         const program = await prisma.program.findUnique({
             where: {
                 programId
@@ -280,7 +291,7 @@ export async function getProgramById(programId: number) {
 }
 
 export async function getPublicStats() {
-    return cacheAside("public:stats", 60, async () => {
+    return cacheAside("public:stats", 300, async () => {
         const [active, finished, flagged, fraud, total] = await Promise.all([
             prisma.program.count({ where: { displayTab: "ACTIVE" }}),
             prisma.program.count({ where: { displayTab: "FINISHED" }}),
@@ -299,7 +310,7 @@ export async function getPublicStats() {
 export async function getProgramWithdrawals(programId: number) {
     const cacheKey = `program:withdrawals:${programId}`;
 
-    return cacheAside(cacheKey, 30, async () => {
+    return cacheAside(cacheKey, 180, async () => {
         const program = await prisma.program.findUnique({
             where: { programId },
             select: { programId: true }
