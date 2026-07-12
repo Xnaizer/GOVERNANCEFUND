@@ -11,6 +11,7 @@ const COLUMNS: { title: string; links: { label: string; to: string; external?: b
       { label: "Voting", to: "/governance/votes" },
       { label: "Log Peran", to: "/governance/roles" },
       { label: "Penukaran", to: "/gateway/redemptions" },
+      { label: "Tentang", to: "/about" },
     ],
   },
   {
@@ -42,7 +43,7 @@ const COLUMNS: { title: string; links: { label: string; to: string; external?: b
 
 // Ikon brand via mask SVG (lucide menghapus ikon brand); email pakai lucide.
 const SOCIALS = [
-  { logo: "github", href: "https://github.com", label: "GitHub" },
+  { logo: "github", href: "https://github.com/Xnaizer/GOVERNANCEFUND", label: "GitHub" },
   { logo: "x", href: "https://twitter.com", label: "Twitter / X" },
   { logo: "linkedin", href: "https://linkedin.com", label: "LinkedIn" },
 ];
