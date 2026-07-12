@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { resetSignatures } from "../api/signatureApi";
+import { resetSignatures } from "../services/signatureApi";
 
 /** Reset seluruh set tanda tangan milestone (PIC, hanya saat milestone PLANNED). */
 export function useResetSignatures(programId: number) {
