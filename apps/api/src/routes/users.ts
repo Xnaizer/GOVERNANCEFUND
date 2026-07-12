@@ -26,8 +26,16 @@ router.get(
     "/",
     readLimiter,
     asyncHandler(authMiddleware),
-    requireRole(["ADMIN"]), 
+    requireRole(["ADMIN"]),
     asyncHandler(userController.list)
+);
+
+router.get(
+    "/:id",
+    readLimiter,
+    asyncHandler(authMiddleware),
+    requireRole(["ADMIN"]),
+    asyncHandler(userController.detail)
 );
 
 router.patch(
