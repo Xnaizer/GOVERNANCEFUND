@@ -8,6 +8,7 @@ import { StickyInfo } from "../components/landing/StickyInfo";
 import { ProgramFlow } from "../components/landing/ProgramFlow";
 import { HoverFeature } from "../components/landing/HoverFeature";
 import { StatsCards } from "../components/landing/StatsCards";
+import { FrequentlyAskQuestion } from "../components/landing/FrequentlyAskQuestion";
 import { LandingFooter } from "../components/landing/LandingFooter";
 
 export function Landing() {
@@ -24,6 +25,7 @@ export function Landing() {
           <ProgramFlow />
           <HoverFeature />
           <StatsCards />
+          <FrequentlyAskQuestion />
           <LandingFooter />
         </main>
       </div>
