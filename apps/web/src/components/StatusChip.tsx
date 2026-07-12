@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/utils/cn";
 import type { ProgramStatus } from "../types/program";
 import type { Integrity } from "../types/common";
 
@@ -14,7 +15,7 @@ const STATUS_VARIANT: Record<ProgramStatus, Variant> = {
   FRAUD_CONFIRMED: "destructive",
 };
 export function StatusChip({ status }: { status: ProgramStatus }) {
-  return <Badge variant={STATUS_VARIANT[status]}>{status.replace(/_/g, " ")}</Badge>;
+  return <Badge variant={STATUS_VARIANT[status]} className="rounded-sm">{status.replace(/_/g, " ")}</Badge>;
 }
 
 const INTEGRITY_VARIANT: Record<Integrity, Variant> = {
@@ -22,9 +23,9 @@ const INTEGRITY_VARIANT: Record<Integrity, Variant> = {
   HASH_MISMATCH: "destructive",
   ORPHAN: "warning",
 };
-export function IntegrityChip({ integrity }: { integrity: Integrity }) {
+export function IntegrityChip({ integrity, onDark }: { integrity: Integrity; onDark?: boolean }) {
   return (
-    <Badge variant="outline" className="gap-1.5">
+    <Badge variant="outline" className={cn("gap-1.5 rounded-sm", onDark && "border-white/20 bg-white/10 text-white")}>
       <span
         className={
           INTEGRITY_VARIANT[integrity] === "success"
