@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { UserX } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "../utils/cn";
@@ -8,14 +9,43 @@ interface CellUser {
   id: string;
   name: string | null;
   username: string;
-  walletAddress: string | null;
-  profilePictureURL: string | null;
+  walletAddress?: string | null;
+  profilePictureURL?: string | null;
   role?: string;
 }
 
 function initials(s: string): string {
   return (
     s.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?"
+  );
+}
+
+/**
+ * Template "user tidak dikenal" untuk proposal/banding tanpa PIC terdaftar
+ * (orphan) atau yang sudah FRAUD_CONFIRMED — menandai anomali secara eksplisit.
+ */
+export function MissingUser({
+  wallet,
+  reason = "PIC tidak dikenal",
+  size = "sm",
+}: {
+  wallet?: string | null;
+  reason?: string;
+  size?: "sm" | "md";
+}) {
+  const sz = size === "md" ? "h-10 w-10" : "h-8 w-8";
+  return (
+    <div className="flex items-center gap-2">
+      <span className={cn("flex shrink-0 items-center justify-center rounded-full border border-dashed border-amber-400/70 text-amber-500", sz)}>
+        <UserX className="h-4 w-4" />
+      </span>
+      <div className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate text-sm font-medium text-amber-600">{reason}</span>
+        <span className="truncate font-mono text-[11px] text-muted-foreground">
+          {wallet ? formatShortenAddress(wallet) : "tanpa wallet"}
+        </span>
+      </div>
+    </div>
   );
 }
 
