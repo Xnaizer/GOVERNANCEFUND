@@ -9,5 +9,5 @@ const MAP: Record<RedemptionStatus, { label: string; variant: "warning" | "succe
 
 export function RedemptionStatusChip({ status }: { status: RedemptionStatus }) {
   const s = MAP[status] ?? MAP.PENDING;
-  return <Badge variant={s.variant}>{s.label}</Badge>;
+  return <Badge variant={s.variant} className="rounded-sm">{s.label}</Badge>;
 }
