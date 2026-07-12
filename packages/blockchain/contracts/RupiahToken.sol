@@ -47,6 +47,19 @@ contract RupiahToken is ERC20, IRupiahToken {
     }
 
     /**
+     * @notice e-IDR uses ZERO decimals so that 1 token unit == 1 Rupiah exactly.
+     * @dev The whole system accounts in whole Rupiah (no fractional cents): the
+     *      amount a PIC enters in the app is the SAME integer passed to mint(),
+     *      burned at the gateway, and shown in wallets/explorers. Overriding the
+     *      default ERC20 value of 18 keeps "1 Rupiah === 1 eIDR" true on-chain,
+     *      not just inside the app UI.
+     * @return uint8 Always 0.
+     */
+    function decimals() public pure override returns (uint8) {
+        return 0;
+    }
+
+    /**
      * @notice Restricts setGovernance() and setGateway() to deployer only.
      */
     modifier onlyDeployer() {
