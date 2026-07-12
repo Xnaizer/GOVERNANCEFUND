@@ -43,16 +43,26 @@ app.use(
 
 app.use(express.json());
 
-app.get("/health", asyncHandler(async (_req: Request, res: Response) => {
-    const checks = { db: false, redis: false };
-    try { await prisma.$queryRaw`SELECT 1`; checks.db = true; } catch {}
-    try { await redis.ping(); checks.redis = true; } catch {}
+// Liveness murah — TIDAK menembak Redis/DB (UptimeRobot/Railway probe sering).
+app.get("/health", (_req: Request, res: Response) => {
+    res.status(200).json({ data: "ok", error: null, meta: {} });
+});
 
-    const ok = checks.db && checks.redis;
-    res.status(ok ? 200 : 503).json({
-        data: ok ? "ok" : "degraded",
-        error: ok ? null : "dependency down",
-        meta: checks,
+// Deep-check dependency, tapi di-cache in-memory ~60s → maksimal 1 ping DB+Redis/menit
+// walau probe tiap detik. Pakai /health/deep untuk pemantauan yang butuh status dependency.
+let deepCache: { at: number; ok: boolean; checks: { db: boolean; redis: boolean } } | null = null;
+app.get("/health/deep", asyncHandler(async (_req: Request, res: Response) => {
+    const now = Date.now();
+    if (!deepCache || now - deepCache.at > 60_000) {
+        const checks = { db: false, redis: false };
+        try { await prisma.$queryRaw`SELECT 1`; checks.db = true; } catch {}
+        try { await redis.ping(); checks.redis = true; } catch {}
+        deepCache = { at: now, ok: checks.db && checks.redis, checks };
+    }
+    res.status(deepCache.ok ? 200 : 503).json({
+        data: deepCache.ok ? "ok" : "degraded",
+        error: deepCache.ok ? null : "dependency down",
+        meta: deepCache.checks,
     });
 }));
 
