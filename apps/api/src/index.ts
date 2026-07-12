@@ -24,9 +24,28 @@ process.on("unhandledRejection", (reason) => {
     process.exit(1);
 });
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function connectWithRetry(retries = 8, baseDelayMs = 1000) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            await prisma.$connect();
+            return;
+        } catch (err) {
+            const isLast = attempt === retries;
+            if (isLast) throw err;
+            const delay = Math.min(baseDelayMs * attempt, 8000);
+            console.warn(
+                `[SERVER] DB connect attempt ${attempt}/${retries} failed (${(err as Error)?.message?.split("\n")[0]}). Retrying in ${delay}ms...`,
+            );
+            await sleep(delay);
+        }
+    }
+}
+
 async function main() {
 
-    await prisma.$connect();
+    await connectWithRetry();
     console.log("[SERVER] Database connected");
 
     const server = app.listen(env.PORT, () => {
