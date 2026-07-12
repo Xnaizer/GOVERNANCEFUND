@@ -4,13 +4,16 @@ import { CheckCircle2, XCircle, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { AuthLayout } from "../components/AuthLayout";
-import { verifyEmail } from "../api/authApi";
+import { verifyEmail } from "../services/authApi";
 import { getErrorMessage } from "../utils/error";
 
 export function VerifyEmailPage() {
   const [params] = useSearchParams();
   const token = params.get("token");
-  const [state, setState] = useState<{ status: "loading" | "ok" | "error"; message: string }>({ status: "loading", message: "" });
+  const [state, setState] = useState<{
+    status: "loading" | "ok" | "error";
+    message: string;
+  }>({ status: "loading", message: "" });
   const ran = useRef(false);
 
   useEffect(() => {
@@ -30,7 +33,14 @@ export function VerifyEmailPage() {
       title="Verifikasi Email"
       subtitle="Kami memeriksa tautan verifikasi Anda."
       icon={<MailCheck className="h-7 w-7" strokeWidth={2.2} />}
-      greeting={{ title: <>Satu langkah <span className="text-gradient">lagi.</span></>, text: "Verifikasi email untuk mengaktifkan akunmu." }}
+      greeting={{
+        title: (
+          <>
+            Satu langkah <span className="text-gradient">lagi.</span>
+          </>
+        ),
+        text: "Verifikasi email untuk mengaktifkan akunmu.",
+      }}
     >
       {state.status === "loading" && (
         <div className="flex items-center gap-3 text-muted-foreground">
@@ -43,7 +53,9 @@ export function VerifyEmailPage() {
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-mint/15 text-brand-mint">
             <CheckCircle2 className="h-6 w-6" />
           </span>
-          <p className="text-sm text-foreground">{state.message || "Email berhasil diverifikasi."}</p>
+          <p className="text-sm text-foreground">
+            {state.message || "Email berhasil diverifikasi."}
+          </p>
           <Button asChild size="lg" className="w-full font-medium">
             <Link to="/login">Ke halaman masuk</Link>
           </Button>
