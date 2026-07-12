@@ -96,7 +96,7 @@ export async function listPublicUsers(query: {
   const cacheKey = `public:users:${role ?? "all"}:${
     sort ?? "recent"
   }:${page}:${limit}`;
-  return cacheAside(cacheKey, 30, async () => {
+  return cacheAside(cacheKey, 180, async () => {
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         where,
@@ -125,6 +125,63 @@ const REQUIRED_PROFILE_FIELDS = [
   "birthDate",
   "nationality",
 ] as const;
+
+/** Field wajib yang masih kosong pada profil user. */
+function missingProfileFields(user: Record<string, unknown>): string[] {
+  return REQUIRED_PROFILE_FIELDS.filter((f) => {
+    const v = user[f];
+    return v === null || v === undefined || v === "";
+  });
+}
+
+const ADMIN_USER_DETAIL_SELECT = {
+  id: true,
+  username: true,
+  email: true,
+  role: true,
+  isActive: true,
+  isVerified: true,
+  walletAddress: true,
+  name: true,
+  nik: true,
+  nip: true,
+  institution: true,
+  position: true,
+  birthPlace: true,
+  birthDate: true,
+  address: true,
+  phone: true,
+  nationality: true,
+  reputationScore: true,
+  profilePictureURL: true,
+  profileBannerURL: true,
+  createdAt: true,
+} as const;
+
+
+export async function getAdminUserDetail(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      ...ADMIN_USER_DETAIL_SELECT,
+      _count: { select: { programs: true } },
+    },
+  });
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  const { _count, ...rest } = user;
+  const missingFields = missingProfileFields(rest as Record<string, unknown>);
+
+  return {
+    ...rest,
+    programsCount: _count.programs,
+    missingFields,
+    isProfileComplete: missingFields.length === 0,
+  };
+}
 
 export async function setVerified(userId: string, isVerified: boolean) {
   const user = await prisma.user.findUnique({
@@ -176,7 +233,7 @@ export async function setVerified(userId: string, isVerified: boolean) {
 export async function getPublicUserProfile(userId: string) {
   const cacheKey = `public:user:${userId}`;
 
-  return cacheAside(cacheKey, 30, async () => {
+  return cacheAside(cacheKey, 180, async () => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -203,6 +260,7 @@ export async function getPublicUserProfile(userId: string) {
     let roleVoteBallots = undefined;
     let unfreezeBallots = undefined;
     let reputationLogs = undefined;
+    let freezes = undefined;
 
     if (user.role === "ADMIN") {
       roleVoteBallots = await prisma.roleVoteBallot.findMany({
@@ -228,7 +286,13 @@ export async function getPublicUserProfile(userId: string) {
         select: {
           approve: true,
           votedAt: true,
-          unfreezeVote: { select: { programId: true, resolved: true } },
+          unfreezeVote: {
+            select: {
+              programId: true,
+              resolved: true,
+              program: { select: { title: true, status: true, totalBudget: true } },
+            },
+          },
         },
         orderBy: { votedAt: "desc" },
         take: 50,
@@ -246,8 +310,24 @@ export async function getPublicUserProfile(userId: string) {
         orderBy: { createdAt: "desc" },
         take: 50,
       });
+
+      if (user.role === "AUDITOR" && user.walletAddress) {
+        freezes = await prisma.freezeOutcome.findMany({
+          where: { auditorWallet: user.walletAddress },
+          select: {
+            programId: true,
+            outcome: true,
+            reason: true,
+            frozenAt: true,
+            resolvedAt: true,
+            program: { select: { title: true, status: true, totalBudget: true } },
+          },
+          orderBy: { frozenAt: "desc" },
+          take: 50,
+        });
+      }
     }
 
-    return { ...user, roleVoteBallots, unfreezeBallots, reputationLogs };
+    return { ...user, roleVoteBallots, unfreezeBallots, reputationLogs, freezes };
   });
 }
