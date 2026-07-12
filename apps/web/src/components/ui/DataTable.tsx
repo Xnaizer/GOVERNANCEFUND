@@ -28,19 +28,22 @@ export function DataTable<T>({ columns, data, onRowClick, minWidth, emptyText = 
   });
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-2xl border border-black/5 bg-white">
       <Table style={minWidth ? { minWidth } : undefined}>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id}>
+            <TableRow key={hg.id} className="border-black/5 bg-muted/40 hover:bg-muted/40">
               {hg.headers.map((h) => {
                 const canSort = h.column.getCanSort();
                 return (
-                  <TableHead key={h.id}>
+                  <TableHead
+                    key={h.id}
+                    className="h-11 px-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+                  >
                     {h.isPlaceholder ? null : canSort ? (
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1 hover:text-foreground"
+                        className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
                         onClick={h.column.getToggleSortingHandler()}
                       >
                         {flexRender(h.column.columnDef.header, h.getContext())}
@@ -57,8 +60,8 @@ export function DataTable<T>({ columns, data, onRowClick, minWidth, emptyText = 
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="py-10 text-center text-muted-foreground">
+            <TableRow className="border-black/5 hover:bg-transparent">
+              <TableCell colSpan={columns.length} className="py-12 text-center text-muted-foreground">
                 {emptyText}
               </TableCell>
             </TableRow>
@@ -66,11 +69,16 @@ export function DataTable<T>({ columns, data, onRowClick, minWidth, emptyText = 
             table.getRowModel().rows.map((r) => (
               <TableRow
                 key={r.id}
-                className={cn(onRowClick && "cursor-pointer")}
+                className={cn(
+                  "border-black/5 transition-colors hover:bg-brand-blue/4",
+                  onRowClick && "cursor-pointer",
+                )}
                 onClick={() => onRowClick?.(r.original)}
               >
                 {r.getVisibleCells().map((c) => (
-                  <TableCell key={c.id}>{flexRender(c.column.columnDef.cell, c.getContext())}</TableCell>
+                  <TableCell key={c.id} className="h-14 px-4">
+                    {flexRender(c.column.columnDef.cell, c.getContext())}
+                  </TableCell>
                 ))}
               </TableRow>
             ))
