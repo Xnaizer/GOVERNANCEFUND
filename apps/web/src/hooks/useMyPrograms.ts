@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { listProgramsAuthed } from "../api/programApi";
+import { listProgramsAuthed } from "../services/programApi";
 import { useMe } from "./useAuth";
 
 export function useMyPrograms() {
