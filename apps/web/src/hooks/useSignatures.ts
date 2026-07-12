@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getSignatures } from "../api/signatureApi";
+import { getSignatures } from "../services/signatureApi";
 
 export function useSignatures(milestoneId: string | undefined) {
   return useQuery({
