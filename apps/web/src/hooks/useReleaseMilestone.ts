@@ -1,7 +1,7 @@
 import { useTxThenSync } from "./useTxThenSync";
 import { governanceContract, CHAIN_ID } from "../config/contracts";
-import { getSignatures } from "../api/signatureApi";
-import { getProgramDetailAuthed } from "../api/programApi";
+import { getSignatures } from "../services/signatureApi";
+import { getProgramDetailAuthed } from "../services/programApi";
 
 export function useReleaseMilestone(
   programId: number,
