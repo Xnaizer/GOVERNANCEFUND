@@ -19,6 +19,13 @@ export default {
         response.success(res, result);
     },
 
+    // GET /api/v1/users/:id  (ADMIN) — detail identitas lengkap untuk verifikasi
+    async detail(req: Request, res: Response): Promise<void> {
+        const result = await userService.getAdminUserDetail(req.params.id);
+
+        response.success(res, result);
+    },
+
     // PATCH /api/v1/users/:id/verify
     async verify(req: Request, res: Response): Promise<void> {
         const parsed = verifyUserSchema.safeParse(req.body); 
