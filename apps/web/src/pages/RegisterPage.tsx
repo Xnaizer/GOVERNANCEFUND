@@ -10,11 +10,13 @@ import { FormInput } from "../components/ui/FormField";
 import { PasswordStrength } from "../components/ui/PasswordStrength";
 import { registerSchema, type RegisterForm } from "../schemas/auth";
 import { useRegister } from "../hooks/useAuth";
+import { useTurnstile } from "../hooks/useTurnstile";
 import { getErrorMessage } from "../utils/error";
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const { mutateAsync, isPending } = useRegister();
+  const turnstile = useTurnstile();
   const { control, handleSubmit, watch } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     mode: "onTouched",
@@ -23,10 +25,11 @@ export function RegisterPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await mutateAsync(values);
+      await mutateAsync({ ...values, turnstileToken: turnstile.token });
       toast.success("Registrasi berhasil. Cek email untuk verifikasi.");
       navigate("/login");
     } catch (e) {
+      turnstile.reset();
       toast.error(getErrorMessage(e));
     }
   });
@@ -46,7 +49,8 @@ export function RegisterPage() {
           <FormInput control={control} name="password" label="Password" type="password" isRequired autoComplete="new-password" />
           <PasswordStrength value={password} />
         </div>
-        <Button type="submit" size="lg" className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95" disabled={isPending}>
+        {turnstile.widget}
+        <Button type="submit" size="lg" className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95" disabled={isPending || !turnstile.ready}>
           {isPending && <Spinner size={16} className="text-current" />}
           Daftar
         </Button>

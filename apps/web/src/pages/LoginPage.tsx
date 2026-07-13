@@ -9,11 +9,13 @@ import { AuthLayout } from "../components/AuthLayout";
 import { FormInput } from "../components/ui/FormField";
 import { loginSchema, type LoginForm } from "../schemas/auth";
 import { useLogin } from "../hooks/useAuth";
+import { useTurnstile } from "../hooks/useTurnstile";
 import { getErrorMessage } from "../utils/error";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { mutateAsync, isPending } = useLogin();
+  const turnstile = useTurnstile();
   const { control, handleSubmit } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     mode: "onTouched",
@@ -21,10 +23,11 @@ export function LoginPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      await mutateAsync(values);
+      await mutateAsync({ ...values, turnstileToken: turnstile.token });
       toast.success("Berhasil masuk.");
       navigate("/dashboard");
     } catch (e) {
+      turnstile.reset(); // token sekali-pakai → minta yang baru
       toast.error(getErrorMessage(e));
     }
   });
@@ -43,7 +46,8 @@ export function LoginPage() {
         <div className="-mt-1 text-right">
           <Link to="/forgot-password" className="text-xs font-medium text-brand-blue hover:underline">Lupa password?</Link>
         </div>
-        <Button type="submit" size="lg" className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95" disabled={isPending}>
+        {turnstile.widget}
+        <Button type="submit" size="lg" className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95" disabled={isPending || !turnstile.ready}>
           {isPending && <Spinner size={16} className="text-current" />}
           Masuk
         </Button>

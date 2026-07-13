@@ -10,10 +10,12 @@ import { AuthLayout } from "../components/AuthLayout";
 import { FormInput } from "../components/ui/FormField";
 import { forgotSchema, type ForgotForm } from "../schemas/auth";
 import { useForgotPassword } from "../hooks/useAuth";
+import { useTurnstile } from "../hooks/useTurnstile";
 import { getErrorMessage } from "../utils/error";
 
 export function ForgotPasswordPage() {
   const { mutateAsync, isPending } = useForgotPassword();
+  const turnstile = useTurnstile();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const { control, handleSubmit } = useForm<ForgotForm>({
     resolver: zodResolver(forgotSchema),
@@ -22,9 +24,10 @@ export function ForgotPasswordPage() {
 
   const onSubmit = handleSubmit(async ({ email }) => {
     try {
-      await mutateAsync(email);
+      await mutateAsync({ email, turnstileToken: turnstile.token });
       setSentTo(email);
     } catch (e) {
+      turnstile.reset();
       toast.error(getErrorMessage(e));
     }
   });
@@ -66,11 +69,12 @@ export function ForgotPasswordPage() {
       ) : (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <FormInput control={control} name="email" label="Email" type="email" isRequired autoComplete="email" />
+          {turnstile.widget}
           <Button
             type="submit"
             size="lg"
             className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95"
-            disabled={isPending}
+            disabled={isPending || !turnstile.ready}
           >
             {isPending && <Spinner size={16} className="text-current" />}
             Kirim Tautan Reset

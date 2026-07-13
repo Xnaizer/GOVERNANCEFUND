@@ -23,7 +23,7 @@ export function useLogin() {
   return useMutation({
     // login hanya balas { token }; langsung ambil profil agar cache ["me"] terisi SEBELUM
     // navigate → ProtectedRoute tak memantul balik ke /login.
-    mutationFn: async (input: { identifier: string; password: string }) => {
+    mutationFn: async (input: { identifier: string; password: string; turnstileToken?: string }) => {
       await authApi.login(input);
       return authApi.getMe();
     },
@@ -48,12 +48,15 @@ export function useRegister() {
 }
 
 export function useForgotPassword() {
-  return useMutation({ mutationFn: (email: string) => authApi.forgotPassword(email) });
+  return useMutation({
+    mutationFn: (input: { email: string; turnstileToken?: string }) =>
+      authApi.forgotPassword(input.email, input.turnstileToken),
+  });
 }
 
 export function useResetPassword() {
   return useMutation({
-    mutationFn: (input: { token: string; newPassword: string }) =>
-      authApi.resetPassword(input.token, input.newPassword),
+    mutationFn: (input: { token: string; newPassword: string; turnstileToken?: string }) =>
+      authApi.resetPassword(input.token, input.newPassword, input.turnstileToken),
   });
 }

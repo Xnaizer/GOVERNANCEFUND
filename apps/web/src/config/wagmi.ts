@@ -15,7 +15,7 @@ if (!isAbsoluteUrl) {
       "Set VITE_ALCHEMY_RPC ke URL Alchemy asli untuk keandalan.",
   );
 }
-const rpcUrl = isAbsoluteUrl ? env.ALCHEMY_RPC : undefined; // undefined → viem pakai RPC default chain
+const rpcUrl = isAbsoluteUrl ? env.ALCHEMY_RPC : undefined; 
 
 export const wagmiConfig = getDefaultConfig({
     appName: "GovernanceFund",

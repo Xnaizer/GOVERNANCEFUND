@@ -9,6 +9,7 @@ import { AuthLayout } from "../components/AuthLayout";
 import { FormInput } from "../components/ui/FormField";
 import { resetSchema, type ResetForm } from "../schemas/auth";
 import { useResetPassword } from "../hooks/useAuth";
+import { useTurnstile } from "../hooks/useTurnstile";
 import { getErrorMessage } from "../utils/error";
 
 export function ResetPasswordPage() {
@@ -16,6 +17,7 @@ export function ResetPasswordPage() {
   const [params] = useSearchParams();
   const token = params.get("token") ?? "";
   const { mutateAsync, isPending } = useResetPassword();
+  const turnstile = useTurnstile();
   const { control, handleSubmit } = useForm<ResetForm>({
     resolver: zodResolver(resetSchema),
     mode: "onTouched",
@@ -23,10 +25,11 @@ export function ResetPasswordPage() {
 
   const onSubmit = handleSubmit(async ({ newPassword }) => {
     try {
-      await mutateAsync({ token, newPassword });
+      await mutateAsync({ token, newPassword, turnstileToken: turnstile.token });
       toast.success("Password berhasil diperbarui. Silakan masuk.");
       navigate("/login");
     } catch (e) {
+      turnstile.reset();
       toast.error(getErrorMessage(e));
     }
   });
@@ -61,11 +64,12 @@ export function ResetPasswordPage() {
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <FormInput control={control} name="newPassword" label="Password Baru" type="password" isRequired autoComplete="new-password" />
           <FormInput control={control} name="confirm" label="Konfirmasi Password" type="password" isRequired autoComplete="new-password" />
+          {turnstile.widget}
           <Button
             type="submit"
             size="lg"
             className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95"
-            disabled={isPending}
+            disabled={isPending || !turnstile.ready}
           >
             {isPending && <Spinner size={16} className="text-current" />}
             Simpan Password Baru

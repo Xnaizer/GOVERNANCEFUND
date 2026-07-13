@@ -11,14 +11,14 @@ interface SiteVerifyResponse {
 }
 
 export async function verifyTurnstile(req: Request, _res: Response, next: NextFunction): Promise<void> {
-    const secret = env.TURNSTILE_SECRET_KEY;
 
-    if (!secret) {
-        if (env.NODE_ENV === "production") {
-            throw new AppError("Bot verification is not configured", 500);
-        }
-        logger.warn("TURNSTILE_SECRET_KEY unset — skipping Turnstile verification (dev only)");
+    if (env.NODE_ENV !== "production") {
         return next();
+    }
+
+    const secret = env.TURNSTILE_SECRET_KEY;
+    if (!secret) {
+        throw new AppError("Bot verification is not configured", 500);
     }
 
     const token = typeof req.body?.turnstileToken === "string" ? req.body.turnstileToken : "";
