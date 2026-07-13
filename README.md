@@ -157,10 +157,33 @@ Block explorer: https://sepolia.basescan.org
 
 ## Batasan yang Diketahui (untuk paper)
 
-Ambang BFT dinamis (N live saat vote), hanya testnet, reputasi off-chain (diturunkan dari event on-chain),
-guard Web2 bisa di-bypass (hanya menghasilkan orphan tak berbahaya), clawback 72 jam di lapisan aplikasi
-(Opsi C), satu siklus freeze-unfreeze per program, `UNRESOLVED` = freeze permanen. Detail lengkap di
-`CLAUDE.md`.
+Batasan berikut sengaja didokumentasikan sebagai *known limitations* (bukan bug):
+
+- **Ambang BFT dinamis** — `N` diambil live saat vote di-cast, tidak dikunci saat proposal dibuat;
+  admin yang grant/revoke role di tengah voting bisa menggeser ambang.
+- **Hanya testnet** — di-deploy ke Base Sepolia (84532), belum mainnet.
+- **Reputasi off-chain** (Web2) — bisa dimanipulasi bila Supabase dibobol; dimitigasi dengan
+  menurunkannya **eksklusif dari event on-chain** (bukan input manual).
+- **Guard Web2 bisa di-bypass** — memanggil kontrak langsung hanya menghasilkan proposal `ORPHAN`
+  yang tak berbahaya (tak pernah tervoting/terdanai), karena otoritas finansial sepenuhnya on-chain.
+- **`totalBudget` vs Σ`milestoneBudget`** — cumulative guard ditegakkan on-chain; angka perencanaan
+  per-milestone di Web2 hanya bersifat *advisory*.
+- **Satu siklus freeze–unfreeze per program** — `appealStartedAt != 0` memblokir banding ulang;
+  program yang dibekukan lagi tak bisa banding lagi (dianggap sinyal kuat).
+- **`UNRESOLVED` = freeze permanen** — bila deadline banding lewat tanpa ambang tercapai, program
+  tetap `FROZEN` selamanya **tanpa perubahan reputasi** (tak menghakimi tanpa konsensus). PIC yang
+  sebenarnya tak bersalah namun validatornya apatis bisa "terdampar" — konservatif secara desain
+  (melindungi dana publik saat ragu). *Future work:* mekanisme banding-ulang / eskalasi admin.
+- **Clawback 72 jam** — ditegakkan di lapisan aplikasi/UX saja (Opsi C), bukan jaminan kriptografis on-chain.
+- **Kuota milestone yang di-finalize tidak dikembalikan** ke pool alokasi (alokasi = komitmen).
+- **Proposal kedaluwarsa tetap `PENDING`** on-chain selamanya (tak ada enum `EXPIRED`); PIC harus
+  submit ulang dengan `programId` baru. Web2 menampilkannya sebagai "Expired" (data transparansi).
+- **`VOTING_PERIOD`** satu konstanta 7 hari dipakai bersama untuk voting proposal **dan** unfreeze.
+- **Public Explorer** hanya menampilkan program `isOnChain = true` (draft Web2 disembunyikan dari publik).
+- **Normalisasi wallet lowercase** dilakukan per-field di service layer (bukan middleware global —
+  agar tak menimpa field alamat fisik `User.address`).
+- **Di luar cakupan** (*future work*): reputasi validator, akuntabilitas signer, penalti proposal
+  kedaluwarsa, EIP-4337 (account abstraction), dan ZK proof.
 
 ## Lisensi
 
