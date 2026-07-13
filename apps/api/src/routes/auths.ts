@@ -3,12 +3,14 @@ import authController from "../controllers/authController";
 import { asyncHandler } from "../utils/asyncHandler";
 import { authMiddleware } from "../middleware/auth";
 import { authLimiter, mutationLimiter, readLimiter } from "../middleware/rateLimiter";
+import { verifyTurnstile } from "../middleware/turnstile";
 
 const router: Router  = express.Router();
 
 router.post(
-    "/register", 
-    authLimiter, 
+    "/register",
+    authLimiter,
+    asyncHandler(verifyTurnstile),
     asyncHandler(authController.register)
 );
 
@@ -19,8 +21,9 @@ router.get(
 );
 
 router.post(
-    "/login", 
-    authLimiter, 
+    "/login",
+    authLimiter,
+    asyncHandler(verifyTurnstile),
     asyncHandler(authController.login)
 );
 
@@ -40,12 +43,14 @@ router.get(
 router.post(
     "/forgot-password",
     authLimiter,
+    asyncHandler(verifyTurnstile),
     asyncHandler(authController.forgotPassword)
 );
 
 router.post(
     "/reset-password",
     authLimiter,
+    asyncHandler(verifyTurnstile),
     asyncHandler(authController.resetPassword)
 );
 
