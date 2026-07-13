@@ -5,32 +5,31 @@ import { AppError } from "../utils/AppError";
 import response from "../utils/response";
 
 export default {
+  // GET /api/v1/users/wallet/nonce
+  async getNonce(req: Request, res: Response): Promise<void> {
+    const user = req.user!;
 
-    // GET /api/v1/users/wallet/nonce
-    async getNonce(req: Request, res: Response): Promise<void> {
-        const user = req.user!;
+    const result = await walletService.generateNonce(user.id);
 
-        const result = await walletService.generateNonce(user.id);
+    response.success(res, result);
+  },
 
-        response.success(res, result);
-    },
+  // POST /api/v1/users/wallet/bind
+  async bind(req: Request, res: Response): Promise<void> {
+    const user = req.user!;
 
-    // POST /api/v1/users/wallet/bind
-    async bind(req: Request, res: Response): Promise<void> {
-        const user = req.user!;
+    const parsed = bindWalletSchema.safeParse(req.body);
 
-        const parsed = bindWalletSchema.safeParse(req.body);
-
-        if(!parsed.success) {
-            throw new AppError(parsed.error.errors[0].message, 400);
-        }
-
-        const result = await walletService.bindWallet(
-            user.id,
-            parsed.data.walletAddress,
-            parsed.data.signature
-        );
-
-        response.success(res, result);
+    if (!parsed.success) {
+      throw new AppError(parsed.error.errors[0].message, 400);
     }
-}
+
+    const result = await walletService.bindWallet(
+      user.id,
+      parsed.data.walletAddress,
+      parsed.data.signature,
+    );
+
+    response.success(res, result);
+  },
+};

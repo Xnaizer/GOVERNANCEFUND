@@ -1,996 +1,1034 @@
 import { prisma } from "../lib/prisma";
 import { computeProgramHash } from "@repo/shared";
 import { invalidate, invalidatePattern } from "../lib/cache";
-import { mapRoleHashToSignerRole, mapRoleHashToRole  } from "./roleMapper";
-import { applyReputation, resolvePicUserId, resolveAuditorUserId } from "./reputationService";
+import { mapRoleHashToSignerRole, mapRoleHashToRole } from "./roleMapper";
+import {
+  applyReputation,
+  resolvePicUserId,
+  resolveAuditorUserId,
+} from "./reputationService";
 import { sanitizeText } from "../utils/sanitize";
 
 export interface DecodedEvent {
-    eventName: string;
-    args: Record<string, unknown>;
-    txHash?: string;
+  eventName: string;
+  args: Record<string, unknown>;
+  txHash?: string;
 }
 
-type EventHandler = (args: Record<string, unknown>, txHash?: string) => Promise<unknown>;
+type EventHandler = (
+  args: Record<string, unknown>,
+  txHash?: string,
+) => Promise<unknown>;
 
 const eventHandlers: Record<string, EventHandler> = {
-    ProposalSubmitted: handleProposalSubmitted,
-    ProposalVoted: handleProposalVoted,
-    ProposalApproved: handleProposalApproved,
-    MilestoneReleased: handleMilestoneReleased,
-    MilestoneFinalized: handleMilestoneFinalized,
-    ProgramCompleted: handleProgramCompleted,
-    OnChainWithdrawalLogged: handleWithdrawalLogged,
-    ProgramForceFrozen: handleProgramForceFrozen,
-    UnfreezeAppealSubmitted: handleUnfreezeAppealSubmitted,
-    UnfreezeAppealVoted: handleUnfreezeAppealVoted,
-    ProgramUnfrozenViaBFT: handleProgramUnfrozenViaBFT,
-    ProgramFraudConfirmed: handleProgramFraudConfirmed,
-    RoleVoteCreated: handleRoleVoteCreated,
-    RoleVoteCast: handleRoleVoteCast,
-    RoleGrantedViaGovernance: handleRoleGrantedViaGovernance,
-    RoleRevokedViaGovernance: handleRoleRevokedViaGovernance,
-    PicRoleGrantedByAdmin: handlePicRoleGrantedByAdmin,
-    PicRoleRevokedByAdmin: handlePicRoleRevokedByAdmin,
-    RedemptionRequested: handleRedemptionRequested,
-    RedemptionSettled: handleRedemptionSettled,
-    RedemptionCancelled: handleRedemptionCancelled,
-    ExchangeTokenToFiat: handleExchangeTokenToFiat,
-}
+  ProposalSubmitted: handleProposalSubmitted,
+  ProposalVoted: handleProposalVoted,
+  ProposalApproved: handleProposalApproved,
+  MilestoneReleased: handleMilestoneReleased,
+  MilestoneFinalized: handleMilestoneFinalized,
+  ProgramCompleted: handleProgramCompleted,
+  OnChainWithdrawalLogged: handleWithdrawalLogged,
+  ProgramForceFrozen: handleProgramForceFrozen,
+  UnfreezeAppealSubmitted: handleUnfreezeAppealSubmitted,
+  UnfreezeAppealVoted: handleUnfreezeAppealVoted,
+  ProgramUnfrozenViaBFT: handleProgramUnfrozenViaBFT,
+  ProgramFraudConfirmed: handleProgramFraudConfirmed,
+  RoleVoteCreated: handleRoleVoteCreated,
+  RoleVoteCast: handleRoleVoteCast,
+  RoleGrantedViaGovernance: handleRoleGrantedViaGovernance,
+  RoleRevokedViaGovernance: handleRoleRevokedViaGovernance,
+  PicRoleGrantedByAdmin: handlePicRoleGrantedByAdmin,
+  PicRoleRevokedByAdmin: handlePicRoleRevokedByAdmin,
+  RedemptionRequested: handleRedemptionRequested,
+  RedemptionSettled: handleRedemptionSettled,
+  RedemptionCancelled: handleRedemptionCancelled,
+  ExchangeTokenToFiat: handleExchangeTokenToFiat,
+};
 
 export function isKnownEvent(name: string): boolean {
-    return name in eventHandlers;
+  return name in eventHandlers;
 }
 
 async function invalidateProgramCache(programId: number): Promise<void> {
-    await invalidate(`program:detail:${programId}`);
-    await invalidate(`program:withdrawals:${programId}`);
-    await invalidatePattern("programs:list:*");
-    await invalidate("public:stats");
+  await invalidate(`program:detail:${programId}`);
+  await invalidate(`program:withdrawals:${programId}`);
+  await invalidatePattern("programs:list:*");
+  await invalidate("public:stats");
 }
 
 async function invalidateRedemptionCache(): Promise<void> {
-    await invalidatePattern("redemptions:*");
+  await invalidatePattern("redemptions:*");
 }
 
 export async function dispatchEvent(event: DecodedEvent): Promise<void> {
-    const handler = eventHandlers[event.eventName];
+  const handler = eventHandlers[event.eventName];
 
-    if(!handler) {
-        console.warn(`[WEBHOOK] No handler for event: ${event.eventName}`);
-        return;
-    }
+  if (!handler) {
+    console.warn(`[WEBHOOK] No handler for event: ${event.eventName}`);
+    return;
+  }
 
-    const result = await handler(event.args, event.txHash);
-    console.log(`[WEBHOOK] Handled ${event.eventName}: `, result);
+  const result = await handler(event.args, event.txHash);
+  console.log(`[WEBHOOK] Handled ${event.eventName}: `, result);
 }
 
 async function handleProposalSubmitted(
   args: Record<string, unknown>,
-  txHash?: string
+  txHash?: string,
 ): Promise<{ result: string; programId: number }> {
   const programId = Number(args.programId);
   const onChainHash = String(args.programHash).toLowerCase();
   const picWallet = String(args.picWallet).toLowerCase();
 
-    const existing = await prisma.program.findUnique({
-        where: { programId }
-    });
+  const existing = await prisma.program.findUnique({
+    where: { programId },
+  });
 
-    if(!existing) {
-        await prisma.program.create({
-            data: {
-                programId,
-                programHash: onChainHash,
-                picWallet: picWallet,
-                totalBudget: "0",
-                milestoneCount: 0,
-                integrity: "ORPHAN",
-                displayTab: "FLAGGED",
-                isOrphan: true,
-                isOnChain: true,
-                status: "PENDING",
-                txHash: txHash ?? null,
-                submittedAt: new Date(),
-            }
-        });
-
-        await invalidateProgramCache(programId);
-
-        return { result: "ORPHAN", programId };
-    }
-
-    const recomputedHash = computeProgramHash({
-        programId: existing.programId,
-        title: existing.title,
-        description: existing.description,
-        totalBudget: existing.totalBudget,
-        picWallet: existing.picWallet,
-        milestoneCount: existing.milestoneCount,
-        province: existing.province,
-        regency: existing.regency,
-        district: existing.district,
-        locationAddress: existing.locationAddress,
-        executorName: existing.executorName,
-        executorRegistration: existing.executorRegistration,
-        category: existing.category,
-        institutionName: existing.institutionName,
-        fiscalYear: existing.fiscalYear
-    }).toLowerCase();
-
-    if(recomputedHash === onChainHash) {
-        await prisma.program.update({
-            where: { programId },
-            data: {
-                integrity: "VERIFIED",
-                displayTab: "ACTIVE",
-                isOnChain: true,
-                txHash: txHash ?? existing.txHash,
-                submittedAt: existing.submittedAt ?? new Date()
-            }
-        });
-
-        await invalidateProgramCache(programId);
-
-        return { result: "VERIFIED", programId };
-    }
-
-    await prisma.program.update({
-        where: {
-            programId
-        },
-        data: {
-            integrity: "HASH_MISMATCH",
-            displayTab: "FLAGGED",
-            isOnChain: true,
-            txHash: txHash ?? existing.txHash
-        }
+  if (!existing) {
+    await prisma.program.create({
+      data: {
+        programId,
+        programHash: onChainHash,
+        picWallet: picWallet,
+        totalBudget: "0",
+        milestoneCount: 0,
+        integrity: "ORPHAN",
+        displayTab: "FLAGGED",
+        isOrphan: true,
+        isOnChain: true,
+        status: "PENDING",
+        txHash: txHash ?? null,
+        submittedAt: new Date(),
+      },
     });
 
     await invalidateProgramCache(programId);
 
-    return { result: "HASH_MISMATCH", programId };
+    return { result: "ORPHAN", programId };
+  }
 
+  const recomputedHash = computeProgramHash({
+    programId: existing.programId,
+    title: existing.title,
+    description: existing.description,
+    totalBudget: existing.totalBudget,
+    picWallet: existing.picWallet,
+    milestoneCount: existing.milestoneCount,
+    province: existing.province,
+    regency: existing.regency,
+    district: existing.district,
+    locationAddress: existing.locationAddress,
+    executorName: existing.executorName,
+    executorRegistration: existing.executorRegistration,
+    category: existing.category,
+    institutionName: existing.institutionName,
+    fiscalYear: existing.fiscalYear,
+  }).toLowerCase();
+
+  if (recomputedHash === onChainHash) {
+    await prisma.program.update({
+      where: { programId },
+      data: {
+        integrity: "VERIFIED",
+        displayTab: "ACTIVE",
+        isOnChain: true,
+        txHash: txHash ?? existing.txHash,
+        submittedAt: existing.submittedAt ?? new Date(),
+      },
+    });
+
+    await invalidateProgramCache(programId);
+
+    return { result: "VERIFIED", programId };
+  }
+
+  await prisma.program.update({
+    where: {
+      programId,
+    },
+    data: {
+      integrity: "HASH_MISMATCH",
+      displayTab: "FLAGGED",
+      isOnChain: true,
+      txHash: txHash ?? existing.txHash,
+    },
+  });
+
+  await invalidateProgramCache(programId);
+
+  return { result: "HASH_MISMATCH", programId };
 }
 
 export async function handleProposalVoted(
-    args: Record<string, unknown>,
-    _txHash?: string
+  args: Record<string, unknown>,
+  _txHash?: string,
 ): Promise<{ result: string; programId: number }> {
-    const programId = Number(args.programId);
-    const currentVotes = Number(args.currentVotes);
+  const programId = Number(args.programId);
+  const currentVotes = Number(args.currentVotes);
 
-    console.log(`[WEBHOOK] ProposalVoted program ${programId}, votes: ${currentVotes}`);
+  console.log(
+    `[WEBHOOK] ProposalVoted program ${programId}, votes: ${currentVotes}`,
+  );
 
-    return { result: "PROPOSAL_VOTED_LOGGED", programId };
+  return { result: "PROPOSAL_VOTED_LOGGED", programId };
 }
 
 export async function handleProposalApproved(
-    args: Record<string, unknown>,
-    txHash?: string
-): Promise<{ result : string, programId: number }> {
-    const programId = Number(args.programId);
+  args: Record<string, unknown>,
+  txHash?: string,
+): Promise<{ result: string; programId: number }> {
+  const programId = Number(args.programId);
 
-    const existing = await prisma.program.findUnique({
-        where: {
-            programId
-        }
-    });
+  const existing = await prisma.program.findUnique({
+    where: {
+      programId,
+    },
+  });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] ProposalApproved for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId };
-    }
+  if (!existing) {
+    console.warn(`[WEBHOOK] ProposalApproved for unknown program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
 
-    await prisma.program.update({
-        where: { programId },
-        data: {
-            status: "APPROVED",
-            displayTab: "ACTIVE",
-            txHash: txHash ?? existing.txHash
-        }
-    });
+  await prisma.program.update({
+    where: { programId },
+    data: {
+      status: "APPROVED",
+      displayTab: "ACTIVE",
+      txHash: txHash ?? existing.txHash,
+    },
+  });
 
-    await invalidateProgramCache(programId);
-    return { result: "APPROVED", programId }
+  await invalidateProgramCache(programId);
+  return { result: "APPROVED", programId };
 }
 
 export async function handleMilestoneReleased(
-    args: Record<string, unknown>,
-    txHash?: string
-): Promise<{ result: string, programId: number }> {
-    const programId = Number(args.programId);
-    const milestoneIndex = Number(args.milestoneIndex);
-    const milestoneBudget = String(args.milestoneBudget);
+  args: Record<string, unknown>,
+  txHash?: string,
+): Promise<{ result: string; programId: number }> {
+  const programId = Number(args.programId);
+  const milestoneIndex = Number(args.milestoneIndex);
+  const milestoneBudget = String(args.milestoneBudget);
 
-    const existing = await prisma.program.findUnique({
-        where: {
-            programId
-        }
+  const existing = await prisma.program.findUnique({
+    where: {
+      programId,
+    },
+  });
+
+  if (!existing) {
+    console.warn(
+      `[WEBHOOK] MilestoneReleased for unknown program ${programId}`,
+    );
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.program.update({
+      where: { programId },
+      data: {
+        status: "DRAWABLE",
+        displayTab: "ACTIVE",
+        currentMilestone: milestoneIndex + 1,
+        totalAllocatedSoFar: (
+          BigInt(existing.totalAllocatedSoFar) + BigInt(milestoneBudget)
+        ).toString(),
+        txHash: txHash ?? existing.txHash,
+      },
     });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] MilestoneReleased for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId }
-    }
-
-    await prisma.$transaction(async (tx: any) => {
-        await tx.program.update({
-            where: { programId },
-            data: {
-                status: "DRAWABLE",
-                displayTab: "ACTIVE",
-                currentMilestone: milestoneIndex + 1,
-                totalAllocatedSoFar: (BigInt(existing.totalAllocatedSoFar) + BigInt(milestoneBudget)).toString(),
-                txHash: txHash ?? existing.txHash
-            }
-        });
-
-        await tx.milestone.updateMany({
-            where: {
-                programId,
-                milestoneIndex
-            },
-            data: {
-                status: "RELEASED"
-            }
-        });
+    await tx.milestone.updateMany({
+      where: {
+        programId,
+        milestoneIndex,
+      },
+      data: {
+        status: "RELEASED",
+      },
     });
+  });
 
-    await invalidateProgramCache(programId);
+  await invalidateProgramCache(programId);
 
-    return { result: "MILESTONE_RELEASED", programId }
+  return { result: "MILESTONE_RELEASED", programId };
 }
 
 export async function handleMilestoneFinalized(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; programId: number }> {
-    const programId = Number(args.programId);
-    const milestoneIndex = Number(args.milestoneIndex);
+  const programId = Number(args.programId);
+  const milestoneIndex = Number(args.milestoneIndex);
 
-    const existing = await prisma.program.findUnique({
-        where: {
-            programId
-        }
+  const existing = await prisma.program.findUnique({
+    where: {
+      programId,
+    },
+  });
+
+  if (!existing) {
+    console.warn(
+      `[WEBHOOK] MilestoneFinalized for unknown program ${programId}`,
+    );
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.program.update({
+      where: { programId },
+      data: {
+        status: "MILESTONE_ACHIEVED",
+        txHash: txHash ?? existing.txHash,
+      },
     });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] MilestoneFinalized for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId };
+    const picUserId = await resolvePicUserId(programId, tx);
+
+    if (picUserId) {
+      await applyReputation({
+        userId: picUserId,
+        reason: "MILESTONE_FINALIZED",
+        programId,
+        tx,
+        idempotent: false, // NOTE: not idempotent per-milestone; duplicate webhook may double-count (known limitation) *future work
+      });
+    } else {
+      console.warn(
+        `[REPUTATION] MilestoneFinalized PIC for unknown program ${programId}`,
+      );
     }
 
-    await prisma.$transaction(async (tx: any) => {
-        await tx.program.update({
-            where: { programId },
-            data: {
-                status: "MILESTONE_ACHIEVED",
-                txHash: txHash ?? existing.txHash
-            }
-        });
-
-        const picUserId = await resolvePicUserId(programId, tx);
-
-        if(picUserId) {
-            await applyReputation({
-                userId: picUserId,
-                reason: "MILESTONE_FINALIZED",
-                programId,
-                tx,
-                idempotent: false // NOTE: not idempotent per-milestone; duplicate webhook may double-count (known limitation) *future work
-            });
-        } else {
-            console.warn(`[REPUTATION] MilestoneFinalized PIC for unknown program ${programId}`);
-        }
-
-        await tx.milestone.updateMany({
-            where: {
-                programId,
-                milestoneIndex
-            },
-            data: {
-                status: "ACHIEVED"
-            }
-        });
+    await tx.milestone.updateMany({
+      where: {
+        programId,
+        milestoneIndex,
+      },
+      data: {
+        status: "ACHIEVED",
+      },
     });
+  });
 
-    await invalidateProgramCache(programId);
+  await invalidateProgramCache(programId);
 
-    return { result: "MILESTONE_FINALIZED", programId };
+  return { result: "MILESTONE_FINALIZED", programId };
 }
 
 export async function handleProgramCompleted(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; programId: number }> {
-    const programId = Number(args.programId);
+  const programId = Number(args.programId);
 
-    const existing = await prisma.program.findUnique({
-        where: { programId }
+  const existing = await prisma.program.findUnique({
+    where: { programId },
+  });
+
+  if (!existing) {
+    console.warn(`[WEBHOOK] ProgramCompleted for unknown program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.program.update({
+      where: { programId },
+      data: {
+        status: "COMPLETED",
+        displayTab: "FINISHED",
+        txHash: txHash ?? existing.txHash,
+      },
     });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] ProgramCompleted for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId }
+    const picUserId = await resolvePicUserId(programId, tx);
+
+    if (picUserId) {
+      await applyReputation({
+        userId: picUserId,
+        reason: "PROGRAM_COMPLETED",
+        programId,
+        tx,
+        idempotent: true,
+      });
+    } else {
+      console.warn(
+        `[REPUTATION] ProgramCompleted for unknown prgoram ${programId}`,
+      );
     }
+  });
 
-    await prisma.$transaction(async (tx: any) => {
-        await tx.program.update({
-            where: { programId },
-            data: {
-                status: "COMPLETED",
-                displayTab: "FINISHED",
-                txHash: txHash ?? existing.txHash
-            }
-        });
+  await invalidateProgramCache(programId);
 
-        const picUserId = await resolvePicUserId(programId, tx);
-
-        if(picUserId) {
-            await applyReputation({
-                userId: picUserId,
-                reason: "PROGRAM_COMPLETED",
-                programId,
-                tx,
-                idempotent: true
-            });
-        } else {
-            console.warn(`[REPUTATION] ProgramCompleted for unknown prgoram ${programId}`);
-        }
-    });
-
-    await invalidateProgramCache(programId);
-
-    return { result: "COMPLETED", programId };
+  return { result: "COMPLETED", programId };
 }
 
 export async function handleWithdrawalLogged(
-    args: Record<string, unknown>,
-    txHash?: string
-): Promise<{ result : string; programId: number; }> {
-    const programId = Number(args.programId);
-    const picWallet = String(args.picWallet).toLowerCase();
-    const amount = String(args.amount);
-    const recipient = sanitizeText(String(args.recipient ?? ""));
-    const description = sanitizeText(String(args.description ?? ""));
+  args: Record<string, unknown>,
+  txHash?: string,
+): Promise<{ result: string; programId: number }> {
+  const programId = Number(args.programId);
+  const picWallet = String(args.picWallet).toLowerCase();
+  const amount = String(args.amount);
+  const recipient = sanitizeText(String(args.recipient ?? ""));
+  const description = sanitizeText(String(args.description ?? ""));
 
-    const existing = await prisma.program.findUnique({
-        where: { programId }
+  const existing = await prisma.program.findUnique({
+    where: { programId },
+  });
+
+  if (!existing) {
+    console.warn(`[WEBHOOK] Withdrawal for unknown program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  if (txHash) {
+    const dup = await prisma.withdrawalRecord.findFirst({
+      where: { programId, txHash },
+      select: { id: true },
     });
-
-    if(!existing) {
-        console.warn(`[WEBHOOK] Withdrawal for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId };
+    if (dup) {
+      return { result: "DUPLICATE_SKIPPED", programId };
     }
+  }
 
-    if(txHash) {
-        const dup = await prisma.withdrawalRecord.findFirst({
-            where: { programId, txHash },
-            select: { id: true }
-        });
-        if(dup) {
-            return { result: "DUPLICATE_SKIPPED", programId };
-        }
-    }
+  await prisma.withdrawalRecord.create({
+    data: {
+      amount,
+      recipientName: recipient,
+      description,
+      timestamp: new Date(),
+      txHash: txHash ?? null,
+      picWallet,
+      programId,
+    },
+  });
 
-    await prisma.withdrawalRecord.create({
-        data: {
-            amount,
-            recipientName: recipient,
-            description,
-            timestamp: new Date(),
-            txHash: txHash ?? null,
-            picWallet,
-            programId,
-            
-        }
-    });
+  await invalidateProgramCache(programId);
 
-    await invalidateProgramCache(programId);
-
-    return { result: "WITHDRAWAL_LOGGED", programId };
+  return { result: "WITHDRAWAL_LOGGED", programId };
 }
 
 export async function handleProgramForceFrozen(
-    args: Record<string, unknown>,
-    txHash?: string 
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; programId: number }> {
-    const programId = Number(args.programId);
-    const auditorWallet = String(args.auditor).toLowerCase();
+  const programId = Number(args.programId);
+  const auditorWallet = String(args.auditor).toLowerCase();
 
-    const existing = await prisma.program.findUnique({
-        where: { programId }
+  const existing = await prisma.program.findUnique({
+    where: { programId },
+  });
+
+  if (!existing) {
+    console.warn(`[WEBHOOK] ForceFrozen for unknown program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.program.update({
+      where: { programId },
+      data: {
+        status: "FROZEN",
+        displayTab: "FLAGGED",
+        txHash: txHash ?? existing.txHash,
+      },
     });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] ForceFrozen for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId };
-    }
-
-    await prisma.$transaction(async (tx: any) => {
-        await tx.program.update({
-            where: { programId },
-            data: {
-                status: "FROZEN",
-                displayTab: "FLAGGED",
-                txHash: txHash ?? existing.txHash
-            }
-        });
-
-        // Upsert: auditor mungkin sudah melampirkan bukti (FreezeOutcome dibuat) sebelum event masuk.
-        // On-chain adalah sumber kebenaran untuk auditorWallet/txHash; reason/description dibiarkan.
-        await tx.freezeOutcome.upsert({
-            where: { programId },
-            create: {
-                programId,
-                auditorWallet,
-                outcome: "PENDING",
-                frozenAt: new Date(),
-                txHash: txHash ?? null
-            },
-            update: {
-                auditorWallet,
-                txHash: txHash ?? undefined
-            }
-        });
+    // Upsert: auditor mungkin sudah melampirkan bukti (FreezeOutcome dibuat) sebelum event masuk.
+    // On-chain adalah sumber kebenaran untuk auditorWallet/txHash; reason/description dibiarkan.
+    await tx.freezeOutcome.upsert({
+      where: { programId },
+      create: {
+        programId,
+        auditorWallet,
+        outcome: "PENDING",
+        frozenAt: new Date(),
+        txHash: txHash ?? null,
+      },
+      update: {
+        auditorWallet,
+        txHash: txHash ?? undefined,
+      },
     });
+  });
 
-    await invalidateProgramCache(programId);
+  await invalidateProgramCache(programId);
 
-    return { result: "FROZEN", programId };
+  return { result: "FROZEN", programId };
 }
 
 export async function handleUnfreezeAppealSubmitted(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; programId: number }> {
-    const programId = Number(args.programId);
-    const picWallet = String(args.picWallet).toLowerCase();
+  const programId = Number(args.programId);
+  const picWallet = String(args.picWallet).toLowerCase();
 
-    const existing = await prisma.program.findUnique({
-        where: { programId }
-    });
+  const existing = await prisma.program.findUnique({
+    where: { programId },
+  });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] UnfreezeAppeal for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId }
-    }
+  if (!existing) {
+    console.warn(`[WEBHOOK] UnfreezeAppeal for unknown program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
 
-    await prisma.unfreezeVote.create({
-        data: {
-            programId,
-            picWallet,
-            approveVotes: 0,
-            rejectVotes: 0,
-            resolved: false,
-            appealStartedAt: new Date(),
-            txHash: txHash ?? null
-        }
-    });
+  await prisma.unfreezeVote.create({
+    data: {
+      programId,
+      picWallet,
+      approveVotes: 0,
+      rejectVotes: 0,
+      resolved: false,
+      appealStartedAt: new Date(),
+      txHash: txHash ?? null,
+    },
+  });
 
-    await invalidateProgramCache(programId);
-    await invalidatePattern("votes:unfreeze:*");
+  await invalidateProgramCache(programId);
+  await invalidatePattern("votes:unfreeze:*");
 
-
-    return { result: "APPEAL_SUBMITTED", programId}
+  return { result: "APPEAL_SUBMITTED", programId };
 }
 
 export async function handleUnfreezeAppealVoted(
-    args : Record<string, unknown>,
-    txHash?: string
-): Promise<{ result: string, programId: number }> {
-    const programId = Number(args.programId);
-    const validatorWallet = String(args.validator).toLowerCase();
-    const approve = Boolean(args.approve);
-    const approveVotes = Number(args.approveVotes);
-    const rejectVotes = Number(args.rejectVotes);
+  args: Record<string, unknown>,
+  txHash?: string,
+): Promise<{ result: string; programId: number }> {
+  const programId = Number(args.programId);
+  const validatorWallet = String(args.validator).toLowerCase();
+  const approve = Boolean(args.approve);
+  const approveVotes = Number(args.approveVotes);
+  const rejectVotes = Number(args.rejectVotes);
 
-    const unfreezeVote = await prisma.unfreezeVote.findUnique({
-        where: { programId }
+  const unfreezeVote = await prisma.unfreezeVote.findUnique({
+    where: { programId },
+  });
+
+  if (!unfreezeVote) {
+    console.warn(`[WEBHOOK] UnfreezeVote not found for program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  await prisma.unfreezeVote.update({
+    where: { programId },
+    data: {
+      approveVotes,
+      rejectVotes,
+    },
+  });
+
+  const voter = await prisma.user.findUnique({
+    where: {
+      walletAddress: validatorWallet,
+    },
+  });
+
+  if (voter) {
+    await prisma.unfreezeVoteBallot.upsert({
+      where: {
+        unfreezeVoteId_voterId: {
+          unfreezeVoteId: unfreezeVote.id,
+          voterId: voter.id,
+        },
+      },
+      create: {
+        unfreezeVoteId: unfreezeVote.id,
+        voterId: voter.id,
+        approve,
+      },
+      update: {
+        approve,
+      },
     });
+  } else {
+    console.warn(
+      `[WEBHOOK] Validator ${validatorWallet} not found as User, skip ballot`,
+    );
+  }
 
-    if(!unfreezeVote) {
-        console.warn(`[WEBHOOK] UnfreezeVote not found for program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId };
-    }
+  await invalidateProgramCache(programId);
+  await invalidatePattern("votes:unfreeze:*");
 
-    await prisma.unfreezeVote.update({
-        where: { programId },
-        data: {
-            approveVotes,
-            rejectVotes
-        }
-    });
-
-    const voter = await prisma.user.findUnique({
-        where: {
-            walletAddress: validatorWallet
-        }
-    });
-
-    if(voter) {
-        await prisma.unfreezeVoteBallot.upsert({
-            where: {
-                unfreezeVoteId_voterId: {
-                    unfreezeVoteId: unfreezeVote.id,
-                    voterId: voter.id
-                }
-            },
-            create: {
-                unfreezeVoteId: unfreezeVote.id,
-                voterId: voter.id,
-                approve,
-            },
-            update: {
-                approve
-            }
-        });
-    } else {
-        console.warn(`[WEBHOOK] Validator ${validatorWallet} not found as User, skip ballot`);
-    }
-
-    await invalidateProgramCache(programId);
-    await invalidatePattern("votes:unfreeze:*");
-
-    return { result: "APPEAL_VOTED", programId };
+  return { result: "APPEAL_VOTED", programId };
 }
 
 export async function handleProgramUnfrozenViaBFT(
-    args: Record<string, unknown>, 
-    txHash? : string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; programId: number }> {
-    const programId = Number(args.programId);
+  const programId = Number(args.programId);
 
-    const existing = await prisma.program.findUnique({
-        where: { programId }
+  const existing = await prisma.program.findUnique({
+    where: { programId },
+  });
+
+  if (!existing) {
+    console.warn(`[WEBHOOK] Unfrozen for unknown program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.program.update({
+      where: { programId },
+      data: {
+        status: "DRAWABLE",
+        displayTab: "ACTIVE",
+        txHash: txHash ?? existing.txHash,
+      },
     });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] Unfrozen for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId };
+    await tx.freezeOutcome.update({
+      where: { programId },
+      data: {
+        outcome: "CLEARED",
+        resolvedAt: new Date(),
+      },
+    });
+
+    await tx.unfreezeVote.update({
+      where: { programId },
+      data: { resolved: true },
+    });
+
+    const auditorUserId = await resolveAuditorUserId(programId, tx);
+
+    if (auditorUserId) {
+      await applyReputation({
+        userId: auditorUserId,
+        reason: "FALSE_FREEZE",
+        programId,
+        tx,
+        idempotent: true,
+      });
+    } else {
+      console.warn(
+        `[REPUTATION] Unfrozen Auditor for unknown program ${programId}`,
+      );
     }
+  });
 
-    await prisma.$transaction(async (tx: any) => {
-        await tx.program.update({
-            where: { programId },
-            data: {
-                status: "DRAWABLE",
-                displayTab: "ACTIVE",
-                txHash: txHash ?? existing.txHash
-            }
-        });
+  await invalidateProgramCache(programId);
+  await invalidatePattern("votes:unfreeze:*");
 
-        await tx.freezeOutcome.update({
-            where: { programId },
-            data: {
-                outcome: "CLEARED",
-                resolvedAt: new Date()
-            }
-        });
-
-        await tx.unfreezeVote.update({
-            where: { programId },
-            data: { resolved: true }
-        });
-
-        const auditorUserId = await resolveAuditorUserId(programId, tx);
-
-        if(auditorUserId) {
-            await applyReputation({
-                userId: auditorUserId,
-                reason: "FALSE_FREEZE",
-                programId,
-                tx,
-                idempotent: true
-            });
-        } else {
-            console.warn(`[REPUTATION] Unfrozen Auditor for unknown program ${programId}`);
-        }
-    });
-
-    await invalidateProgramCache(programId);
-    await invalidatePattern("votes:unfreeze:*");
-
-    return { result: "UNFROZEN", programId };
+  return { result: "UNFROZEN", programId };
 }
 
 export async function handleProgramFraudConfirmed(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; programId: number }> {
-    const programId = Number(args.programId);
+  const programId = Number(args.programId);
 
-    const existing = await prisma.program.findUnique({
-        where: { programId }
+  const existing = await prisma.program.findUnique({
+    where: { programId },
+  });
+
+  if (!existing) {
+    console.warn(`[WEBHOOK] FraudConfirmed for unknown program ${programId}`);
+    return { result: "SKIPPED_NOT_FOUND", programId };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.program.update({
+      where: { programId },
+      data: {
+        status: "FRAUD_CONFIRMED",
+        displayTab: "FRAUD",
+        txHash: txHash ?? existing.txHash,
+      },
     });
 
-    if (!existing) {
-        console.warn(`[WEBHOOK] FraudConfirmed for unknown program ${programId}`);
-        return { result: "SKIPPED_NOT_FOUND", programId };
+    await tx.freezeOutcome.update({
+      where: { programId },
+      data: {
+        outcome: "FRAUD_PROVEN",
+        resolvedAt: new Date(),
+      },
+    });
+
+    await tx.unfreezeVote.update({
+      where: { programId },
+      data: {
+        resolved: true,
+      },
+    });
+
+    const picUserId = await resolvePicUserId(programId, tx);
+
+    if (picUserId) {
+      await applyReputation({
+        userId: picUserId,
+        reason: "FRAUD_PROVEN",
+        programId,
+        tx,
+        idempotent: true,
+      });
+    } else {
+      console.warn(
+        `[REPUTATION] FraudConfirmed PIC for unknown program ${programId}`,
+      );
     }
 
-    await prisma.$transaction(async (tx: any) => {
-        await tx.program.update({
-            where: { programId },
-            data: {
-                status: "FRAUD_CONFIRMED",
-                displayTab: "FRAUD",
-                txHash: txHash ?? existing.txHash
-            }
-        });
+    const auditorUserId = await resolveAuditorUserId(programId, tx);
 
-        await tx.freezeOutcome.update({
-            where: { programId },
-            data: {
-                outcome: "FRAUD_PROVEN",
-                resolvedAt: new Date()
-            }
-        });
+    if (auditorUserId) {
+      await applyReputation({
+        userId: auditorUserId,
+        reason: "VALID_FREEZE",
+        programId,
+        tx,
+        idempotent: true,
+      });
+    } else {
+      console.warn(
+        `[REPUTATION] FraudConfirmed Auditor for unknown program ${programId}`,
+      );
+    }
+  });
 
-        await tx.unfreezeVote.update({
-            where: { programId },
-            data: { 
-                resolved: true
-            }
-        });
+  await invalidateProgramCache(programId);
+  await invalidatePattern("votes:unfreeze:*");
 
-        const picUserId = await resolvePicUserId(programId, tx);
-
-        if(picUserId) {
-            await applyReputation({
-                userId: picUserId,
-                reason: "FRAUD_PROVEN",
-                programId,
-                tx,
-                idempotent : true
-            })
-        } else {
-            console.warn(`[REPUTATION] FraudConfirmed PIC for unknown program ${programId}`);
-        }
-
-        const auditorUserId = await resolveAuditorUserId(programId, tx);
-
-        if(auditorUserId) {
-            await applyReputation({
-                userId: auditorUserId,
-                reason: "VALID_FREEZE",
-                programId,
-                tx,
-                idempotent: true
-            });
-        } else {
-            console.warn(`[REPUTATION] FraudConfirmed Auditor for unknown program ${programId}`);
-        }
-    });
-
-    await invalidateProgramCache(programId);
-    await invalidatePattern("votes:unfreeze:*");
-
-    return { result: "FRAUD_CONFIRMED", programId };
+  return { result: "FRAUD_CONFIRMED", programId };
 }
 
 export async function handleRoleVoteCreated(
-    args: Record<string, unknown>,
-    _txHash?: string
+  args: Record<string, unknown>,
+  _txHash?: string,
 ): Promise<{ result: string; voteId: number }> {
-    const voteId = Number(args.voteId);
-    const candidate = String(args.candidate).toLowerCase();
-    const roleHash = String(args.roleToTarget);
-    const isDevote = Boolean(args.isDevote);
+  const voteId = Number(args.voteId);
+  const candidate = String(args.candidate).toLowerCase();
+  const roleHash = String(args.roleToTarget);
+  const isDevote = Boolean(args.isDevote);
 
-    const roleToTarget = mapRoleHashToSignerRole(roleHash);
-      
-    if (!roleToTarget) {
-        console.warn(`[WEBHOOK] RoleVoteCreated unknown role hash ${roleHash}`);
-        return { result: "SKIPPED_UNKNOWN_ROLE", voteId };
-    }
+  const roleToTarget = mapRoleHashToSignerRole(roleHash);
 
-    await prisma.roleVote.upsert({
-        where: { voteId },
-        create: {
-            voteId,
-            candidate,
-            roleToTarget,
-            voteCount: 0,
-            isDevote,
-            executed: false
-        },
-        update: {}
-    });
+  if (!roleToTarget) {
+    console.warn(`[WEBHOOK] RoleVoteCreated unknown role hash ${roleHash}`);
+    return { result: "SKIPPED_UNKNOWN_ROLE", voteId };
+  }
 
-    await invalidatePattern("votes:role:*");
+  await prisma.roleVote.upsert({
+    where: { voteId },
+    create: {
+      voteId,
+      candidate,
+      roleToTarget,
+      voteCount: 0,
+      isDevote,
+      executed: false,
+    },
+    update: {},
+  });
 
-    return { result: "ROLE_VOTE_CREATED", voteId };
+  await invalidatePattern("votes:role:*");
+
+  return { result: "ROLE_VOTE_CREATED", voteId };
 }
 
 export async function handleRoleVoteCast(
-    args: Record<string, unknown>,
-    _txHash?: string
+  args: Record<string, unknown>,
+  _txHash?: string,
 ): Promise<{ result: string; voteId: number }> {
-    const voteId = Number(args.voteId);
-    const adminWallet = String(args.admin).toLowerCase();
-    const currentVotes = Number(args.currentVotes);
+  const voteId = Number(args.voteId);
+  const adminWallet = String(args.admin).toLowerCase();
+  const currentVotes = Number(args.currentVotes);
 
-    const roleVote = await prisma.roleVote.findUnique({
-        where : { voteId }
+  const roleVote = await prisma.roleVote.findUnique({
+    where: { voteId },
+  });
+
+  if (!roleVote) {
+    console.warn(`[WEBHOOK] RoleVoteCast for unknown vote ${voteId}`);
+    return { result: "SKIPPED_NOT_FOUND", voteId };
+  }
+
+  await prisma.roleVote.update({
+    where: { voteId },
+    data: {
+      voteCount: currentVotes,
+    },
+  });
+
+  const voter = await prisma.user.findUnique({
+    where: { walletAddress: adminWallet },
+  });
+
+  if (voter) {
+    await prisma.roleVoteBallot.upsert({
+      where: {
+        roleVoteId_voterId: { roleVoteId: voteId, voterId: voter.id },
+      },
+      create: { roleVoteId: voteId, voterId: voter.id },
+      update: {},
     });
+  } else {
+    console.warn(
+      `[WEBHOOK] Admin ${adminWallet} not found as User, skip ballot`,
+    );
+  }
 
-    if (!roleVote) {
-        console.warn(`[WEBHOOK] RoleVoteCast for unknown vote ${voteId}`);
-        return { result: "SKIPPED_NOT_FOUND", voteId };
-    }
+  await invalidatePattern("votes:role:*");
 
-    await prisma.roleVote.update({
-        where: { voteId },
-        data: {
-            voteCount: currentVotes
-        }
-    });
-
-    const voter = await prisma.user.findUnique({
-        where: { walletAddress: adminWallet }
-    });
-
-    if (voter) {
-        await prisma.roleVoteBallot.upsert({
-        where: {
-            roleVoteId_voterId: { roleVoteId: voteId, voterId: voter.id },
-        },
-        create: { roleVoteId: voteId, voterId: voter.id },
-        update: {},
-        });
-    } else {
-        console.warn(`[WEBHOOK] Admin ${adminWallet} not found as User, skip ballot`);
-    }
-
-    await invalidatePattern("votes:role:*");
-
-    return { result: "ROLE_VOTE_CAST", voteId };
+  return { result: "ROLE_VOTE_CAST", voteId };
 }
 
 export async function handleRoleGrantedViaGovernance(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string }> {
-    const roleHash = String(args.role);
-    const account = String(args.account).toLowerCase();
+  const roleHash = String(args.role);
+  const account = String(args.account).toLowerCase();
 
-    const role = mapRoleHashToRole(roleHash);
+  const role = mapRoleHashToRole(roleHash);
 
-    if(!role) {
-        console.warn(`[WEBHOOK] RoleGranted unknown role hash ${roleHash}`);
-        return { 
-            result: "SKIPPED_UNKNOWN_ROLE"
-        };
-    }
+  if (!role) {
+    console.warn(`[WEBHOOK] RoleGranted unknown role hash ${roleHash}`);
+    return {
+      result: "SKIPPED_UNKNOWN_ROLE",
+    };
+  }
 
-    const user = await prisma.user.findUnique({ where: { walletAddress: account }});
+  const user = await prisma.user.findUnique({
+    where: { walletAddress: account },
+  });
 
-    if (!user) {
-        console.warn(`[WEBHOOK] RoleGranted: user ${account} not found`);
-        return { result: "SKIPPED_USER_NOT_FOUND" };
-    }
+  if (!user) {
+    console.warn(`[WEBHOOK] RoleGranted: user ${account} not found`);
+    return { result: "SKIPPED_USER_NOT_FOUND" };
+  }
 
-    await prisma.$transaction(async (tx: any) => {
-        await tx.user.update({ where: { id: user.id }, data: { role } });
-        await tx.roleChangeLog.create({
-            data: {
-            changeType: "ROLE_GRANTED",
-            targetWallet: account,
-            targetRole: role,         
-            actorWallet: null,        
-            txHash: txHash ?? null,
-            },
-        });
+  await prisma.$transaction(async (tx: any) => {
+    await tx.user.update({ where: { id: user.id }, data: { role } });
+    await tx.roleChangeLog.create({
+      data: {
+        changeType: "ROLE_GRANTED",
+        targetWallet: account,
+        targetRole: role,
+        actorWallet: null,
+        txHash: txHash ?? null,
+      },
     });
+  });
 
-    return { result: `ROLE_GRANTED_${role}`}
+  return { result: `ROLE_GRANTED_${role}` };
 }
 
 export async function handleRoleRevokedViaGovernance(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string }> {
-    const account = String(args.account).toLowerCase();
+  const account = String(args.account).toLowerCase();
 
-    const user = await prisma.user.findUnique({
-        where: { walletAddress: account }
+  const user = await prisma.user.findUnique({
+    where: { walletAddress: account },
+  });
+
+  if (!user) {
+    console.warn(`[WEBHOOK] RoleRevoked: user ${account} not found`);
+    return { result: "SKIPPED_USER_NOT_FOUND" };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.user.update({ where: { id: user.id }, data: { role: "USER" } });
+    await tx.roleChangeLog.create({
+      data: {
+        changeType: "ROLE_REVOKED",
+        targetWallet: account,
+        targetRole: "USER",
+        actorWallet: null,
+        txHash: txHash ?? null,
+      },
     });
+  });
 
-    if (!user) {
-        console.warn(`[WEBHOOK] RoleRevoked: user ${account} not found`);
-        return { result: "SKIPPED_USER_NOT_FOUND" };
-    }
-
-
-
-    await prisma.$transaction(async (tx: any) => {
-        await tx.user.update({ where: { id: user.id }, data: { role: "USER"  } });
-        await tx.roleChangeLog.create({
-            data: {
-            changeType: "ROLE_REVOKED",
-            targetWallet: account,
-            targetRole: "USER",         
-            actorWallet: null,        
-            txHash: txHash ?? null,
-            },
-        });
-    });
-
-    return { result: "ROLE_REVOKED" }
+  return { result: "ROLE_REVOKED" };
 }
 
 export async function handlePicRoleGrantedByAdmin(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string }> {
-    const account = String(args.account).toLowerCase();
-    const admin = String(args.admin).toLowerCase();
+  const account = String(args.account).toLowerCase();
+  const admin = String(args.admin).toLowerCase();
 
-    const user = await prisma.user.findUnique({
-        where: { walletAddress: account }
+  const user = await prisma.user.findUnique({
+    where: { walletAddress: account },
+  });
+
+  if (!user) {
+    console.warn(`[WEBHOOK] PicRoleGranted: user ${account} not found`);
+    return { result: "SKIPPED_USER_NOT_FOUND" };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.user.update({
+      where: { id: user.id },
+      data: {
+        role: "PIC",
+      },
     });
 
-    if (!user) {
-        console.warn(`[WEBHOOK] PicRoleGranted: user ${account} not found`);
-        return { result: "SKIPPED_USER_NOT_FOUND" };
-    }
-
-    await prisma.$transaction(async (tx: any) => {
-        await tx.user.update({
-            where: { id: user.id },
-            data: {
-                role: "PIC"
-            }
-        });
-
-        await tx.roleChangeLog.create({
-            data: {
-                changeType: "PIC_GRANTED",
-                targetWallet: account,
-                targetRole: "PIC",
-                actorWallet: admin,
-                txHash: txHash ?? null
-            }
-        });
+    await tx.roleChangeLog.create({
+      data: {
+        changeType: "PIC_GRANTED",
+        targetWallet: account,
+        targetRole: "PIC",
+        actorWallet: admin,
+        txHash: txHash ?? null,
+      },
     });
+  });
 
-    return { result: "PIC_GRANTED" }
+  return { result: "PIC_GRANTED" };
 }
 
 export async function handlePicRoleRevokedByAdmin(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string }> {
-    const account = String(args.account).toLowerCase();
-    const admin = String(args.admin).toLowerCase();
+  const account = String(args.account).toLowerCase();
+  const admin = String(args.admin).toLowerCase();
 
-    const user = await prisma.user.findUnique({
-        where: { walletAddress: account }
+  const user = await prisma.user.findUnique({
+    where: { walletAddress: account },
+  });
+
+  if (!user) {
+    console.warn(`[WEBHOOK] PicRoleRevoked: user ${account} not found`);
+    return { result: "SKIPPED_USER_NOT_FOUND" };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.user.update({
+      where: { id: user.id },
+      data: {
+        role: "USER",
+      },
     });
 
-    if (!user) {
-        console.warn(`[WEBHOOK] PicRoleRevoked: user ${account} not found`);
-        return { result: "SKIPPED_USER_NOT_FOUND" };
-    }
-
-    await prisma.$transaction(async (tx: any) => {
-        await tx.user.update({
-            where: { id: user.id },
-            data: {
-                role: "USER"
-            }
-        });
-
-        await tx.roleChangeLog.create({
-            data: {
-                changeType: "PIC_REVOKED",
-                targetWallet: account,
-                targetRole: "USER",
-                actorWallet: admin,
-                txHash: txHash ?? null
-            }
-        });
+    await tx.roleChangeLog.create({
+      data: {
+        changeType: "PIC_REVOKED",
+        targetWallet: account,
+        targetRole: "USER",
+        actorWallet: admin,
+        txHash: txHash ?? null,
+      },
     });
+  });
 
-    return { result: "PIC_REVOKED" }
+  return { result: "PIC_REVOKED" };
 }
 
 export async function handleRedemptionRequested(
-    args: Record<string, unknown>,
-    txHash?: string
-): Promise<{ result: string; redemptionId: number; }> {
-    const redemptionId = Number(args.id);
-    const picWallet = String(args.pic).toLowerCase();
-    const amount = String(args.amount);
+  args: Record<string, unknown>,
+  txHash?: string,
+): Promise<{ result: string; redemptionId: number }> {
+  const redemptionId = Number(args.id);
+  const picWallet = String(args.pic).toLowerCase();
+  const amount = String(args.amount);
 
-    const pic = await prisma.user.findUnique({
-        where: { walletAddress: picWallet },
-        select: { id: true }
-    });
+  const pic = await prisma.user.findUnique({
+    where: { walletAddress: picWallet },
+    select: { id: true },
+  });
 
-    await prisma.redemption.upsert({
-        where: { redemptionId },
-        create: {
-            redemptionId,
-            picWallet,
-            amount,
-            status: "PENDING",
-            requestedAt: new Date(),
-            requestTxHash: txHash ?? null,
-            picId: pic?.id ?? null,
-        },
-        update: {}
-    });
+  await prisma.redemption.upsert({
+    where: { redemptionId },
+    create: {
+      redemptionId,
+      picWallet,
+      amount,
+      status: "PENDING",
+      requestedAt: new Date(),
+      requestTxHash: txHash ?? null,
+      picId: pic?.id ?? null,
+    },
+    update: {},
+  });
 
-    await invalidateRedemptionCache();
+  await invalidateRedemptionCache();
 
-    return { result: "REDEMPTION_REQUESTED", redemptionId };
+  return { result: "REDEMPTION_REQUESTED", redemptionId };
 }
 
 export async function handleRedemptionSettled(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; redemptionId: number }> {
-    const redemptionId = Number(args.id);
+  const redemptionId = Number(args.id);
 
-    const existing = await prisma.redemption.findUnique({
-        where: { redemptionId }
-    });
+  const existing = await prisma.redemption.findUnique({
+    where: { redemptionId },
+  });
 
-    if(!existing) {
-        console.warn(`[WEBHOOK] RedemptionSettled unknown redemption ${redemptionId}`);
-        return { result: "SKIPPED_NOT_FOUND", redemptionId };
-    }
+  if (!existing) {
+    console.warn(
+      `[WEBHOOK] RedemptionSettled unknown redemption ${redemptionId}`,
+    );
+    return { result: "SKIPPED_NOT_FOUND", redemptionId };
+  }
 
-    if (existing.status === "SETTLED") return { result: "ALREADY_SETTLED", redemptionId };
+  if (existing.status === "SETTLED")
+    return { result: "ALREADY_SETTLED", redemptionId };
 
-    await prisma.redemption.update({
-        where: { redemptionId },
-        data: {
-            status: "SETTLED",
-            settledAt: new Date(),
-            settleTxHash: txHash ?? existing.settleTxHash,
-        }
-    });
+  await prisma.redemption.update({
+    where: { redemptionId },
+    data: {
+      status: "SETTLED",
+      settledAt: new Date(),
+      settleTxHash: txHash ?? existing.settleTxHash,
+    },
+  });
 
-    await invalidateRedemptionCache();
+  await invalidateRedemptionCache();
 
-    return { result: "REDEMPTION_SETTLED", redemptionId };
+  return { result: "REDEMPTION_SETTLED", redemptionId };
 }
 
 export async function handleRedemptionCancelled(
-    args: Record<string, unknown>,
-    txHash?: string
+  args: Record<string, unknown>,
+  txHash?: string,
 ): Promise<{ result: string; redemptionId: number }> {
-    const redemptionId = Number(args.id);
-    const byPic = Boolean(args.byPic);
+  const redemptionId = Number(args.id);
+  const byPic = Boolean(args.byPic);
 
-    const existing = await prisma.redemption.findUnique({ where: { redemptionId } });
-    if (!existing) {
-        console.warn(`[WEBHOOK] RedemptionCancelled unknown redemption ${redemptionId}`);
-        return { result: "SKIPPED_NOT_FOUND", redemptionId };
-    }
-    if (existing.status === "CANCELLED") return { result: "ALREADY_CANCELLED", redemptionId };
+  const existing = await prisma.redemption.findUnique({
+    where: { redemptionId },
+  });
+  if (!existing) {
+    console.warn(
+      `[WEBHOOK] RedemptionCancelled unknown redemption ${redemptionId}`,
+    );
+    return { result: "SKIPPED_NOT_FOUND", redemptionId };
+  }
+  if (existing.status === "CANCELLED")
+    return { result: "ALREADY_CANCELLED", redemptionId };
 
-    await prisma.redemption.update({
-        where: { redemptionId },
-        data: {
-            status: "CANCELLED",
-            cancelledAt: new Date(),
-            cancelledByPic: byPic,
-            cancelTxHash: txHash ?? existing.cancelTxHash,
-        }
-    });
+  await prisma.redemption.update({
+    where: { redemptionId },
+    data: {
+      status: "CANCELLED",
+      cancelledAt: new Date(),
+      cancelledByPic: byPic,
+      cancelTxHash: txHash ?? existing.cancelTxHash,
+    },
+  });
 
-    await invalidateRedemptionCache();
-    return { result: "REDEMPTION_CANCELLED", redemptionId };
+  await invalidateRedemptionCache();
+  return { result: "REDEMPTION_CANCELLED", redemptionId };
 }
 
 export async function handleExchangeTokenToFiat(
-    args: Record<string, unknown>,
-    _txHash?: string
+  args: Record<string, unknown>,
+  _txHash?: string,
 ): Promise<{ result: string }> {
-    console.log(`[WEBHOOK] ExchangeTokenToFiat pic=${String(args.picWallet).toLowerCase()} amount=${String(args.amount)}`);
-    return { result: "FIAT_EXCHANGE_LOGGED" };
+  console.log(
+    `[WEBHOOK] ExchangeTokenToFiat pic=${String(
+      args.picWallet,
+    ).toLowerCase()} amount=${String(args.amount)}`,
+  );
+  return { result: "FIAT_EXCHANGE_LOGGED" };
 }

@@ -41,8 +41,9 @@ export async function listRoleVotes(page: number, limit: number) {
       ? await prisma.user.findMany({
           where: { walletAddress: { in: wallets } },
           select: USER_MINI,
-        })  : [];
-        
+        })
+      : [];
+
     const byWallet = new Map(
       users.map((u) => [u.walletAddress!.toLowerCase(), u]),
     );

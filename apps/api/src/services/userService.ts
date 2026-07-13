@@ -126,7 +126,6 @@ const REQUIRED_PROFILE_FIELDS = [
   "nationality",
 ] as const;
 
-/** Field wajib yang masih kosong pada profil user. */
 function missingProfileFields(user: Record<string, unknown>): string[] {
   return REQUIRED_PROFILE_FIELDS.filter((f) => {
     const v = user[f];
@@ -157,7 +156,6 @@ const ADMIN_USER_DETAIL_SELECT = {
   profileBannerURL: true,
   createdAt: true,
 } as const;
-
 
 export async function getAdminUserDetail(userId: string) {
   const user = await prisma.user.findUnique({
@@ -204,7 +202,7 @@ export async function setVerified(userId: string, isVerified: boolean) {
       const v = (user as Record<string, unknown>)[f];
       return v === null || v === undefined || v === "";
     });
-    
+
     if (missing.length > 0) {
       throw new AppError(
         `Profile not complete yet. Required field: ${missing.join(", ")}`,
@@ -290,7 +288,9 @@ export async function getPublicUserProfile(userId: string) {
             select: {
               programId: true,
               resolved: true,
-              program: { select: { title: true, status: true, totalBudget: true } },
+              program: {
+                select: { title: true, status: true, totalBudget: true },
+              },
             },
           },
         },
@@ -320,7 +320,9 @@ export async function getPublicUserProfile(userId: string) {
             reason: true,
             frozenAt: true,
             resolvedAt: true,
-            program: { select: { title: true, status: true, totalBudget: true } },
+            program: {
+              select: { title: true, status: true, totalBudget: true },
+            },
           },
           orderBy: { frozenAt: "desc" },
           take: 50,
@@ -328,6 +330,12 @@ export async function getPublicUserProfile(userId: string) {
       }
     }
 
-    return { ...user, roleVoteBallots, unfreezeBallots, reputationLogs, freezes };
+    return {
+      ...user,
+      roleVoteBallots,
+      unfreezeBallots,
+      reputationLogs,
+      freezes,
+    };
   });
 }

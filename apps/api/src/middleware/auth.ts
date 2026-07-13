@@ -26,7 +26,6 @@ export async function authMiddleware(
         throw new AppError("Invalid or expired token", 401);
     }
 
-    // Satu MGET untuk 2 kunci → hemat 1 perintah Redis per request ter-auth.
     const [isBlocked, validAfter] = await redis.mget(
         `blocklist:${payload.jti}`,
         `tokensValidAfter:${payload.sub}`,

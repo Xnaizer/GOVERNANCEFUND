@@ -1,12 +1,26 @@
 import type { Response } from "express";
 
-function success(res: Response, data: unknown, meta: Record<string, unknown> = {}, status = 200) {
+function success(
+  res: Response,
+  data: unknown,
+  meta: Record<string, unknown> = {},
+  status = 200,
+) {
   res.status(status).json({ data, error: null, meta });
 }
-function error(res: Response, message: string, status = 500, meta: Record<string, unknown> = {}) {
+function error(
+  res: Response,
+  message: string,
+  status = 500,
+  meta: Record<string, unknown> = {},
+) {
   res.status(status).json({ data: null, error: message, meta });
 }
-function created(res: Response, data: unknown, meta: Record<string, unknown> = {}) {
+function created(
+  res: Response,
+  data: unknown,
+  meta: Record<string, unknown> = {},
+) {
   res.status(201).json({ data, error: null, meta });
 }
 function unauthorized(res: Response, message = "Unauthorized") {

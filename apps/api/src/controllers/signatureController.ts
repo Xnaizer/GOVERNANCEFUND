@@ -5,49 +5,45 @@ import { AppError } from "../utils/AppError";
 import response from "../utils/response";
 
 export default {
+  // POST /api/v1/signatures
+  async submit(req: Request, res: Response): Promise<void> {
+    const user = req.user!;
 
-    // POST /api/v1/signatures
-    async submit(req: Request, res: Response): Promise<void> {
-        const user = req.user!;
+    const parsed = submitSignatureSchema.safeParse(req.body);
 
-        const parsed = submitSignatureSchema.safeParse(req.body);
+    if (!parsed.success) {
+      throw new AppError(parsed.error.errors[0].message, 400);
+    }
 
-        if(!parsed.success) {
-            throw new AppError(parsed.error.errors[0].message, 400);
-        }
+    const result = await signatureService.submitSignature(user.id, parsed.data);
 
-        const result = await signatureService.submitSignature(user.id, parsed.data);
+    response.created(res, result);
+  },
 
-        response.created(res, result);
-    },
+  // GET /api/v1/signatures/:milestoneId
+  async list(req: Request, res: Response): Promise<void> {
+    const milestoneId = req.params.milestoneId;
 
-    // GET /api/v1/signatures/:milestoneId
-    async list(req: Request, res: Response): Promise<void> {
-        const milestoneId = req.params.milestoneId;
+    if (!milestoneId) {
+      throw new AppError("milestoneId is required", 400);
+    }
 
-        if(!milestoneId) {
-            throw new AppError("milestoneId is required", 400);
-        }
+    const result = await signatureService.getSignatures(milestoneId);
 
-        const result = await signatureService.getSignatures(milestoneId);
+    response.success(res, result);
+  },
 
-        response.success(res, result);
-    },
+  // DELETE /api/v1/signatures/:milestoneId
+  async reset(req: Request, res: Response): Promise<void> {
+    const user = req.user!;
+    const milestoneId = req.params.milestoneId;
 
-    // DELETE /api/v1/signatures/:milestoneId
-    async reset(req: Request, res: Response): Promise<void> {
-        const user = req.user!;
-        const milestoneId = req.params.milestoneId;
+    if (!milestoneId) {
+      throw new AppError("milestoneId is required", 400);
+    }
 
-        if (!milestoneId) {
-            throw new AppError("milestoneId is required", 400);
-        }
+    const result = await signatureService.resetSignatures(user.id, milestoneId);
 
-        const result = await signatureService.resetSignatures(user.id, milestoneId);
-
-        response.success(res, result);
-    },
-
-
-
-}
+    response.success(res, result);
+  },
+};

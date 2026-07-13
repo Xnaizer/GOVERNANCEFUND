@@ -31,9 +31,6 @@ export const mutationLimiter = rateLimit({
   message: limitMessage("Too many requests, try again later"),
 });
 
-// readLimiter kena di SEMUA route publik/list (paling sering) → pakai store default in-memory
-// agar tak menembak Redis 2–3x per request. Cukup untuk 1 instance Railway (akademik).
-// Rate-limit Redis dipertahankan untuk auth/mutation/signature (volume rendah, sensitif keamanan).
 export const readLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,

@@ -9,28 +9,40 @@ const PIC_ROLE = keccak256(toBytes("PIC_ROLE"));
 export function mapRoleHashToRole(roleHash: string): Role | null {
   const hash = roleHash.toLowerCase();
   switch (hash) {
-    case ADMIN_ROLE.toLowerCase():     return "ADMIN";
-    case VALIDATOR_ROLE.toLowerCase(): return "VALIDATOR";
-    case AUDITOR_ROLE.toLowerCase():   return "AUDITOR";
-    case PIC_ROLE.toLowerCase():       return "PIC";
-    default:                            return null;
+    case ADMIN_ROLE.toLowerCase():
+      return "ADMIN";
+    case VALIDATOR_ROLE.toLowerCase():
+      return "VALIDATOR";
+    case AUDITOR_ROLE.toLowerCase():
+      return "AUDITOR";
+    case PIC_ROLE.toLowerCase():
+      return "PIC";
+    default:
+      return null;
   }
 }
 
 export function mapRoleHashToSignerRole(roleHash: string): SignerRole | null {
   const hash = roleHash.toLowerCase();
   switch (hash) {
-    case ADMIN_ROLE.toLowerCase():     return "ADMIN";
-    case VALIDATOR_ROLE.toLowerCase(): return "VALIDATOR";
-    case AUDITOR_ROLE.toLowerCase():   return "AUDITOR";
-    default:                            return null; 
+    case ADMIN_ROLE.toLowerCase():
+      return "ADMIN";
+    case VALIDATOR_ROLE.toLowerCase():
+      return "VALIDATOR";
+    case AUDITOR_ROLE.toLowerCase():
+      return "AUDITOR";
+    default:
+      return null;
   }
 }
 
 export function mapSignerRoleToRoleHash(role: SignerRole): `0x${string}` {
-    switch(role) {
-        case "ADMIN": return ADMIN_ROLE;
-        case "VALIDATOR": return VALIDATOR_ROLE;
-        case "AUDITOR": return AUDITOR_ROLE
-    }
+  switch (role) {
+    case "ADMIN":
+      return ADMIN_ROLE;
+    case "VALIDATOR":
+      return VALIDATOR_ROLE;
+    case "AUDITOR":
+      return AUDITOR_ROLE;
+  }
 }

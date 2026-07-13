@@ -194,39 +194,39 @@ export async function attachWithdrawalReceipt(
 }
 
 export async function updateUserAvatar(userId: string, file: UploadedFile) {
-    const { url, publicId } = await uploadImage(file.buffer, {
-        folder: `governancefund/users/${userId}`,
-        publicId: "avatar"
-    });
+  const { url, publicId } = await uploadImage(file.buffer, {
+    folder: `governancefund/users/${userId}`,
+    publicId: "avatar",
+  });
 
-    await prisma.user.update({
-        where: {
-            id: userId
-        },
-        data: {
-            profilePictureURL: url
-        }
-    });
+  await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      profilePictureURL: url,
+    },
+  });
 
-    await invalidate(`public:user:${userId}`);
+  await invalidate(`public:user:${userId}`);
 
-    return { url, publicId };
+  return { url, publicId };
 }
 
 export async function updateUserBanner(userId: string, file: UploadedFile) {
-    const { url, publicId } = await uploadImage(file.buffer, {
-        folder: `governancefund/users/${userId}`,
-        publicId: "banner",
-    });
+  const { url, publicId } = await uploadImage(file.buffer, {
+    folder: `governancefund/users/${userId}`,
+    publicId: "banner",
+  });
 
-    await prisma.user.update({
-        where: { id: userId },
-        data: {
-            profileBannerURL: url
-        }
-    });
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      profileBannerURL: url,
+    },
+  });
 
-    await invalidate(`public:user:${userId}`);
+  await invalidate(`public:user:${userId}`);
 
-    return { url, publicId };
+  return { url, publicId };
 }

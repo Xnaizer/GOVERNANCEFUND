@@ -8,42 +8,41 @@ import { asyncHandler } from "../utils/asyncHandler";
 const router: Router = express.Router();
 
 router.post(
-    "/",
-    mutationLimiter,
-    asyncHandler(authMiddleware),
-    requireRole(["PIC"]),
-    asyncHandler(programController.create)
+  "/",
+  mutationLimiter,
+  asyncHandler(authMiddleware),
+  requireRole(["PIC"]),
+  asyncHandler(programController.create),
 );
 
 router.get(
-    "/",
-    readLimiter,
-    asyncHandler(authMiddleware),
-    asyncHandler(programController.list)
+  "/",
+  readLimiter,
+  asyncHandler(authMiddleware),
+  asyncHandler(programController.list),
 );
 
 router.get(
-    "/:id",
-    readLimiter,
-    asyncHandler(authMiddleware),
-    asyncHandler(programController.detail)
+  "/:id",
+  readLimiter,
+  asyncHandler(authMiddleware),
+  asyncHandler(programController.detail),
 );
 
 router.get(
-    "/:id/onchain-payload",
-    readLimiter,
-    asyncHandler(authMiddleware),
-    requireRole(["PIC"]),
-    asyncHandler(programController.onchainPayload)
+  "/:id/onchain-payload",
+  readLimiter,
+  asyncHandler(authMiddleware),
+  requireRole(["PIC"]),
+  asyncHandler(programController.onchainPayload),
 );
 
 router.post(
-    "/:id/freeze-evidence",
-    mutationLimiter,
-    asyncHandler(authMiddleware),
-    requireRole(["AUDITOR"]),
-    asyncHandler(programController.freezeEvidence)
+  "/:id/freeze-evidence",
+  mutationLimiter,
+  asyncHandler(authMiddleware),
+  requireRole(["AUDITOR"]),
+  asyncHandler(programController.freezeEvidence),
 );
-
 
 export default router;

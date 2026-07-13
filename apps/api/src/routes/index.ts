@@ -7,7 +7,7 @@ import signatureRouter from "./signatures";
 import uploadRouter from "./uploads";
 import gatewayRouter from "./gateway";
 
-const router: Router  = express.Router();
+const router: Router = express.Router();
 
 router.use("/auth", authRouter);
 router.use("/users", userRouter);

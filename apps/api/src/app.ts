@@ -43,13 +43,10 @@ app.use(
 
 app.use(express.json());
 
-// Liveness murah — TIDAK menembak Redis/DB (UptimeRobot/Railway probe sering).
 app.get("/health", (_req: Request, res: Response) => {
     res.status(200).json({ data: "ok", error: null, meta: {} });
 });
 
-// Deep-check dependency, tapi di-cache in-memory ~60s → maksimal 1 ping DB+Redis/menit
-// walau probe tiap detik. Pakai /health/deep untuk pemantauan yang butuh status dependency.
 let deepCache: { at: number; ok: boolean; checks: { db: boolean; redis: boolean } } | null = null;
 app.get("/health/deep", asyncHandler(async (_req: Request, res: Response) => {
     const now = Date.now();

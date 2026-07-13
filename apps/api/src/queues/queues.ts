@@ -7,7 +7,6 @@ const connection = redis;
 const defaultJobOptions = {
     attempts: 3,
     backoff: { type: "exponential" as const, delay: 3000 },
-    // Bersihkan job selesai lebih agresif → kurangi hash sisa di Redis.
     removeOnComplete: { age: 3600, count: 50 },
     removeOnFail: 1000,
 };
