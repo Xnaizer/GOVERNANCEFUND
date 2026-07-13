@@ -5,11 +5,11 @@ import { cn } from "@/utils/cn";
 
 // Warna selaras dengan palet simpul di Alur Program.
 const PANELS = [
-  { img: "/media/person-phone.webp", label: "Explorer publik", sub: "Pantau tanpa login", color: "#67F3CE" },
-  { img: "/media/abstract-1.webp", label: "Jejak on-chain", sub: "Setiap aksi terekam", color: "#4899EA" },
-  { img: "/media/abstract-2.webp", label: "Multi-signature", sub: "3 tanda tangan wajib", color: "#818CF8" },
-  { img: "/media/purple-sky.webp", label: "Pembekuan instan", sub: "Auditor independen", color: "#38BDF8" },
-  { img: "/media/dark-abstract.webp", label: "Konsensus 67%", sub: "Tak ada aktor tunggal", color: "#C084FC" },
+  { img: "/media/1.svg", label: "Explorer publik", sub: "Pantau tanpa login", color: "#67F3CE" },
+  { img: "/media/2.svg", label: "Jejak on-chain", sub: "Setiap aksi terekam", color: "#4899EA" },
+  { img: "/media/3.svg", label: "Multi-signature", sub: "3 tanda tangan wajib", color: "#818CF8" },
+  { img: "/media/4.svg", label: "Pembekuan instan", sub: "Auditor independen", color: "#38BDF8" },
+  { img: "/media/5.svg", label: "Konsensus 67%", sub: "Tak ada aktor tunggal", color: "#C084FC" },
 ];
 
 export function HeroShowcase() {

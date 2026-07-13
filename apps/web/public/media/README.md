@@ -2,17 +2,15 @@
 
 Semua aset di sini bebas komersial (Unsplash license). Ganti file dengan nama sama untuk swap tanpa ubah kode.
 
-## Gambar (webp, sudah di-fetch dari Unsplash)
+## Gambar
 | File | Slot pemakaian |
 |---|---|
-| `hero-dune.webp` | Background utama LandingHero (gurun dreamy) |
-| `hero-desert.webp` | Alternatif hero / parallax layer |
-| `moon.webp` | Aksen "bulan" mengambang di hero (ala Decagon) |
-| `purple-sky.webp` | Overlay langit ungu / CtaBand |
-| `person-phone.webp` | HoverFeature / section omnichannel |
-| `abstract-1.webp` | StickyInfo — gambar kanan |
-| `abstract-2.webp` | ProgramFlow — gambar kanan (glow) |
-| `dark-abstract.webp` | ProgramFlow — latar section hitam |
+| `1.svg` – `5.svg` | HeroShowcase — panel galeri scroll horizontal (5 slide) |
+| `hero-aurora.webp` | Background LandingHero |
+| `hero-dune.webp` | Panel pemandangan halaman Tukar Token (Redeem) |
+| `hero-finance.webp` | HoverFeature — kartu fitur |
+| `purple-sky.webp` | HoverFeature — kartu fitur |
+| `person-phone.webp` | HoverFeature — kartu fitur |
 
 ## Video (opsional — belum di-fetch)
 Slot `hero.webm` + `hero.mp4` + `hero-poster.webp` bila ingin hero pakai video loop.
@@ -22,7 +20,7 @@ ffmpeg -i input.mp4 -c:v libvpx-vp9 -b:v 0 -crf 33 -an -vf scale=1920:-2 hero.we
 ffmpeg -i input.mp4 -c:v libx264 -crf 24 -preset slow -an -vf scale=1920:-2 hero.mp4
 ffmpeg -i input.mp4 -vframes 1 -q:v 3 hero-poster.jpg   # lalu convert ke webp
 ```
-Bila `hero.webm` ada, LandingHero otomatis prefer video (lihat komponen); jika tidak, fallback ke `hero-dune.webp` + Aurora.
+Bila `hero.webm` ada, LandingHero otomatis prefer video (lihat komponen); jika tidak, fallback ke `hero-aurora.webp` + Aurora.
 
 ## Logo (public/logos/, brand-colored SVG dari Simple Icons)
 react, vite, typescript, javascript, solidity, prisma, express, ethereum, tailwindcss,
