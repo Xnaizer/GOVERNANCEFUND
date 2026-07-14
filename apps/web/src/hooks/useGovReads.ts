@@ -1,7 +1,6 @@
 import { useReadContract } from "wagmi";
 import { governanceContract, CHAIN_ID } from "../config/contracts";
 
-/** Ambang BFT: ⌊2N/3⌋ + 1. */
 export function bftThreshold(n: number): number {
   return Math.floor((2 * n) / 3) + 1;
 }
@@ -12,43 +11,50 @@ function num(v: unknown): number {
   return typeof v === "bigint" ? Number(v) : Number(v ?? 0);
 }
 
-/** Total validator aktif on-chain + ambang BFT-nya. */
 export function useValidatorThreshold() {
-  const { data } = useReadContract({ ...base, functionName: "totalValidatorsCount" });
+  const { data } = useReadContract({
+    ...base,
+    functionName: "totalValidatorsCount",
+  });
   const total = num(data);
   return { total, threshold: total > 0 ? bftThreshold(total) : 0 };
 }
 
-/** Total admin aktif on-chain + ambang BFT-nya. */
 export function useAdminThreshold() {
-  const { data } = useReadContract({ ...base, functionName: "totalAdminsCount" });
+  const { data } = useReadContract({
+    ...base,
+    functionName: "totalAdminsCount",
+  });
   const total = num(data);
   return { total, threshold: total > 0 ? bftThreshold(total) : 0 };
 }
 
-/** Jumlah suara approve untuk sebuah proposal program (mapping proposalVotes). */
 export function useProposalVoteCount(programId: number) {
   const { data } = useReadContract({
-    ...base, functionName: "proposalVotes", args: [BigInt(programId)],
+    ...base,
+    functionName: "proposalVotes",
+    args: [BigInt(programId)],
     query: { enabled: programId > 0 },
   });
   return num(data);
 }
 
-/** Jumlah suara sebuah role vote (struct roleVotes → voteCount di index 2). */
 export function useRoleVoteCount(voteId: number) {
   const { data } = useReadContract({
-    ...base, functionName: "roleVotes", args: [BigInt(voteId)],
+    ...base,
+    functionName: "roleVotes",
+    args: [BigInt(voteId)],
     query: { enabled: voteId >= 0 },
   });
   const tuple = data as readonly unknown[] | undefined;
   return tuple ? num(tuple[2]) : 0;
 }
 
-/** Suara banding unfreeze on-chain (struct unfreezeAppeals → approveVotes, rejectVotes). */
 export function useUnfreezeAppealVotes(programId: number) {
   const { data } = useReadContract({
-    ...base, functionName: "unfreezeAppeals", args: [BigInt(programId)],
+    ...base,
+    functionName: "unfreezeAppeals",
+    args: [BigInt(programId)],
     query: { enabled: programId > 0 },
   });
   const tuple = data as readonly unknown[] | undefined;

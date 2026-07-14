@@ -10,7 +10,7 @@ export async function getWalletNonce() {
   const res = await api.get<Envelope<{ nonce: string; message: string }>>(
     "/users/wallet/nonce",
   );
-  
+
   return res.data.data;
 }
 

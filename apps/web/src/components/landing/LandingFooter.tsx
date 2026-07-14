@@ -2,7 +2,10 @@ import { type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { Mail } from "lucide-react";
 
-const COLUMNS: { title: string; links: { label: string; to: string; external?: boolean }[] }[] = [
+const COLUMNS: {
+  title: string;
+  links: { label: string; to: string; external?: boolean }[];
+}[] = [
   {
     title: "Jelajahi",
     links: [
@@ -27,7 +30,11 @@ const COLUMNS: { title: string; links: { label: string; to: string; external?: b
     title: "Sumber",
     links: [
       { label: "Dokumentasi", to: "/" },
-      { label: "Smart contract", to: "https://sepolia.basescan.org", external: true },
+      {
+        label: "Smart contract",
+        to: "https://sepolia.basescan.org",
+        external: true,
+      },
       { label: "Whitepaper", to: "/" },
       { label: "FAQ", to: "/" },
     ],
@@ -41,9 +48,12 @@ const COLUMNS: { title: string; links: { label: string; to: string; external?: b
   },
 ];
 
-// Ikon brand via mask SVG (lucide menghapus ikon brand); email pakai lucide.
 const SOCIALS = [
-  { logo: "github", href: "https://github.com/Xnaizer/GOVERNANCEFUND", label: "GitHub" },
+  {
+    logo: "github",
+    href: "https://github.com/Xnaizer/GOVERNANCEFUND",
+    label: "GitHub",
+  },
   { logo: "x", href: "https://twitter.com", label: "Twitter / X" },
   { logo: "linkedin", href: "https://linkedin.com", label: "LinkedIn" },
 ];
@@ -64,26 +74,34 @@ function iconMask(src: string): CSSProperties {
 
 export function LandingFooter() {
   return (
-    <footer data-nav-theme="dark" className="bg-background px-4 pb-6 pt-2 sm:px-6 sm:pb-10">
+    <footer
+      data-nav-theme="dark"
+      className="bg-background px-4 pb-6 pt-2 sm:px-6 sm:pb-10"
+    >
       <div className="relative mx-auto w-[95%] max-w-none overflow-hidden rounded-4xl bg-[#080a0f] px-6 py-16 text-white sm:rounded-[2.5rem] sm:px-12 sm:py-20 lg:px-16">
-        {/* Aurora warna-warni (hangat → dingin) — pita gradien mulus yang memudar ke hitam */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-56 overflow-hidden"
+        >
           <div
             className="absolute -inset-x-8 -top-16 h-48 opacity-55 blur-xl"
-            style={{ background: "linear-gradient(100deg, #f97316, #e0559e, #8b5cf6, #4899ea, #67f3ce)" }}
+            style={{
+              background:
+                "linear-gradient(100deg, #f97316, #e0559e, #8b5cf6, #4899ea, #67f3ce)",
+            }}
           />
-          {/* memudar ke warna footer agar tak ada tepi belang */}
           <div className="absolute inset-0 bg-linear-to-b from-transparent via-[#080a0f]/60 to-[#080a0f]" />
         </div>
 
-        {/* CTA akhir */}
         <div className="relative flex flex-col items-start justify-between gap-8 border-b border-white/10 pb-14 lg:flex-row lg:items-end">
           <div className="max-w-xl">
             <h2 className="font-display text-2xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
-              Dana publik yang <span className="text-gradient">tak bisa dicurangi.</span>
+              Dana publik yang{" "}
+              <span className="text-gradient">tak bisa dicurangi.</span>
             </h2>
             <p className="mt-4 text-pretty text-sm text-white/60 sm:text-base">
-              Mulai kelola atau awasi anggaran dengan bukti kriptografis di setiap langkah.
+              Mulai kelola atau awasi anggaran dengan bukti kriptografis di
+              setiap langkah.
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-3">
@@ -102,18 +120,19 @@ export function LandingFooter() {
           </div>
         </div>
 
-        {/* Kolom link */}
         <div className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-6">
-          {/* Wordmark + sosial */}
           <div className="lg:col-span-2">
             <Link to="/" className="flex flex-col leading-[0.95]">
-              <span className="font-display text-base font-bold tracking-[0.2em]">GOVERNANCE</span>
+              <span className="font-display text-base font-bold tracking-[0.2em]">
+                GOVERNANCE
+              </span>
               <span className="bg-linear-to-r from-brand-mint to-brand-blue bg-clip-text font-display text-base font-bold tracking-[0.36em] text-transparent">
                 FUND
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-sm text-white/55">
-              Sistem tata kelola dana publik hibrida Web2 + Web3 yang membuat kecurangan mekanis mustahil.
+              Sistem tata kelola dana publik hibrida Web2 + Web3 yang membuat
+              kecurangan mekanis mustahil.
             </p>
             <div className="mt-6 flex items-center gap-3">
               {SOCIALS.map((s) => (
@@ -125,7 +144,11 @@ export function LandingFooter() {
                   aria-label={s.label}
                   className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/70 transition-colors hover:border-white/25 hover:text-white"
                 >
-                  <span aria-hidden className="h-4 w-4" style={iconMask(`/logos/${s.logo}.svg`)} />
+                  <span
+                    aria-hidden
+                    className="h-4 w-4"
+                    style={iconMask(`/logos/${s.logo}.svg`)}
+                  />
                 </a>
               ))}
               <a
@@ -140,16 +163,26 @@ export function LandingFooter() {
 
           {COLUMNS.map((col) => (
             <div key={col.title}>
-              <h3 className="font-display text-sm font-semibold tracking-tight text-white/90">{col.title}</h3>
+              <h3 className="font-display text-sm font-semibold tracking-tight text-white/90">
+                {col.title}
+              </h3>
               <ul className="mt-4 space-y-3">
                 {col.links.map((l) => (
                   <li key={l.label}>
                     {l.external ? (
-                      <a href={l.to} target="_blank" rel="noreferrer" className="text-sm text-white/55 transition-colors hover:text-white">
+                      <a
+                        href={l.to}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-white/55 transition-colors hover:text-white"
+                      >
                         {l.label}
                       </a>
                     ) : (
-                      <Link to={l.to} className="text-sm text-white/55 transition-colors hover:text-white">
+                      <Link
+                        to={l.to}
+                        className="text-sm text-white/55 transition-colors hover:text-white"
+                      >
                         {l.label}
                       </Link>
                     )}
@@ -160,12 +193,18 @@ export function LandingFooter() {
           ))}
         </div>
 
-        {/* Bar bawah */}
         <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-sm text-white/45 sm:flex-row">
-          <p>© {new Date().getFullYear()} GovernanceFund — proyek akademik. Base Sepolia testnet.</p>
+          <p>
+            © {new Date().getFullYear()} GovernanceFund — proyek akademik. Base
+            Sepolia testnet.
+          </p>
           <div className="flex items-center gap-6">
-            <Link to="/" className="transition-colors hover:text-white">Kebijakan Privasi</Link>
-            <Link to="/" className="transition-colors hover:text-white">Ketentuan</Link>
+            <Link to="/" className="transition-colors hover:text-white">
+              Kebijakan Privasi
+            </Link>
+            <Link to="/" className="transition-colors hover:text-white">
+              Ketentuan
+            </Link>
           </div>
         </div>
       </div>

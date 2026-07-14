@@ -5,20 +5,17 @@ import { cn } from "@/utils/cn";
 const DEV_EMAIL = "governancefund.business@gmail.com";
 const GITHUB_REPO = "https://github.com/Xnaizer/GOVERNANCEFUND";
 
-/**
- * Widget bantuan mengambang di kanan-bawah dashboard. Klik → kartu kontak
- * Departemen Developer (email + GitHub).
- */
 export function SupportWidget() {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3">
-      {/* Kartu kontak */}
       <div
         className={cn(
           "w-72 origin-bottom-right overflow-hidden rounded-2xl border border-black/5 bg-background shadow-xl transition-all duration-200",
-          open ? "pointer-events-auto scale-100 opacity-100" : "pointer-events-none scale-90 opacity-0",
+          open
+            ? "pointer-events-auto scale-100 opacity-100"
+            : "pointer-events-none scale-90 opacity-0",
         )}
       >
         <div className="relative overflow-hidden bg-[#0b1220] p-5 text-white">
@@ -26,7 +23,9 @@ export function SupportWidget() {
           <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
             <MessageCircleQuestion className="h-5 w-5" />
           </span>
-          <p className="relative mt-3 font-display text-base font-semibold tracking-tight">Ada masalah?</p>
+          <p className="relative mt-3 font-display text-base font-semibold tracking-tight">
+            Ada masalah?
+          </p>
           <p className="relative mt-1 text-xs text-white/60">
             Hubungi Departemen Developer — kami bantu secepatnya.
           </p>
@@ -41,7 +40,9 @@ export function SupportWidget() {
             </span>
             <span className="min-w-0">
               <span className="block font-medium">Email developer</span>
-              <span className="block truncate text-xs text-muted-foreground">{DEV_EMAIL}</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                {DEV_EMAIL}
+              </span>
             </span>
           </a>
           <a
@@ -55,13 +56,14 @@ export function SupportWidget() {
             </span>
             <span className="min-w-0">
               <span className="block font-medium">Lapor lewat GitHub</span>
-              <span className="block truncate text-xs text-muted-foreground">Buka issue di repo</span>
+              <span className="block truncate text-xs text-muted-foreground">
+                Buka issue di repo
+              </span>
             </span>
           </a>
         </div>
       </div>
 
-      {/* Tombol toggle */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

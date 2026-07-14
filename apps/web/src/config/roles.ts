@@ -1,6 +1,10 @@
 import { keccak256, toBytes } from "viem";
 
-export type GovRole = "ADMIN_ROLE" | "VALIDATOR_ROLE" | "AUDITOR_ROLE" | "PIC_ROLE";
+export type GovRole =
+  | "ADMIN_ROLE"
+  | "VALIDATOR_ROLE"
+  | "AUDITOR_ROLE"
+  | "PIC_ROLE";
 
 export function roleHash(name: GovRole): `0x${string}` {
   return keccak256(toBytes(name));

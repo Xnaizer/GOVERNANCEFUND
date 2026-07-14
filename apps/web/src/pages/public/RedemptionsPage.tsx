@@ -19,8 +19,10 @@ import { formatIDR, formatDate } from "../../utils/format";
 import type { RedemptionStatus } from "../../types/redemption";
 
 const FILTERS = [
-  { key: "ALL", label: "Semua" }, { key: "PENDING", label: "Menunggu" },
-  { key: "SETTLED", label: "Cair" }, { key: "CANCELLED", label: "Dibatalkan" },
+  { key: "ALL", label: "Semua" },
+  { key: "PENDING", label: "Menunggu" },
+  { key: "SETTLED", label: "Cair" },
+  { key: "CANCELLED", label: "Dibatalkan" },
 ] as const;
 
 export function RedemptionsPage() {
@@ -29,18 +31,28 @@ export function RedemptionsPage() {
   const [search, setSearch] = useState("");
   const debounced = useDebouncedValue(search);
 
-  const q = useRedemptions(filter === "ALL" ? undefined : (filter as RedemptionStatus), page, 12);
+  const q = useRedemptions(
+    filter === "ALL" ? undefined : (filter as RedemptionStatus),
+    page,
+    12,
+  );
   const statsQ = useRedemptionStats();
   const rows = q.data?.rows ?? [];
   const totalPages = q.data?.pagination?.totalPages ?? 1;
 
-  // Status difilter server; pencarian teks client atas halaman aktif.
   const filtered = useMemo(() => {
     const s = debounced.trim().toLowerCase();
     return rows.filter((r) => {
       if (!s) return true;
-      const hay = [r.picWallet, r.pic?.name, r.pic?.username, String(r.redemptionId)]
-        .filter(Boolean).join(" ").toLowerCase();
+      const hay = [
+        r.picWallet,
+        r.pic?.name,
+        r.pic?.username,
+        String(r.redemptionId),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
       return hay.includes(s);
     });
   }, [rows, debounced]);
@@ -50,11 +62,43 @@ export function RedemptionsPage() {
 
   type RedemptionRow = (typeof rows)[number];
   const columns: ColumnDef<RedemptionRow, unknown>[] = [
-    { id: "id", header: "ID", cell: ({ row }) => <span className="font-mono text-muted-foreground">#{row.original.redemptionId}</span> },
-    { id: "pic", header: "PIC", cell: ({ row }) => <UserCell user={row.original.pic} wallet={row.original.picWallet} /> },
-    { id: "jumlah", header: "JUMLAH", cell: ({ row }) => <span className="font-mono">{formatIDR(row.original.amount)}</span> },
-    { id: "status", header: "STATUS", cell: ({ row }) => <RedemptionStatusChip status={row.original.status} /> },
-    { id: "diajukan", header: "DIAJUKAN", cell: ({ row }) => <span className="whitespace-nowrap text-xs text-muted-foreground">{formatDate(row.original.requestedAt)}</span> },
+    {
+      id: "id",
+      header: "ID",
+      cell: ({ row }) => (
+        <span className="font-mono text-muted-foreground">
+          #{row.original.redemptionId}
+        </span>
+      ),
+    },
+    {
+      id: "pic",
+      header: "PIC",
+      cell: ({ row }) => (
+        <UserCell user={row.original.pic} wallet={row.original.picWallet} />
+      ),
+    },
+    {
+      id: "jumlah",
+      header: "JUMLAH",
+      cell: ({ row }) => (
+        <span className="font-mono">{formatIDR(row.original.amount)}</span>
+      ),
+    },
+    {
+      id: "status",
+      header: "STATUS",
+      cell: ({ row }) => <RedemptionStatusChip status={row.original.status} />,
+    },
+    {
+      id: "diajukan",
+      header: "DIAJUKAN",
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap text-xs text-muted-foreground">
+          {formatDate(row.original.requestedAt)}
+        </span>
+      ),
+    },
   ];
 
   return (
@@ -69,8 +113,23 @@ export function RedemptionsPage() {
       {stats && <RedemptionStatsCards stats={stats} />}
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <FilterTabs items={FILTERS as unknown as { key: string; label: string }[]} value={filter} onChange={(k) => { setFilter(k); setPage(1); }} />
-        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Cari PIC / wallet / #ID…" className="sm:ml-auto sm:max-w-xs" />
+        <FilterTabs
+          items={FILTERS as unknown as { key: string; label: string }[]}
+          value={filter}
+          onChange={(k) => {
+            setFilter(k);
+            setPage(1);
+          }}
+        />
+        <SearchInput
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+          placeholder="Cari PIC / wallet / #ID…"
+          className="sm:ml-auto sm:max-w-xs"
+        />
       </div>
 
       <QueryState

@@ -7,11 +7,6 @@ import { cn } from "@/utils/cn";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-/**
- * Pin section lalu geser track horizontal seiring scroll vertikal (scrub).
- * `onProgress` mengabari progres 0→1. `seekRef` diisi fungsi untuk melompat
- * ke fraksi progres tertentu (dipakai navigasi tab bawah).
- */
 export function HorizontalPin({
   children,
   className,
@@ -24,9 +19,7 @@ export function HorizontalPin({
   className?: string;
   trackClassName?: string;
   onProgress?: (p: number) => void;
-  /** Layer yang TIDAK ikut bergeser (mis. navigasi tab) — absolute inset-0 di dalam container. */
   overlay?: ReactNode;
-  /** Ref yang diisi fungsi seek(fraction 0→1) → smooth-scroll ke posisi itu. */
   seekRef?: MutableRefObject<((f: number) => void) | null>;
 }) {
   const container = useRef<HTMLDivElement>(null);
@@ -59,7 +52,8 @@ export function HorizontalPin({
         seekRef.current = (f) => {
           const frac = Math.max(0, Math.min(1, f));
           const target = st.start + frac * (st.end - st.start);
-          if (lenisRef.current) lenisRef.current.scrollTo(target, { duration: 0.9 });
+          if (lenisRef.current)
+            lenisRef.current.scrollTo(target, { duration: 0.9 });
           else window.scrollTo({ top: target, behavior: "smooth" });
         };
       }
@@ -72,7 +66,9 @@ export function HorizontalPin({
       <div ref={track} className={cn("flex", trackClassName)}>
         {children}
       </div>
-      {overlay && <div className="pointer-events-none absolute inset-0">{overlay}</div>}
+      {overlay && (
+        <div className="pointer-events-none absolute inset-0">{overlay}</div>
+      )}
     </div>
   );
 }

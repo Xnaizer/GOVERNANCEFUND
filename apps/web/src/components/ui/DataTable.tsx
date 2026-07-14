@@ -1,10 +1,21 @@
 import { useState } from "react";
 import {
-  flexRender, getCoreRowModel, getSortedRowModel, useReactTable,
-  type ColumnDef, type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type SortingState,
 } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import { cn } from "@/utils/cn";
 
 interface Props<T> {
@@ -15,8 +26,13 @@ interface Props<T> {
   emptyText?: string;
 }
 
-/** Tabel generik berbasis TanStack Table + primitives shadcn. Sortir kolom opsional. */
-export function DataTable<T>({ columns, data, onRowClick, minWidth, emptyText = "Tidak ada data." }: Props<T>) {
+export function DataTable<T>({
+  columns,
+  data,
+  onRowClick,
+  minWidth,
+  emptyText = "Tidak ada data.",
+}: Props<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     data,
@@ -32,7 +48,10 @@ export function DataTable<T>({ columns, data, onRowClick, minWidth, emptyText = 
       <Table style={minWidth ? { minWidth } : undefined}>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id} className="border-black/5 bg-muted/40 hover:bg-muted/40">
+            <TableRow
+              key={hg.id}
+              className="border-black/5 bg-muted/40 hover:bg-muted/40"
+            >
               {hg.headers.map((h) => {
                 const canSort = h.column.getCanSort();
                 return (
@@ -61,7 +80,10 @@ export function DataTable<T>({ columns, data, onRowClick, minWidth, emptyText = 
         <TableBody>
           {table.getRowModel().rows.length === 0 ? (
             <TableRow className="border-black/5 hover:bg-transparent">
-              <TableCell colSpan={columns.length} className="py-12 text-center text-muted-foreground">
+              <TableCell
+                colSpan={columns.length}
+                className="py-12 text-center text-muted-foreground"
+              >
                 {emptyText}
               </TableCell>
             </TableRow>

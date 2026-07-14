@@ -25,7 +25,11 @@ export function ResetPasswordPage() {
 
   const onSubmit = handleSubmit(async ({ newPassword }) => {
     try {
-      await mutateAsync({ token, newPassword, turnstileToken: turnstile.token });
+      await mutateAsync({
+        token,
+        newPassword,
+        turnstileToken: turnstile.token,
+      });
       toast.success("Password berhasil diperbarui. Silakan masuk.");
       navigate("/login");
     } catch (e) {
@@ -40,10 +44,24 @@ export function ResetPasswordPage() {
       subtitle="Buat password baru untuk akun Anda."
       icon={<LockKeyhole className="h-7 w-7" strokeWidth={2.2} />}
       greeting={{
-        title: <>Amankan kembali <span className="text-gradient">akun Anda.</span></>,
+        title: (
+          <>
+            Amankan kembali <span className="text-gradient">akun Anda.</span>
+          </>
+        ),
         text: "Masukkan password baru minimal 8 karakter, lalu konfirmasi.",
       }}
-      footer={<>Sudah ingat? <Link to="/login" className="font-medium text-brand-blue hover:underline">Masuk</Link></>}
+      footer={
+        <>
+          Sudah ingat?{" "}
+          <Link
+            to="/login"
+            className="font-medium text-brand-blue hover:underline"
+          >
+            Masuk
+          </Link>
+        </>
+      }
     >
       {!token ? (
         <div className="flex flex-col items-center gap-4 text-center">
@@ -51,9 +69,12 @@ export function ResetPasswordPage() {
             <TriangleAlert className="h-7 w-7" />
           </span>
           <div>
-            <p className="font-display text-lg font-semibold tracking-tight">Tautan tidak valid</p>
+            <p className="font-display text-lg font-semibold tracking-tight">
+              Tautan tidak valid
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Token reset tidak ditemukan atau sudah kedaluwarsa. Silakan minta tautan baru.
+              Token reset tidak ditemukan atau sudah kedaluwarsa. Silakan minta
+              tautan baru.
             </p>
           </div>
           <Button asChild variant="secondary" className="w-full">
@@ -62,8 +83,22 @@ export function ResetPasswordPage() {
         </div>
       ) : (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <FormInput control={control} name="newPassword" label="Password Baru" type="password" isRequired autoComplete="new-password" />
-          <FormInput control={control} name="confirm" label="Konfirmasi Password" type="password" isRequired autoComplete="new-password" />
+          <FormInput
+            control={control}
+            name="newPassword"
+            label="Password Baru"
+            type="password"
+            isRequired
+            autoComplete="new-password"
+          />
+          <FormInput
+            control={control}
+            name="confirm"
+            label="Konfirmasi Password"
+            type="password"
+            isRequired
+            autoComplete="new-password"
+          />
           {turnstile.widget}
           <Button
             type="submit"

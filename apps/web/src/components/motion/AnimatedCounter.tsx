@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { animate, useInView } from "framer-motion";
 import { useReducedMotionSafe } from "../../hooks/useReducedMotionSafe";
 
-/** Angka yang menghitung naik dari 0 saat masuk viewport. */
 export function AnimatedCounter({
   value,
   className,
@@ -33,7 +32,9 @@ export function AnimatedCounter({
 
   return (
     <span ref={ref} className={className}>
-      {prefix}{display.toLocaleString("id-ID")}{suffix}
+      {prefix}
+      {display.toLocaleString("id-ID")}
+      {suffix}
     </span>
   );
 }

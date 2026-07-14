@@ -1,19 +1,27 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { cn } from "@/utils/cn";
 
-/**
- * Tombol wallet bertema selaras app (rounded-lg + brand), dibungkus dari RainbowKit
- * `ConnectButton.Custom` supaya tampilannya konsisten dengan tombol lain.
- */
 export function WalletButton() {
   return (
     <ConnectButton.Custom>
-      {({ account, chain, openAccountModal, openChainModal, openConnectModal, mounted }) => {
+      {({
+        account,
+        chain,
+        openAccountModal,
+        openChainModal,
+        openConnectModal,
+        mounted,
+      }) => {
         const ready = mounted;
         const connected = ready && account && chain;
 
         return (
-          <div aria-hidden={!ready} className={cn(!ready && "pointer-events-none select-none opacity-0")}>
+          <div
+            aria-hidden={!ready}
+            className={cn(
+              !ready && "pointer-events-none select-none opacity-0",
+            )}
+          >
             {(() => {
               if (!connected) {
                 return (
@@ -47,7 +55,11 @@ export function WalletButton() {
                     className="hidden items-center gap-1.5 rounded-lg border border-black/10 px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted sm:flex"
                   >
                     {chain.hasIcon && chain.iconUrl && (
-                      <img src={chain.iconUrl} alt={chain.name ?? "chain"} className="h-4 w-4 rounded-full" />
+                      <img
+                        src={chain.iconUrl}
+                        alt={chain.name ?? "chain"}
+                        className="h-4 w-4 rounded-full"
+                      />
                     )}
                     <span className="max-w-24 truncate">{chain.name}</span>
                   </button>

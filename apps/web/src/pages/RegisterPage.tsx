@@ -39,18 +39,61 @@ export function RegisterPage() {
       title="Buat Akun"
       subtitle="Mulai mengelola atau mengawal dana publik."
       icon={<UserPlus className="h-7 w-7" strokeWidth={2.2} />}
-      greeting={{ title: <>Selamat datang di <span className="text-gradient">GovernanceFund.</span></>, text: "Buat akun dan mulai mengawasi setiap rupiah anggaran." }}
-      footer={<>Sudah punya akun? <Link to="/login" className="font-medium text-brand-blue hover:underline">Masuk</Link></>}
+      greeting={{
+        title: (
+          <>
+            Selamat datang di{" "}
+            <span className="text-gradient">GovernanceFund.</span>
+          </>
+        ),
+        text: "Buat akun dan mulai mengawasi setiap rupiah anggaran.",
+      }}
+      footer={
+        <>
+          Sudah punya akun?{" "}
+          <Link
+            to="/login"
+            className="font-medium text-brand-blue hover:underline"
+          >
+            Masuk
+          </Link>
+        </>
+      }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <FormInput control={control} name="username" label="Username" isRequired autoComplete="username" />
-        <FormInput control={control} name="email" label="Email" type="email" isRequired autoComplete="email" />
+        <FormInput
+          control={control}
+          name="username"
+          label="Username"
+          isRequired
+          autoComplete="username"
+        />
+        <FormInput
+          control={control}
+          name="email"
+          label="Email"
+          type="email"
+          isRequired
+          autoComplete="email"
+        />
         <div className="flex flex-col gap-2">
-          <FormInput control={control} name="password" label="Password" type="password" isRequired autoComplete="new-password" />
+          <FormInput
+            control={control}
+            name="password"
+            label="Password"
+            type="password"
+            isRequired
+            autoComplete="new-password"
+          />
           <PasswordStrength value={password} />
         </div>
         {turnstile.widget}
-        <Button type="submit" size="lg" className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95" disabled={isPending || !turnstile.ready}>
+        <Button
+          type="submit"
+          size="lg"
+          className="mt-2 w-full bg-linear-to-r from-brand-mint to-brand-blue font-medium text-white transition-opacity hover:opacity-95"
+          disabled={isPending || !turnstile.ready}
+        >
           {isPending && <Spinner size={16} className="text-current" />}
           Daftar
         </Button>

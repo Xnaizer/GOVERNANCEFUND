@@ -5,15 +5,31 @@ import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/utils/cn";
 import { ConfirmDialog } from "./ConfirmDialog";
 
-type Color = "primary" | "success" | "warning" | "danger" | "secondary" | "default";
-type ShadcnVariant = "default" | "secondary" | "outline" | "ghost" | "destructive";
+type Color =
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "secondary"
+  | "default";
+type ShadcnVariant =
+  | "default"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "destructive";
 
-// API triggerProps dipertahankan (bentuk HeroUI-ish) lalu diterjemahkan ke shadcn Button —
-// supaya halaman pemanggil tak perlu diubah.
 type ButtonTriggerProps = {
   size?: "sm" | "md" | "lg";
   color?: Color;
-  variant?: "solid" | "faded" | "bordered" | "light" | "flat" | "ghost" | "shadow";
+  variant?:
+    | "solid"
+    | "faded"
+    | "bordered"
+    | "light"
+    | "flat"
+    | "ghost"
+    | "shadow";
   className?: string;
   isLoading?: boolean;
   isDisabled?: boolean;
@@ -24,27 +40,38 @@ type ButtonTriggerProps = {
   "aria-label"?: string;
 };
 
-function translate(color: Color = "primary", variant?: ButtonTriggerProps["variant"]): { variant: ShadcnVariant; extra: string } {
+function translate(
+  color: Color = "primary",
+  variant?: ButtonTriggerProps["variant"],
+): { variant: ShadcnVariant; extra: string } {
   let v: ShadcnVariant;
   if (variant === "light") v = "ghost";
   else if (variant === "bordered" || variant === "ghost") v = "outline";
   else if (variant === "flat" || variant === "faded") v = "secondary";
-  else v = "default"; // solid / shadow / undefined
+  else v = "default"; 
 
   let extra = "";
   if (color === "danger") {
     if (v === "default") v = "destructive";
     else extra = "text-destructive";
   } else if (color === "success") {
-    extra = v === "default" ? "bg-emerald-600 text-white hover:bg-emerald-600/90" : "text-emerald-600";
+    extra =
+      v === "default"
+        ? "bg-emerald-600 text-white hover:bg-emerald-600/90"
+        : "text-emerald-600";
   } else if (color === "secondary" && v === "default") {
     v = "secondary";
   }
   return { variant: v, extra };
 }
 
-const SIZE: Record<NonNullable<ButtonTriggerProps["size"]>, "sm" | "default" | "lg"> = {
-  sm: "sm", md: "default", lg: "lg",
+const SIZE: Record<
+  NonNullable<ButtonTriggerProps["size"]>,
+  "sm" | "default" | "lg"
+> = {
+  sm: "sm",
+  md: "default",
+  lg: "lg",
 };
 
 interface Props {
@@ -61,13 +88,18 @@ interface Props {
   toasts?: { loading?: string; success?: string };
 }
 
-/**
- * Tombol + ConfirmDialog terintegrasi: klik → dialog peringatan → centang setuju → jalankan aksi
- * (dibungkus toast.promise). Dialog tertutup otomatis saat sukses, tetap terbuka bila gagal.
- */
 export function ConfirmButton({
-  triggerLabel, triggerProps, title, warnings, confirmLabel, confirmColor = "primary",
-  checkboxLabel, dialogChildren, confirmDisabled, action, toasts,
+  triggerLabel,
+  triggerProps,
+  title,
+  warnings,
+  confirmLabel,
+  confirmColor = "primary",
+  checkboxLabel,
+  dialogChildren,
+  confirmDisabled,
+  action,
+  toasts,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -76,7 +108,6 @@ export function ConfirmButton({
 
   const confirm = async () => {
     setBusy(true);
-    // action() dijalankan SEKALI; promise yang sama dipakai untuk toast & alur kontrol.
     const p = Promise.resolve(action());
     toast.promise(p, {
       loading: toasts?.loading ?? "Memproses…",
@@ -87,7 +118,7 @@ export function ConfirmButton({
       await p;
       setOpen(false);
     } catch {
-      /* toast sudah menampilkan error; dialog dibiarkan terbuka */
+      
     } finally {
       setBusy(false);
     }

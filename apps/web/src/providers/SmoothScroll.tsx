@@ -5,7 +5,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/** Menyambungkan Lenis (smooth scroll) dgn GSAP ticker + ScrollTrigger.update. */
 function LenisGsapBridge() {
   const lenis = useLenis();
   useEffect(() => {
@@ -23,14 +22,13 @@ function LenisGsapBridge() {
   return null;
 }
 
-/**
- * Smooth scroll (Lenis) — HANYA membungkus Landing. Karena mount cuma di route "/",
- * ia unmount saat pindah ke dashboard → dashboard tetap native scroll.
- * `autoRaf={false}`: RAF di-drive via gsap.ticker agar sinkron dgn ScrollTrigger (tak double-step).
- */
 export function SmoothScroll({ children }: { children: ReactNode }) {
   return (
-    <ReactLenis root autoRaf={false} options={{ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1 }}>
+    <ReactLenis
+      root
+      autoRaf={false}
+      options={{ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1 }}
+    >
       <LenisGsapBridge />
       {children}
     </ReactLenis>

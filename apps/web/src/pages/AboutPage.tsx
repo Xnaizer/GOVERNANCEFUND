@@ -26,7 +26,6 @@ const GITHUB_PROFILE = "https://github.com/Xnaizer";
 const EXPLORER = "https://sepolia.basescan.org";
 const addressUrl = (addr: string) => `${EXPLORER}/address/${addr}`;
 
-// Kebijakan & ketentuan singkat — mencerminkan prinsip inti sistem.
 const POLICIES = [
   {
     icon: Eye,
@@ -54,7 +53,6 @@ const POLICIES = [
   },
 ];
 
-// Diambil dari @repo/shared (sumber kebenaran alamat yang dipakai app).
 const CONTRACTS = [
   {
     label: "GovernanceFund",
@@ -86,7 +84,6 @@ function short(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-// lucide (fork ini) menghapus ikon brand → GitHub via CSS mask dari /logos/github.svg.
 const ghMask: CSSProperties = {
   backgroundColor: "currentColor",
   WebkitMaskImage: "url(/logos/github.svg)",
@@ -106,29 +103,38 @@ function ContractRow({ c }: { c: (typeof CONTRACTS)[number] }) {
       await navigator.clipboard.writeText(c.address);
       setCopied(true);
       setTimeout(() => setCopied(false), 1400);
-    } catch {
-      /* clipboard tak tersedia — abaikan */
-    }
+    } catch {}
   };
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/4 p-5 transition-colors hover:border-white/20 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3">
-        <FileCode2 className="mt-0.5 h-5 w-5 shrink-0" style={{ color: c.color }} />
+        <FileCode2
+          className="mt-0.5 h-5 w-5 shrink-0"
+          style={{ color: c.color }}
+        />
         <div>
-          <p className="font-display text-sm font-semibold tracking-tight text-white">{c.label}</p>
+          <p className="font-display text-sm font-semibold tracking-tight text-white">
+            {c.label}
+          </p>
           <p className="mt-0.5 text-xs text-white/55">{c.sub}</p>
         </div>
       </div>
       <div className="flex items-center gap-2 pl-12 sm:pl-0">
-        <code className="font-mono text-xs text-white/70">{short(c.address)}</code>
+        <code className="font-mono text-xs text-white/70">
+          {short(c.address)}
+        </code>
         <button
           type="button"
           onClick={copy}
           aria-label={`Salin alamat ${c.label}`}
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/60 transition-colors hover:border-white/25 hover:text-white"
         >
-          {copied ? <Check className="h-3.5 w-3.5 text-brand-mint" /> : <Copy className="h-3.5 w-3.5" />}
+          {copied ? (
+            <Check className="h-3.5 w-3.5 text-brand-mint" />
+          ) : (
+            <Copy className="h-3.5 w-3.5" />
+          )}
         </button>
         <a
           href={addressUrl(c.address)}
@@ -171,7 +177,15 @@ const FAQS = [
   },
 ];
 
-function FaqRow({ item, open, onToggle }: { item: (typeof FAQS)[number]; open: boolean; onToggle: () => void }) {
+function FaqRow({
+  item,
+  open,
+  onToggle,
+}: {
+  item: (typeof FAQS)[number];
+  open: boolean;
+  onToggle: () => void;
+}) {
   return (
     <div className="border-b border-black/5 last:border-0">
       <button
@@ -180,11 +194,25 @@ function FaqRow({ item, open, onToggle }: { item: (typeof FAQS)[number]; open: b
         className="flex w-full items-center gap-3 py-5 text-left"
         aria-expanded={open}
       >
-        <span className="font-display text-base font-semibold tracking-tight sm:text-lg">{item.q}</span>
-        <ChevronDown className={cn("ml-auto h-5 w-5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")} />
+        <span className="font-display text-base font-semibold tracking-tight sm:text-lg">
+          {item.q}
+        </span>
+        <ChevronDown
+          className={cn(
+            "ml-auto h-5 w-5 shrink-0 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
+        />
       </button>
-      <div className={cn("grid transition-all duration-300", open ? "grid-rows-[1fr] pb-5" : "grid-rows-[0fr]")}>
-        <p className="overflow-hidden text-pretty text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+      <div
+        className={cn(
+          "grid transition-all duration-300",
+          open ? "grid-rows-[1fr] pb-5" : "grid-rows-[0fr]",
+        )}
+      >
+        <p className="overflow-hidden text-pretty text-sm leading-relaxed text-muted-foreground">
+          {item.a}
+        </p>
       </div>
     </div>
   );
@@ -198,38 +226,43 @@ export function AboutPage() {
       <LandingNav />
 
       <main>
-        {/* ── Hero ── */}
         <section className="relative overflow-hidden px-6 pb-16 pt-36 sm:pt-40">
           <div className="mx-auto max-w-3xl text-center">
             <Reveal>
-              <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">Tentang</span>
+              <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">
+                Tentang
+              </span>
               <h1 className="mt-4 font-display text-3xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
-                Mengawal dana publik dengan <span className="text-gradient">bukti, bukan kepercayaan.</span>
+                Mengawal dana publik dengan{" "}
+                <span className="text-gradient">bukti, bukan kepercayaan.</span>
               </h1>
             </Reveal>
             <Reveal delay={0.1}>
               <p className="mx-auto mt-5 max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
-                GovernanceFund adalah sistem tata kelola dana institusional hibrida Web2 + Web3 yang membuat
-                penggelapan dan pemalsuan dokumen mustahil secara mekanis — sebelum terjadi, bukan setelah uang lenyap.
+                GovernanceFund adalah sistem tata kelola dana institusional
+                hibrida Web2 + Web3 yang membuat penggelapan dan pemalsuan
+                dokumen mustahil secara mekanis — sebelum terjadi, bukan setelah
+                uang lenyap.
               </p>
             </Reveal>
           </div>
         </section>
 
-        {/* ── Cara kerja governance (singkat) ── */}
         <section className="px-6 pb-8">
           <div className="mx-auto grid max-w-5xl gap-8 rounded-3xl border border-black/5 bg-muted/40 p-8 sm:p-10 lg:grid-cols-2 lg:gap-12">
             <Reveal>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-medium text-muted-foreground">
-                <ShieldCheck className="h-3.5 w-3.5 text-brand-blue" /> Model tata kelola
+                <ShieldCheck className="h-3.5 w-3.5 text-brand-blue" /> Model
+                tata kelola
               </span>
               <h2 className="mt-4 font-display text-2xl font-semibold tracking-tight sm:text-3xl">
                 Lima peran, saling mengunci.
               </h2>
               <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Blockchain menjadi sumber kebenaran yang tahan rusak; Web2 menangani hal yang tak perlu on-chain.
-                Wewenang dipisah antara Admin, Validator, Auditor, PIC, dan pengguna — tidak ada satu pihak pun
-                yang dapat memindahkan dana sendirian.
+                Blockchain menjadi sumber kebenaran yang tahan rusak; Web2
+                menangani hal yang tak perlu on-chain. Wewenang dipisah antara
+                Admin, Validator, Auditor, PIC, dan pengguna — tidak ada satu
+                pihak pun yang dapat memindahkan dana sendirian.
               </p>
             </Reveal>
             <Reveal delay={0.08} className="grid grid-cols-2 gap-5 self-center">
@@ -240,7 +273,9 @@ export function AboutPage() {
                 { k: "100%", v: "aksi finansial di on-chain" },
               ].map((s) => (
                 <div key={s.v}>
-                  <p className="font-display text-3xl font-semibold tracking-tight text-brand-blue sm:text-4xl">{s.k}</p>
+                  <p className="font-display text-3xl font-semibold tracking-tight text-brand-blue sm:text-4xl">
+                    {s.k}
+                  </p>
                   <p className="mt-1 text-sm text-muted-foreground">{s.v}</p>
                 </div>
               ))}
@@ -248,11 +283,12 @@ export function AboutPage() {
           </div>
         </section>
 
-        {/* ── Kebijakan & Ketentuan ── */}
         <section className="px-6 py-16 sm:py-20">
           <div className="mx-auto max-w-5xl">
             <Reveal className="max-w-2xl">
-              <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">Kebijakan & ketentuan</span>
+              <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">
+                Kebijakan & ketentuan
+              </span>
               <h2 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-4xl">
                 Aturan main yang dijamin kode.
               </h2>
@@ -261,23 +297,29 @@ export function AboutPage() {
               {POLICIES.map((p, i) => (
                 <Reveal key={p.title} delay={i * 0.05}>
                   <article className="group relative h-full overflow-hidden rounded-3xl p-7 transition-transform duration-300 hover:-translate-y-1">
-                    {/* Glow warna kartu — muncul halus saat hover */}
                     <span
                       aria-hidden
                       className="pointer-events-none absolute -left-14 -top-14 h-40 w-40 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
                       style={{ backgroundColor: `${p.color}33` }}
                     />
-                    {/* Garis aksen atas — alternatif segar pengganti nomor */}
+
                     <span
                       aria-hidden
                       className="relative block h-1 w-10 rounded-full transition-all duration-500 group-hover:w-16"
                       style={{ backgroundColor: p.color }}
                     />
-                    {/* Ikon tanpa background */}
-                    <p.icon className="relative mt-5 h-7 w-7 transition-transform duration-300 group-hover:scale-110" style={{ color: p.color }} />
 
-                    <h3 className="relative mt-4 font-display text-lg font-semibold tracking-tight">{p.title}</h3>
-                    <p className="relative mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">{p.body}</p>
+                    <p.icon
+                      className="relative mt-5 h-7 w-7 transition-transform duration-300 group-hover:scale-110"
+                      style={{ color: p.color }}
+                    />
+
+                    <h3 className="relative mt-4 font-display text-lg font-semibold tracking-tight">
+                      {p.title}
+                    </h3>
+                    <p className="relative mt-2 text-pretty text-sm leading-relaxed text-muted-foreground">
+                      {p.body}
+                    </p>
                   </article>
                 </Reveal>
               ))}
@@ -285,11 +327,18 @@ export function AboutPage() {
           </div>
         </section>
 
-        {/* ── Smart contracts (panel gelap) ── */}
         <section className="px-4 pb-6 sm:px-6">
           <div className="relative mx-auto w-full max-w-6xl overflow-hidden rounded-4xl bg-[#080a0f] px-6 py-16 text-white sm:rounded-[2.5rem] sm:px-10 sm:py-20 lg:px-16">
-            <Glow color="rgba(72,153,234,0.16)" size="55%" className="left-[-8%] top-[6%] h-[34rem] w-[34rem]" />
-            <Glow color="rgba(103,243,206,0.12)" size="55%" className="right-[-8%] bottom-[8%] h-[30rem] w-[30rem]" />
+            <Glow
+              color="rgba(72,153,234,0.16)"
+              size="55%"
+              className="left-[-8%] top-[6%] h-[34rem] w-[34rem]"
+            />
+            <Glow
+              color="rgba(103,243,206,0.12)"
+              size="55%"
+              className="right-[-8%] bottom-[8%] h-[30rem] w-[30rem]"
+            />
 
             <div className="relative max-w-2xl">
               <Reveal>
@@ -300,8 +349,9 @@ export function AboutPage() {
                   Kontrak pintar terbuka untuk diverifikasi.
                 </h2>
                 <p className="mt-4 text-pretty text-sm text-white/60 sm:text-base">
-                  Seluruh kontrak ter-deploy di Base Sepolia (chain ID 84532). Klik untuk memeriksa langsung
-                  di block explorer — alamat, transaksi, dan kode bisa ditelusuri siapa pun.
+                  Seluruh kontrak ter-deploy di Base Sepolia (chain ID 84532).
+                  Klik untuk memeriksa langsung di block explorer — alamat,
+                  transaksi, dan kode bisa ditelusuri siapa pun.
                 </p>
               </Reveal>
             </div>
@@ -316,14 +366,14 @@ export function AboutPage() {
           </div>
         </section>
 
-        {/* ── Pembuat + open source ── */}
         <section className="px-6 py-20 sm:py-24">
           <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-2">
-            {/* Pembuat */}
             <Reveal>
               <div className="flex h-full flex-col justify-between rounded-3xl border border-black/5 bg-white p-8 ">
                 <div>
-                  <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">Pembuat</span>
+                  <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">
+                    Pembuat
+                  </span>
                   <div className="mt-5 flex items-center gap-4">
                     <img
                       src="/media/avatars/xnaizer.jpeg"
@@ -332,13 +382,18 @@ export function AboutPage() {
                       loading="lazy"
                     />
                     <div>
-                      <p className="font-display text-lg font-semibold tracking-tight">xnaizer</p>
-                      <p className="text-sm text-muted-foreground">Pengembang & peneliti</p>
+                      <p className="font-display text-lg font-semibold tracking-tight">
+                        xnaizer
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Pengembang & peneliti
+                      </p>
                     </div>
                   </div>
                   <p className="mt-5 text-pretty text-sm leading-relaxed text-muted-foreground">
-                    Dirancang dan dibangun sebagai proyek akademik untuk membuktikan bahwa transparansi anggaran
-                    publik bisa dijamin secara kriptografis, bukan sekadar dijanjikan.
+                    Dirancang dan dibangun sebagai proyek akademik untuk
+                    membuktikan bahwa transparansi anggaran publik bisa dijamin
+                    secara kriptografis, bukan sekadar dijanjikan.
                   </p>
                 </div>
                 <a
@@ -353,20 +408,22 @@ export function AboutPage() {
               </div>
             </Reveal>
 
-            {/* Open source */}
             <Reveal delay={0.08}>
               <div className="flex h-full flex-col justify-between overflow-hidden rounded-3xl border border-black/5 bg-foreground p-8 text-background shadow-soft">
                 <div>
                   <span className="inline-flex items-center gap-2 text-background/70">
                     <span aria-hidden className="h-5 w-5" style={ghMask} />
-                    <span className="text-xs font-medium uppercase tracking-[0.25em]">Sumber terbuka</span>
+                    <span className="text-xs font-medium uppercase tracking-[0.25em]">
+                      Sumber terbuka
+                    </span>
                   </span>
                   <h3 className="mt-5 font-display text-2xl font-semibold tracking-tight">
                     Dilisensikan MIT.
                   </h3>
                   <p className="mt-3 text-pretty text-sm leading-relaxed text-background/70">
-                    Kode monorepo — kontrak, backend, dan frontend — tersedia terbuka. Bebas dipelajari,
-                    dimodifikasi, dan digunakan ulang sesuai lisensi MIT.
+                    Kode monorepo — kontrak, backend, dan frontend — tersedia
+                    terbuka. Bebas dipelajari, dimodifikasi, dan digunakan ulang
+                    sesuai lisensi MIT.
                   </p>
                 </div>
                 <a
@@ -375,18 +432,23 @@ export function AboutPage() {
                   rel="noreferrer"
                   className="group mt-6 inline-flex w-fit items-center gap-1.5 rounded-xl bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-transform hover:scale-[1.03]"
                 >
-                  <span aria-hidden className="h-4 w-4" style={ghMask} /> Lihat di GitHub
+                  <span aria-hidden className="h-4 w-4" style={ghMask} /> Lihat
+                  di GitHub
                   <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </a>
               </div>
             </Reveal>
           </div>
 
-          {/* CTA jelajah */}
           <Reveal className="mx-auto mt-10 max-w-5xl">
-            <div className={cn("flex flex-col items-center justify-between gap-4 rounded-2xl border border-black/5 bg-muted/40 px-6 py-6 text-center sm:flex-row sm:text-left")}>
+            <div
+              className={cn(
+                "flex flex-col items-center justify-between gap-4 rounded-2xl border border-black/5 bg-muted/40 px-6 py-6 text-center sm:flex-row sm:text-left",
+              )}
+            >
               <p className="text-sm text-muted-foreground">
-                Ingin melihat sistemnya bekerja? Telusuri sirkulasi dana publik secara langsung.
+                Ingin melihat sistemnya bekerja? Telusuri sirkulasi dana publik
+                secara langsung.
               </p>
               <Link
                 to="/programs"
@@ -398,7 +460,6 @@ export function AboutPage() {
           </Reveal>
         </section>
 
-        {/* ── FAQ ── */}
         <section className="px-6 pb-24 pt-4 sm:pb-28">
           <div className="mx-auto max-w-3xl">
             <Reveal className="text-center">

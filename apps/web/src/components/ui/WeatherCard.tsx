@@ -1,11 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  Sun, Cloud, CloudSun, CloudFog, CloudDrizzle, CloudRain, CloudSnow,
-  CloudLightning, Droplets, Wind, type LucideIcon,
+  Sun,
+  Cloud,
+  CloudSun,
+  CloudFog,
+  CloudDrizzle,
+  CloudRain,
+  CloudSnow,
+  CloudLightning,
+  Droplets,
+  Wind,
+  type LucideIcon,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-// Lokasi default (Jakarta). open-meteo gratis & tanpa API key.
 const LAT = -6.2088;
 const LON = 106.8456;
 const CITY = "Jakarta";
@@ -27,17 +35,25 @@ async function fetchWeather(): Promise<CurrentWeather> {
   return json.current as CurrentWeather;
 }
 
-// Peta kode WMO → label + ikon + warna aksen.
-function describe(code: number): { label: string; Icon: LucideIcon; color: string } {
+function describe(code: number): {
+  label: string;
+  Icon: LucideIcon;
+  color: string;
+} {
   if (code === 0) return { label: "Cerah", Icon: Sun, color: "#f59e0b" };
-  if (code <= 2) return { label: "Cerah berawan", Icon: CloudSun, color: "#38BDF8" };
+  if (code <= 2)
+    return { label: "Cerah berawan", Icon: CloudSun, color: "#38BDF8" };
   if (code === 3) return { label: "Berawan", Icon: Cloud, color: "#94a3b8" };
-  if (code <= 48) return { label: "Berkabut", Icon: CloudFog, color: "#94a3b8" };
-  if (code <= 57) return { label: "Gerimis", Icon: CloudDrizzle, color: "#4899EA" };
+  if (code <= 48)
+    return { label: "Berkabut", Icon: CloudFog, color: "#94a3b8" };
+  if (code <= 57)
+    return { label: "Gerimis", Icon: CloudDrizzle, color: "#4899EA" };
   if (code <= 67) return { label: "Hujan", Icon: CloudRain, color: "#4899EA" };
   if (code <= 77) return { label: "Salju", Icon: CloudSnow, color: "#818CF8" };
-  if (code <= 82) return { label: "Hujan lebat", Icon: CloudRain, color: "#2f79d4" };
-  if (code <= 86) return { label: "Salju lebat", Icon: CloudSnow, color: "#818CF8" };
+  if (code <= 82)
+    return { label: "Hujan lebat", Icon: CloudRain, color: "#2f79d4" };
+  if (code <= 86)
+    return { label: "Salju lebat", Icon: CloudSnow, color: "#818CF8" };
   return { label: "Badai petir", Icon: CloudLightning, color: "#C084FC" };
 }
 
@@ -45,7 +61,7 @@ export function WeatherCard() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["weather", CITY],
     queryFn: fetchWeather,
-    staleTime: 30 * 60_000, // 30 menit
+    staleTime: 30 * 60_000, 
     retry: 1,
   });
 
@@ -71,13 +87,15 @@ export function WeatherCard() {
           <>
             <span
               className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
-              style={{  color: w.color }}
+              style={{ color: w.color }}
             >
               <w.Icon className="h-7 w-7" />
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-1">
-                <span className="font-display text-3xl font-semibold tracking-tight">{Math.round(data.temperature_2m)}</span>
+                <span className="font-display text-3xl font-semibold tracking-tight">
+                  {Math.round(data.temperature_2m)}
+                </span>
                 <span className="text-lg text-muted-foreground">°C</span>
               </div>
               <p className="text-sm font-medium">{w.label}</p>
@@ -85,10 +103,12 @@ export function WeatherCard() {
             </div>
             <div className="flex shrink-0 flex-col gap-1.5 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <Droplets className="h-3.5 w-3.5" /> {data.relative_humidity_2m}%
+                <Droplets className="h-3.5 w-3.5" /> {data.relative_humidity_2m}
+                %
               </span>
               <span className="flex items-center gap-1.5">
-                <Wind className="h-3.5 w-3.5" /> {Math.round(data.wind_speed_10m)} km/j
+                <Wind className="h-3.5 w-3.5" />{" "}
+                {Math.round(data.wind_speed_10m)} km/j
               </span>
             </div>
           </>

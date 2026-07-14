@@ -35,12 +35,11 @@ export function VoteDetailPage() {
     queryFn: () => fetchRoleVote(voteId),
     enabled: voteId >= 0,
   });
-  // Murni matematika — tak perlu membaca total anggota on-chain.
-  // Saat voting SELESAI, jumlah suara == ambang t, dan total N = ⌈3t/2⌉−1.
+
   const count = v?.ballots?.length || v?.voteCount || 0;
   const executed = v?.executed ?? false;
   const total = executed ? impliedTotalFromThreshold(count) : 0;
-  const threshold = count; // ambang tercapai persis pada jumlah suara ini
+  const threshold = count;
   const pctFill = total > 0 ? Math.min(100, (count / total) * 100) : 0;
   const pctThreshold = total > 0 ? Math.min(100, (threshold / total) * 100) : 0;
 
@@ -73,7 +72,6 @@ export function VoteDetailPage() {
             }
           />
 
-          {/* Hasil voting — murni dari status executed */}
           {executed ? (
             <div className="flex items-start gap-3 rounded-2xl border border-emerald-300/60 bg-emerald-50 p-4 text-sm dark:border-emerald-500/30 dark:bg-emerald-950/30">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
@@ -139,7 +137,7 @@ export function VoteDetailPage() {
                 </span>
                 {executed ? (
                   <>
-                    {/* Bar suara terhadap total N (derivasi matematis), garis ambang vertikal */}
+                   
                     <div className="relative mt-2.5 w-full">
                       <div className="h-2.5 w-full overflow-hidden rounded-sm bg-muted">
                         <div
@@ -155,7 +153,8 @@ export function VoteDetailPage() {
                     </div>
                     <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
                       <span>
-                        <b className="font-mono text-foreground">{count}</b> / {total} suara
+                        <b className="font-mono text-foreground">{count}</b> /{" "}
+                        {total} suara
                       </span>
                       <span className="flex items-center gap-1">
                         <span className="inline-block h-3 w-0.5 rounded-full bg-foreground/70" />
@@ -175,7 +174,7 @@ export function VoteDetailPage() {
             </div>
           </SectionCard>
 
-          {/* Siapa saja yang memberi suara */}
+          
           <SectionCard
             title="Pemberi Suara"
             eyebrow={`${v.ballots?.length ?? 0} suara`}

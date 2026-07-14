@@ -19,10 +19,6 @@ interface Props {
   children: ReactNode;
 }
 
-/**
- * Bungkus daftar/kartu dengan state seragam: loading (skeleton), error (+retry),
- * empty (EmptyState). Bila semua lolos → render children.
- */
 export function QueryState({
   isLoading,
   isError,
@@ -42,14 +38,27 @@ export function QueryState({
     return (
       <div className="flex flex-col items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 py-10 text-center">
         <AlertTriangle className="h-6 w-6 text-destructive" />
-        <p className="text-sm text-destructive">{getErrorMessage(error) || "Gagal memuat data."}</p>
-        {onRetry && <Button size="sm" variant="outline" onClick={onRetry}>Coba lagi</Button>}
+        <p className="text-sm text-destructive">
+          {getErrorMessage(error) || "Gagal memuat data."}
+        </p>
+        {onRetry && (
+          <Button size="sm" variant="outline" onClick={onRetry}>
+            Coba lagi
+          </Button>
+        )}
       </div>
     );
   }
 
   if (isEmpty) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} action={emptyAction} />;
+    return (
+      <EmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        icon={emptyIcon}
+        action={emptyAction}
+      />
+    );
   }
 
   return <>{children}</>;

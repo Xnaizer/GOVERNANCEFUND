@@ -7,9 +7,19 @@ export function useGrantPic() {
   const qc = useQueryClient();
   const tx = useTxThenSync({ onDone: () => qc.invalidateQueries() });
   const grant = (wallet: string) =>
-    tx.execute({ ...governanceContract, chainId: CHAIN_ID, functionName: "grantPicRole", args: [wallet as `0x${string}`] });
+    tx.execute({
+      ...governanceContract,
+      chainId: CHAIN_ID,
+      functionName: "grantPicRole",
+      args: [wallet as `0x${string}`],
+    });
   const revoke = (wallet: string) =>
-    tx.execute({ ...governanceContract, chainId: CHAIN_ID, functionName: "revokePicRole", args: [wallet as `0x${string}`] });
+    tx.execute({
+      ...governanceContract,
+      chainId: CHAIN_ID,
+      functionName: "revokePicRole",
+      args: [wallet as `0x${string}`],
+    });
   return { ...tx, grant, revoke };
 }
 
@@ -18,7 +28,8 @@ export function useProposeRole() {
   const tx = useTxThenSync({ onDone: () => qc.invalidateQueries() });
   const propose = (candidate: string, role: GovRole, devote: boolean) =>
     tx.execute({
-      ...governanceContract, chainId: CHAIN_ID,
+      ...governanceContract,
+      chainId: CHAIN_ID,
       functionName: devote ? "proposeRoleDevote" : "proposeRoleGrant",
       args: [candidate as `0x${string}`, roleHash(role)],
     });
@@ -29,6 +40,11 @@ export function useVoteRoleProposal() {
   const qc = useQueryClient();
   const tx = useTxThenSync({ onDone: () => qc.invalidateQueries() });
   const vote = (voteId: number) =>
-    tx.execute({ ...governanceContract, chainId: CHAIN_ID, functionName: "voteRoleProposal", args: [BigInt(voteId)] });
+    tx.execute({
+      ...governanceContract,
+      chainId: CHAIN_ID,
+      functionName: "voteRoleProposal",
+      args: [BigInt(voteId)],
+    });
   return { ...tx, vote };
 }

@@ -7,7 +7,7 @@ export async function pollUntil(
     try {
       if (await predicate()) return true;
     } catch {
-      /* keep polling */
+      
     }
     await new Promise((r) => setTimeout(r, intervalMs));
   }

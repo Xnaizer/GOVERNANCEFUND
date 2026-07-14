@@ -4,18 +4,74 @@ import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Reveal } from "../motion/Reveal";
 import { AnimatedCounter } from "../motion/AnimatedCounter";
 
-type Card = { logo: string; from: string; to: string; value: number; suffix?: string; label: string };
+type Card = {
+  logo: string;
+  from: string;
+  to: string;
+  value: number;
+  suffix?: string;
+  label: string;
+};
 
-// bg = gradien warna (dari→gelap) agar konten putih tetap terbaca.
 const CARDS: Card[] = [
-  { logo: "solidity", from: "#34D3B5", to: "#0E8A79", value: 5, label: "Layer smart-contract" },
-  { logo: "typescript", from: "#5AA2F0", to: "#2563EB", value: 100, suffix: "%", label: "TypeScript strict mode" },
-  { logo: "prisma", from: "#8B93F7", to: "#4F46E5", value: 15, label: "Model data terindeks" },
-  { logo: "postgresql", from: "#38BDF8", to: "#0284C7", value: 24, label: "Audit rekonsiliasi / jam" },
-  { logo: "walletconnect", from: "#C084FC", to: "#7C3AED", value: 3, label: "Tanda tangan / milestone" },
-  { logo: "redis", from: "#22D3EE", to: "#0891B2", value: 6, label: "Antrean kerja BullMQ" },
-  { logo: "react", from: "#A78BFA", to: "#6D28D9", value: 4, label: "Tab explorer publik" },
-  { logo: "ethereum", from: "#34D399", to: "#059669", value: 67, suffix: "%", label: "Ambang konsensus BFT" },
+  {
+    logo: "solidity",
+    from: "#34D3B5",
+    to: "#0E8A79",
+    value: 5,
+    label: "Layer smart-contract",
+  },
+  {
+    logo: "typescript",
+    from: "#5AA2F0",
+    to: "#2563EB",
+    value: 100,
+    suffix: "%",
+    label: "TypeScript strict mode",
+  },
+  {
+    logo: "prisma",
+    from: "#8B93F7",
+    to: "#4F46E5",
+    value: 15,
+    label: "Model data terindeks",
+  },
+  {
+    logo: "postgresql",
+    from: "#38BDF8",
+    to: "#0284C7",
+    value: 24,
+    label: "Audit rekonsiliasi / jam",
+  },
+  {
+    logo: "walletconnect",
+    from: "#C084FC",
+    to: "#7C3AED",
+    value: 3,
+    label: "Tanda tangan / milestone",
+  },
+  {
+    logo: "redis",
+    from: "#22D3EE",
+    to: "#0891B2",
+    value: 6,
+    label: "Antrean kerja BullMQ",
+  },
+  {
+    logo: "react",
+    from: "#A78BFA",
+    to: "#6D28D9",
+    value: 4,
+    label: "Tab explorer publik",
+  },
+  {
+    logo: "ethereum",
+    from: "#34D399",
+    to: "#059669",
+    value: 67,
+    suffix: "%",
+    label: "Ambang konsensus BFT",
+  },
 ];
 
 function whiteLogoMask(src: string): CSSProperties {
@@ -35,17 +91,22 @@ function whiteLogoMask(src: string): CSSProperties {
 export function StatsCards() {
   const track = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, startX: 0, startLeft: 0 });
-  const scrollBy = (dir: number) => track.current?.scrollBy({ left: dir * 280, behavior: "smooth" });
+  const scrollBy = (dir: number) =>
+    track.current?.scrollBy({ left: dir * 280, behavior: "smooth" });
 
-  // Drag-to-scroll (mouse) — halus, mengikuti kursor 1:1. Sentuh tetap pakai scroll native.
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType !== "mouse" || !track.current) return;
-    drag.current = { active: true, startX: e.clientX, startLeft: track.current.scrollLeft };
+    drag.current = {
+      active: true,
+      startX: e.clientX,
+      startLeft: track.current.scrollLeft,
+    };
     track.current.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!drag.current.active || !track.current) return;
-    track.current.scrollLeft = drag.current.startLeft - (e.clientX - drag.current.startX);
+    track.current.scrollLeft =
+      drag.current.startLeft - (e.clientX - drag.current.startX);
   };
   const onPointerUp = (e: React.PointerEvent) => {
     if (!drag.current.active) return;
@@ -56,16 +117,18 @@ export function StatsCards() {
   return (
     <section data-nav-theme="light" className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-6xl px-6">
-        {/* Header: 2/3 info kiri + 1/3 tombol kanan */}
         <div className="grid gap-8 lg:grid-cols-3 lg:items-end">
           <Reveal className="lg:col-span-2">
-            <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">Di balik layar</span>
+            <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">
+              Di balik layar
+            </span>
             <h2 className="mt-3 font-display text-2xl font-semibold leading-[1.1] tracking-tight sm:text-4xl">
               Dibangun rapi, terukur, dan bisa diaudit.
             </h2>
             <p className="mt-4 max-w-xl text-pretty text-sm text-muted-foreground sm:text-base">
-              Bukan sekadar klaim — arsitekturnya nyata: kontrak on-chain, data terindeks, dan lapisan
-              anti-kecurangan yang bekerja bersama dalam satu monorepo.
+              Bukan sekadar klaim — arsitekturnya nyata: kontrak on-chain, data
+              terindeks, dan lapisan anti-kecurangan yang bekerja bersama dalam
+              satu monorepo.
             </p>
           </Reveal>
           <Reveal delay={0.1} className="lg:justify-self-end">
@@ -79,7 +142,6 @@ export function StatsCards() {
           </Reveal>
         </div>
 
-        {/* Carousel 1 baris — kartu 3:4 potret; panah di tengah bawah; hover → kartu lain blur */}
         <Reveal className="mt-12">
           <div
             ref={track}
@@ -93,20 +155,27 @@ export function StatsCards() {
               <div
                 key={c.logo + i}
                 className="flex aspect-3/4 w-56 shrink-0 flex-col justify-between overflow-hidden rounded-3xl p-6 text-white shadow-soft transition-all duration-300 group-hover/cards:opacity-45 group-hover/cards:blur-[2px] hover:opacity-100! hover:blur-none!"
-                style={{ background: `linear-gradient(140deg, ${c.from}, ${c.to})` }}
+                style={{
+                  background: `linear-gradient(140deg, ${c.from}, ${c.to})`,
+                }}
               >
-                <span aria-hidden className="h-8 w-8" style={whiteLogoMask(`/logos/${c.logo}.svg`)} />
+                <span
+                  aria-hidden
+                  className="h-8 w-8"
+                  style={whiteLogoMask(`/logos/${c.logo}.svg`)}
+                />
                 <div>
                   <p className="font-display text-4xl font-semibold tracking-tight">
                     <AnimatedCounter value={c.value} suffix={c.suffix} />
                   </p>
-                  <p className="mt-1.5 text-sm font-medium leading-snug text-white/80">{c.label}</p>
+                  <p className="mt-1.5 text-sm font-medium leading-snug text-white/80">
+                    {c.label}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Panah navigasi */}
           <div className="mt-6 flex items-center justify-center gap-3">
             <button
               type="button"

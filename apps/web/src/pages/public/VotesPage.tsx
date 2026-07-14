@@ -77,7 +77,10 @@ export function VotesPage() {
       id: "jenis",
       header: "JENIS",
       cell: ({ row }) => (
-        <Badge variant={row.original.isDevote ? "destructive" : "default"} className="rounded-sm">
+        <Badge
+          variant={row.original.isDevote ? "destructive" : "default"}
+          className="rounded-sm"
+        >
           {row.original.isDevote ? "Devote" : "Grant"}
         </Badge>
       ),
@@ -86,7 +89,9 @@ export function VotesPage() {
       id: "role",
       header: "ROLE",
       cell: ({ row }) => (
-        <Badge variant="secondary" className="rounded-sm">{row.original.roleToTarget}</Badge>
+        <Badge variant="secondary" className="rounded-sm">
+          {row.original.roleToTarget}
+        </Badge>
       ),
     },
     {
@@ -103,7 +108,7 @@ export function VotesPage() {
       id: "status",
       header: "STATUS",
       cell: ({ row }) => {
-        // Murni matematika: saat selesai, suara == ambang t, total N = ⌈3t/2⌉−1.
+        
         const count = row.original.voteCount;
         if (row.original.executed) {
           return (
@@ -113,7 +118,9 @@ export function VotesPage() {
           );
         }
         return (
-          <Badge variant="secondary" className="rounded-sm">{count} suara</Badge>
+          <Badge variant="secondary" className="rounded-sm">
+            {count} suara
+          </Badge>
         );
       },
     },

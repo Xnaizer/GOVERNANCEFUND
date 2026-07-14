@@ -24,7 +24,12 @@ export function PasswordStrength({ value }: { value: string }) {
     <div className="flex flex-col gap-1">
       <div className="flex gap-1">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className={`h-1 flex-1 rounded-full ${i <= s ? level.color : "bg-default-200"}`} />
+          <div
+            key={i}
+            className={`h-1 flex-1 rounded-full ${
+              i <= s ? level.color : "bg-default-200"
+            }`}
+          />
         ))}
       </div>
       <span className={`text-xs ${level.text}`}>Kekuatan: {level.label}</span>

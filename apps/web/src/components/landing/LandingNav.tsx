@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useScroll,
+} from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { useSectionTheme } from "../../hooks/useSectionTheme";
 import { useMe } from "../../hooks/useAuth";
 
-// Item mengikuti route publik nyata.
 const LINKS = [
   { label: "Program", to: "/programs" },
   { label: "Pengguna", to: "/users" },
@@ -34,7 +38,7 @@ export function LandingNav() {
   });
 
   const dark = theme === "dark";
-  const textLight = dark; // teks putih di section gelap, hitam di section putih
+  const textLight = dark; 
 
   return (
     <motion.header
@@ -48,7 +52,9 @@ export function LandingNav() {
         animate={{
           width: atTop ? "100%" : "90%",
           maxWidth: atTop ? 1152 : 1080,
-          backgroundColor: atTop ? "rgba(255,255,255,0)" : "rgba(255,255,255,0.18)",
+          backgroundColor: atTop
+            ? "rgba(255,255,255,0)"
+            : "rgba(255,255,255,0.18)",
           backdropFilter: atTop ? "blur(0px)" : "blur(18px)",
           boxShadow: atTop ? "0 0 0 0 rgba(16,24,40,0)" : "",
           borderColor: "rgba(0,0,0,0)",
@@ -59,9 +65,10 @@ export function LandingNav() {
           textLight ? "text-white" : "text-foreground",
         )}
       >
-        {/* Wordmark: GOVERNANCE di atas, FUND di tengah bawah */}
         <Link to="/" className="mr-1 flex flex-col items-center leading-[0.95]">
-          <span className="font-display text-[13px] font-bold tracking-[0.2em]">GOVERNANCE</span>
+          <span className="font-display text-[13px] font-bold tracking-[0.2em]">
+            GOVERNANCE
+          </span>
           <span className="bg-linear-to-r from-brand-mint to-brand-blue bg-clip-text font-display text-[13px] font-bold tracking-[0.36em] text-transparent">
             FUND
           </span>
@@ -93,7 +100,9 @@ export function LandingNav() {
                 to="/login"
                 className={cn(
                   "hidden rounded-md border px-4 py-1.5 text-sm font-medium transition-colors sm:inline-block",
-                  textLight ? "border-white/30 hover:bg-white/10" : "border-black/10 hover:bg-muted",
+                  textLight
+                    ? "border-white/30 hover:bg-white/10"
+                    : "border-black/10 hover:bg-muted",
                 )}
               >
                 Masuk
@@ -106,7 +115,6 @@ export function LandingNav() {
               </Link>
             </>
           )}
-          {/* Tombol menu (mobile) */}
           <button
             type="button"
             aria-label="Menu"
@@ -114,7 +122,9 @@ export function LandingNav() {
             onClick={() => setOpen((v) => !v)}
             className={cn(
               "flex h-9 w-9 items-center justify-center rounded-md border transition-colors md:hidden",
-              textLight ? "border-white/30 hover:bg-white/10" : "border-black/10 hover:bg-muted",
+              textLight
+                ? "border-white/30 hover:bg-white/10"
+                : "border-black/10 hover:bg-muted",
             )}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -122,7 +132,6 @@ export function LandingNav() {
         </div>
       </motion.nav>
 
-      {/* Dropdown menu (mobile) */}
       <AnimatePresence>
         {open && (
           <motion.div

@@ -5,7 +5,7 @@ import { getProgramDetailAuthed } from "../services/programApi";
 
 export function useWithdraw(programId: number) {
   const qc = useQueryClient();
-  const tx = useTxThenSync({ onDone: () => qc.invalidateQueries() }); // withdrawal masuk via webhook OnChainWithdrawalLogged
+  const tx = useTxThenSync({ onDone: () => qc.invalidateQueries() });
   const withdraw = (
     amount: string,
     recipientName: string,
@@ -23,7 +23,7 @@ export function useWithdraw(programId: number) {
 export function useFinalizeMilestone(programId: number) {
   const tx = useTxThenSync({
     waitForSync: async () =>
-      (await getProgramDetailAuthed(programId)).status !== "DRAWABLE", // → MILESTONE_ACHIEVED / COMPLETED
+      (await getProgramDetailAuthed(programId)).status !== "DRAWABLE",
   });
   const finalize = () =>
     tx.execute({
@@ -37,7 +37,7 @@ export function useFinalizeMilestone(programId: number) {
 
 export function useProposeAppeal(programId: number) {
   const qc = useQueryClient();
-  const tx = useTxThenSync({ onDone: () => qc.invalidateQueries() }); // status tetap FROZEN, hanya buka UnfreezeVote
+  const tx = useTxThenSync({ onDone: () => qc.invalidateQueries() });
   const propose = () =>
     tx.execute({
       ...governanceContract,

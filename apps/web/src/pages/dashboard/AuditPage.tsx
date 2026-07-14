@@ -25,7 +25,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatIDR, formatDate } from "../../utils/format";
 import type { ProgramListItem } from "../../types/program";
 
-/* ── Tab: Program yang saya bekukan (auditor) ── */
 function MyFreezes() {
   const { data, isLoading, isError, refetch } = useMyActivity();
   const freezes = data?.freezes ?? [];
@@ -34,7 +33,9 @@ function MyFreezes() {
       <CardHeader className="flex-row items-center gap-2 space-y-0 font-display font-semibold tracking-tight">
         <Snowflake className="h-4 w-4 text-amber-600" />
         Program yang Saya Bekukan
-        <Badge variant="secondary" className="ml-auto rounded-sm">{freezes.length}</Badge>
+        <Badge variant="secondary" className="ml-auto rounded-sm">
+          {freezes.length}
+        </Badge>
       </CardHeader>
       <CardContent>
         <QueryState
@@ -48,19 +49,41 @@ function MyFreezes() {
         >
           <div className="flex flex-col">
             {freezes.map((f) => (
-              <div key={f.programId} className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0">
-                <Link to={`/programs/${f.programId}`} className="flex min-w-0 items-center gap-2">
-                  <span className="font-mono text-xs text-muted-foreground">#{f.programId}</span>
-                  <span className="truncate font-display font-medium tracking-tight hover:text-brand-blue">{f.program?.title ?? "(tanpa judul)"}</span>
+              <div
+                key={f.programId}
+                className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0"
+              >
+                <Link
+                  to={`/programs/${f.programId}`}
+                  className="flex min-w-0 items-center gap-2"
+                >
+                  <span className="font-mono text-xs text-muted-foreground">
+                    #{f.programId}
+                  </span>
+                  <span className="truncate font-display font-medium tracking-tight hover:text-brand-blue">
+                    {f.program?.title ?? "(tanpa judul)"}
+                  </span>
                 </Link>
                 <Badge
-                  variant={f.outcome === "FRAUD_PROVEN" ? "destructive" : f.outcome === "PENDING" ? "warning" : "secondary"}
+                  variant={
+                    f.outcome === "FRAUD_PROVEN"
+                      ? "destructive"
+                      : f.outcome === "PENDING"
+                      ? "warning"
+                      : "secondary"
+                  }
                   className="rounded-sm"
                 >
                   {f.outcome}
                 </Badge>
-                {f.program && <span className="font-mono text-xs text-muted-foreground">{formatIDR(f.program.totalBudget)}</span>}
-                <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">{formatDate(f.frozenAt)}</span>
+                {f.program && (
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {formatIDR(f.program.totalBudget)}
+                  </span>
+                )}
+                <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">
+                  {formatDate(f.frozenAt)}
+                </span>
               </div>
             ))}
           </div>
@@ -97,11 +120,15 @@ function FreezeBtn({ p }: { p: ProgramListItem }) {
           evidenceUrl: evidenceUrl.trim() || undefined,
         });
       } catch (e) {
-        toast.error(`Program dibekukan, tapi bukti gagal tersimpan: ${getErrorMessage(e)}`);
+        toast.error(
+          `Program dibekukan, tapi bukti gagal tersimpan: ${getErrorMessage(
+            e,
+          )}`,
+        );
       }
       setOpen(false);
     } catch {
-      /* freeze gagal → biarkan dialog terbuka */
+     
     }
   };
 
@@ -114,7 +141,9 @@ function FreezeBtn({ p }: { p: ProgramListItem }) {
       >
         Bekukan
       </Button>
-      {state === "syncing" && <span className="ml-2 text-xs text-amber-600">menunggu webhook…</span>}
+      {state === "syncing" && (
+        <span className="ml-2 text-xs text-amber-600">menunggu webhook…</span>
+      )}
       <ConfirmDialog
         isOpen={open}
         onClose={() => setOpen(false)}
@@ -134,17 +163,33 @@ function FreezeBtn({ p }: { p: ProgramListItem }) {
       >
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
-            <Label>Alasan pembekuan <span className="text-destructive">*</span></Label>
-            <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ringkas indikasi kecurangan (mis. penarikan tak wajar)…" />
+            <Label>
+              Alasan pembekuan <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Ringkas indikasi kecurangan (mis. penarikan tak wajar)…"
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Uraian detail (opsional)</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Detail temuan, kronologi, atau angka pendukung…" />
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Detail temuan, kronologi, atau angka pendukung…"
+            />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Tautan bukti (opsional)</Label>
-            <Input value={evidenceUrl} onChange={(e) => setEvidenceUrl(e.target.value)} placeholder="URL dokumen/arsip bukti (mis. Google Drive, IPFS)" />
-            <p className="text-xs text-muted-foreground">URL dokumen/arsip bukti (mis. Google Drive, IPFS).</p>
+            <Input
+              value={evidenceUrl}
+              onChange={(e) => setEvidenceUrl(e.target.value)}
+              placeholder="URL dokumen/arsip bukti (mis. Google Drive, IPFS)"
+            />
+            <p className="text-xs text-muted-foreground">
+              URL dokumen/arsip bukti (mis. Google Drive, IPFS).
+            </p>
           </div>
         </div>
       </ConfirmDialog>
@@ -153,7 +198,9 @@ function FreezeBtn({ p }: { p: ProgramListItem }) {
 }
 
 export function AuditPage() {
-  const { data, isLoading, isError, error, refetch } = useProgramsByStatus(["DRAWABLE"]);
+  const { data, isLoading, isError, error, refetch } = useProgramsByStatus([
+    "DRAWABLE",
+  ]);
   const [tab, setTab] = useState<string>("VALID");
   const [search, setSearch] = useState("");
 
@@ -188,13 +235,20 @@ export function AuditPage() {
     {
       id: "id",
       header: "ID",
-      cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">#{row.original.programId}</span>,
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          #{row.original.programId}
+        </span>
+      ),
     },
     {
       id: "program",
       header: "PROGRAM",
       cell: ({ row }) => (
-        <Link to={`/programs/${row.original.programId}`} className="block max-w-55 truncate font-display font-medium tracking-tight hover:text-brand-blue">
+        <Link
+          to={`/programs/${row.original.programId}`}
+          className="block max-w-55 truncate font-display font-medium tracking-tight hover:text-brand-blue"
+        >
           {row.original.title ?? "(tanpa judul)"}
         </Link>
       ),
@@ -204,7 +258,10 @@ export function AuditPage() {
       header: "PIC",
       cell: ({ row }) =>
         isAnomaly(row.original) ? (
-          <MissingUser wallet={row.original.picWallet} reason={row.original.isOrphan ? "Orphan" : "PIC tidak terdaftar"} />
+          <MissingUser
+            wallet={row.original.picWallet}
+            reason={row.original.isOrphan ? "Orphan" : "PIC tidak terdaftar"}
+          />
         ) : (
           <UserCell user={row.original.pic} wallet={row.original.picWallet} />
         ),
@@ -212,13 +269,19 @@ export function AuditPage() {
     {
       id: "budget",
       header: "ANGGARAN",
-      cell: ({ row }) => <span className="font-mono text-sm font-semibold text-brand-blue">{formatIDR(row.original.totalBudget)}</span>,
+      cell: ({ row }) => (
+        <span className="font-mono text-sm font-semibold text-brand-blue">
+          {formatIDR(row.original.totalBudget)}
+        </span>
+      ),
     },
     {
       id: "milestone",
       header: "MILESTONE",
       cell: ({ row }) => (
-        <span className="font-mono text-sm">{row.original.currentMilestone}/{row.original.milestoneCount}</span>
+        <span className="font-mono text-sm">
+          {row.original.currentMilestone}/{row.original.milestoneCount}
+        </span>
       ),
     },
     {
@@ -254,10 +317,12 @@ export function AuditPage() {
           <div className="flex flex-col gap-4 pt-2">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <FilterTabs
-                items={[
-                  { key: "VALID", label: `Bisa Dibekukan (${counts.valid})` },
-                  { key: "ANOMALY", label: `Anomali (${counts.anomaly})` },
-                ] as unknown as { key: string; label: string }[]}
+                items={
+                  [
+                    { key: "VALID", label: `Bisa Dibekukan (${counts.valid})` },
+                    { key: "ANOMALY", label: `Anomali (${counts.anomaly})` },
+                  ] as unknown as { key: string; label: string }[]
+                }
                 value={tab}
                 onChange={(k) => setTab(k)}
               />
@@ -275,7 +340,11 @@ export function AuditPage() {
               error={error}
               isEmpty={filtered.length === 0}
               onRetry={refetch}
-              emptyTitle={tab === "ANOMALY" ? "Tidak ada program anomali" : "Tidak ada program DRAWABLE"}
+              emptyTitle={
+                tab === "ANOMALY"
+                  ? "Tidak ada program anomali"
+                  : "Tidak ada program DRAWABLE"
+              }
               emptyDescription={
                 tab === "ANOMALY"
                   ? "Program DRAWABLE tanpa PIC terdaftar / orphan akan dipisahkan ke sini."

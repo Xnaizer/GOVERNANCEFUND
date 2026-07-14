@@ -5,7 +5,11 @@ import {
 } from "../services/redemptionApi";
 import type { RedemptionStatus } from "../types/redemption";
 
-export function useRedemptions(status?: RedemptionStatus, page = 1, limit = 12) {
+export function useRedemptions(
+  status?: RedemptionStatus,
+  page = 1,
+  limit = 12,
+) {
   return useQuery({
     queryKey: ["redemptions", status ?? "all", page, limit],
     queryFn: () => fetchRedemptions({ status, page, limit }),

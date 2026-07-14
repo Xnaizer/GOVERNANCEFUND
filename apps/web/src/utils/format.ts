@@ -28,13 +28,9 @@ export function formatDate(iso: string | null | undefined): string {
   });
 }
 
-/** Durasi voting on-chain (proposal & unfreeze) = 7 hari sejak mulai (VOTING_PERIOD). */
+
 export const VOTE_DURATION_DAYS = 7;
 
-/**
- * Deadline vote = tanggal mulai + 7 hari. Dipakai untuk voting proposal (dari
- * submittedAt/createdAt) dan banding unfreeze (dari appealStartedAt).
- */
 export function voteDeadlineInfo(startIso: string | null | undefined): {
   deadline: Date | null;
   deadlineStr: string;

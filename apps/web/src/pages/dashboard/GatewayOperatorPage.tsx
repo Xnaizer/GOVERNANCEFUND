@@ -10,8 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { useGatewayOwner } from "../../hooks/useGatewayOwner";
 import { useRedemptions, useRedemptionStats } from "../../hooks/useRedemptions";
-import { useConfirmRedemption, useCancelRedemption } from "../../hooks/useGatewayActions";
-import { formatIDR, formatDate, formatShortenAddress } from "../../utils/format";
+import {
+  useConfirmRedemption,
+  useCancelRedemption,
+} from "../../hooks/useGatewayActions";
+import {
+  formatIDR,
+  formatDate,
+  formatShortenAddress,
+} from "../../utils/format";
 import type { RedemptionRow } from "../../types/redemption";
 
 function PendingRow({ r }: { r: RedemptionRow }) {
@@ -29,21 +36,34 @@ function PendingRow({ r }: { r: RedemptionRow }) {
       <span className="font-mono text-muted-foreground">#{r.redemptionId}</span>
       <UserCell user={r.pic} wallet={r.picWallet} />
       <span className="font-mono font-medium">{formatIDR(r.amount)}</span>
-      <span className="text-xs text-muted-foreground">{formatDate(r.requestedAt)}</span>
+      <span className="text-xs text-muted-foreground">
+        {formatDate(r.requestedAt)}
+      </span>
 
       <div className="ml-auto flex items-center gap-2">
-        {confirmTx.syncPending || cancelTx.syncPending
-          ? <span className="text-xs text-amber-600">menunggu webhook…</span>
-          : null}
+        {confirmTx.syncPending || cancelTx.syncPending ? (
+          <span className="text-xs text-amber-600">menunggu webhook…</span>
+        ) : null}
         <ConfirmButton
           triggerLabel="Konfirmasi (burn+fiat)"
-          triggerProps={{ size: "sm", color: "success", variant: "flat", isLoading: confirmTx.busy }}
+          triggerProps={{
+            size: "sm",
+            color: "success",
+            variant: "flat",
+            isLoading: confirmTx.busy,
+          }}
           title={`Konfirmasi penukaran #${r.redemptionId}?`}
           confirmLabel="Ya, sudah bayar fiat — bakar token"
           confirmColor="success"
           checkboxLabel="Saya memastikan Rupiah fisik SUDAH dicairkan ke PIC."
-          toasts={{ loading: "Membakar escrow…", success: "Penukaran diselesaikan (SETTLED)." }}
-          action={async () => { await confirmTx.confirm(); await refresh(); }}
+          toasts={{
+            loading: "Membakar escrow…",
+            success: "Penukaran diselesaikan (SETTLED).",
+          }}
+          action={async () => {
+            await confirmTx.confirm();
+            await refresh();
+          }}
           warnings={[
             "Token escrow akan DIBAKAR permanen dan penukaran ditandai SETTLED.",
             "Lakukan HANYA setelah Rupiah fisik benar-benar dibayarkan ke PIC — aksi tak bisa dibatalkan.",
@@ -51,12 +71,23 @@ function PendingRow({ r }: { r: RedemptionRow }) {
         />
         <ConfirmButton
           triggerLabel="Batalkan (refund)"
-          triggerProps={{ size: "sm", color: "danger", variant: "light", isLoading: cancelTx.busy }}
+          triggerProps={{
+            size: "sm",
+            color: "danger",
+            variant: "light",
+            isLoading: cancelTx.busy,
+          }}
           title={`Batalkan penukaran #${r.redemptionId}?`}
           confirmLabel="Ya, kembalikan token ke PIC"
           confirmColor="danger"
-          toasts={{ loading: "Mengembalikan escrow…", success: "Penukaran dibatalkan, token kembali ke PIC." }}
-          action={async () => { await cancelTx.cancel(); await refresh(); }}
+          toasts={{
+            loading: "Mengembalikan escrow…",
+            success: "Penukaran dibatalkan, token kembali ke PIC.",
+          }}
+          action={async () => {
+            await cancelTx.cancel();
+            await refresh();
+          }}
           warnings={[
             "Token escrow dikembalikan ke wallet PIC dan penukaran ditandai CANCELLED.",
             "Lakukan bila fiat TIDAK jadi dicairkan.",
@@ -79,15 +110,25 @@ export function GatewayOperatorPage() {
   if (!isOperator) {
     return (
       <>
-        <PageHeader eyebrow="Gateway" title="Gateway (Operator)" gradient subtitle="Kelola penyelesaian penukaran token." />
+        <PageHeader
+          eyebrow="Gateway"
+          title="Gateway (Operator)"
+          gradient
+          subtitle="Kelola penyelesaian penukaran token."
+        />
         <Card className="max-w-lg rounded-2xl border-amber-400 shadow-none">
           <CardContent className="flex flex-col gap-2 p-4 text-sm">
             <p className="font-semibold text-amber-600">Akses operator saja</p>
             <p className="text-muted-foreground">
-              Halaman ini hanya untuk <b>operator gateway</b> (wallet <span className="font-mono">gatewayOwner</span>).
-              Hubungkan wallet operator di kanan atas.
+              Halaman ini hanya untuk <b>operator gateway</b> (wallet{" "}
+              <span className="font-mono">gatewayOwner</span>). Hubungkan wallet
+              operator di kanan atas.
             </p>
-            {owner && <Badge variant="secondary" className="w-fit font-mono">operator: {formatShortenAddress(owner)}</Badge>}
+            {owner && (
+              <Badge variant="secondary" className="w-fit font-mono">
+                operator: {formatShortenAddress(owner)}
+              </Badge>
+            )}
           </CardContent>
         </Card>
       </>
@@ -96,7 +137,12 @@ export function GatewayOperatorPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader eyebrow="Gateway" title="Gateway (Operator)" gradient subtitle="Selesaikan penukaran: konfirmasi (burn + fiat) atau batalkan (refund)." />
+      <PageHeader
+        eyebrow="Gateway"
+        title="Gateway (Operator)"
+        gradient
+        subtitle="Selesaikan penukaran: konfirmasi (burn + fiat) atau batalkan (refund)."
+      />
 
       {stats && <RedemptionStatsCards stats={stats} />}
 
@@ -115,7 +161,9 @@ export function GatewayOperatorPage() {
             emptyTitle="Tidak ada penukaran menunggu"
             emptyDescription="Permintaan penukaran dari PIC akan muncul di sini."
           >
-            {pendingRows.map((r) => <PendingRow key={r.id} r={r} />)}
+            {pendingRows.map((r) => (
+              <PendingRow key={r.id} r={r} />
+            ))}
           </QueryState>
         </CardContent>
       </Card>

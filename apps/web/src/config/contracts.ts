@@ -1,6 +1,11 @@
 import type { Abi } from "viem";
 import { baseSepolia } from "wagmi/chains";
-import { CONTRACT_ADDRESS, Web3GovernanceABI, RupiahTokenABI, TrustedGatewayBurnerABI } from "@repo/shared";
+import {
+  CONTRACT_ADDRESS,
+  Web3GovernanceABI,
+  RupiahTokenABI,
+  TrustedGatewayBurnerABI,
+} from "@repo/shared";
 
 export const CHAIN_ID = baseSepolia.id;
 

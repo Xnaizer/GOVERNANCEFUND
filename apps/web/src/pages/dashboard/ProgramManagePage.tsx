@@ -70,7 +70,9 @@ function WithdrawalManageRow({
       <div className="ml-auto flex items-center gap-2">
         {w.receiptUrl ? (
           <a href={w.receiptUrl} target="_blank" rel="noreferrer">
-            <Badge variant="success" className="rounded-sm">lihat receipt</Badge>
+            <Badge variant="success" className="rounded-sm">
+              lihat receipt
+            </Badge>
           </a>
         ) : (
           <Button asChild size="sm" variant="secondary">
@@ -127,11 +129,19 @@ function MilestoneRow({
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0">
       <b>#{m.milestoneIndex + 1}</b> {m.title ?? "—"}
-      <Badge variant="secondary" className="rounded-sm">{m.status}</Badge>
+      <Badge variant="secondary" className="rounded-sm">
+        {m.status}
+      </Badge>
       {m.evidenceHash ? (
-        <Badge variant="success" className="rounded-sm">bukti ✓</Badge>
+        <Badge variant="success" className="rounded-sm">
+          bukti ✓
+        </Badge>
       ) : (
-        isActive && <Badge variant="warning" className="rounded-sm">belum ada bukti</Badge>
+        isActive && (
+          <Badge variant="warning" className="rounded-sm">
+            belum ada bukti
+          </Badge>
+        )
       )}
       <span className="ml-auto font-mono">{formatIDR(m.milestoneBudget)}</span>
       {isActive && (
@@ -233,7 +243,7 @@ export function ProgramManagePage() {
     mode: "onTouched",
   });
 
-  // Validasi form dulu → buka dialog konfirmasi memegang nilai tervalidasi.
+  
   const onSubmit = handleSubmit((v) => {
     setPending(v);
     setWdOpen(true);
@@ -342,7 +352,9 @@ export function ProgramManagePage() {
 
         {p.status === "FROZEN" && (
           <Card className="rounded-2xl border-amber-400 shadow-none">
-            <CardHeader className="font-display font-semibold tracking-tight">Program Dibekukan</CardHeader>
+            <CardHeader className="font-display font-semibold tracking-tight">
+              Program Dibekukan
+            </CardHeader>
             <CardContent className="flex flex-col gap-2">
               <p className="text-sm text-muted-foreground">
                 Ajukan banding (sekali) untuk membuka voting unfreeze 7 hari dua
@@ -372,7 +384,9 @@ export function ProgramManagePage() {
         )}
 
         <Card className="rounded-2xl border-black/5 shadow-none">
-          <CardHeader className="font-display font-semibold tracking-tight">Milestones</CardHeader>
+          <CardHeader className="font-display font-semibold tracking-tight">
+            Milestones
+          </CardHeader>
           <CardContent className="flex flex-col">
             {p.milestones.map((m) => (
               <MilestoneRow
@@ -407,7 +421,7 @@ export function ProgramManagePage() {
         </Button>
       </div>
 
-      {/* Konfirmasi penarikan (setelah form tervalidasi) */}
+     
       <ConfirmDialog
         isOpen={wdOpen}
         onClose={() => {
@@ -425,7 +439,7 @@ export function ProgramManagePage() {
             await pr;
             setWdOpen(false);
           } catch {
-            /* biarkan terbuka */
+           
           }
         }}
         isLoading={wd.busy}

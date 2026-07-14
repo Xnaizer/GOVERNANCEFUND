@@ -2,13 +2,6 @@ import { CalendarClock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { voteDeadlineInfo, VOTE_DURATION_DAYS } from "../utils/format";
 
-/**
- * Menampilkan deadline voting (mulai + 7 hari). Dipakai di voting proposal
- * (submittedAt/createdAt) dan banding unfreeze (appealStartedAt).
- *
- * - `resolved`: jika voting sudah selesai, tak perlu tampilkan sisa hari.
- * - `compact`: hanya chip kecil (untuk baris list/tabel).
- */
 export function VoteDeadline({
   start,
   resolved = false,
@@ -24,16 +17,16 @@ export function VoteDeadline({
   const tone = resolved
     ? "secondary"
     : expired
-      ? "destructive"
-      : daysLeft <= 2
-        ? "warning"
-        : "default";
+    ? "destructive"
+    : daysLeft <= 2
+    ? "warning"
+    : "default";
 
   const label = resolved
     ? `Ditutup · ${deadlineStr}`
     : expired
-      ? `Kedaluwarsa · ${deadlineStr}`
-      : `${daysLeft} hari lagi · ${deadlineStr}`;
+    ? `Kedaluwarsa · ${deadlineStr}`
+    : `${daysLeft} hari lagi · ${deadlineStr}`;
 
   if (compact) {
     return (

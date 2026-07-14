@@ -26,7 +26,7 @@ const ROLES = [
   { key: "PIC", label: "PIC" },
 ] as const;
 
-// Warna aksen per-role (selaras palet landing) untuk ring avatar & titik.
+
 const ROLE_COLOR: Record<string, string> = {
   ADMIN: "#4899EA",
   VALIDATOR: "#67F3CE",

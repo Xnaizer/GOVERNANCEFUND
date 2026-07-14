@@ -32,9 +32,8 @@ export const uploadUserBanner = (file: File) =>
 export async function uploadMilestoneEvidence(milestoneId: string, file: File) {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await api.post<Envelope<{ cid: string; gatewayUrl: string; evidenceHash: string }>>(
-    `/uploads/milestone/${milestoneId}/evidence`,
-    fd,
-  );
+  const res = await api.post<
+    Envelope<{ cid: string; gatewayUrl: string; evidenceHash: string }>
+  >(`/uploads/milestone/${milestoneId}/evidence`, fd);
   return res.data.data;
 }

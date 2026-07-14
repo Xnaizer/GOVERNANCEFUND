@@ -5,8 +5,8 @@ export interface AuthUser {
   username: string;
   email: string;
   role: Role;
-  isActive: boolean;  
-  isVerified: boolean; 
+  isActive: boolean;
+  isVerified: boolean;
   reputationScore: number;
   walletAddress: string | null;
   name: string | null;

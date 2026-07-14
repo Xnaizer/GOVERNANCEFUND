@@ -8,15 +8,19 @@ interface Props {
   title: string;
   subtitle?: ReactNode;
   actions?: ReactNode;
-  /** Label kecil uppercase brand di atas judul (mis. "Explorer publik"). */
   eyebrow?: string;
-  /** Judul memakai gradient brand (mint→blue) untuk tampilan display besar. */
   gradient?: boolean;
-  /** Tampilkan tombol "Kembali". `true` = history back; string = navigate ke path itu. */
   back?: boolean | string;
 }
 
-export function PageHeader({ title, subtitle, actions, eyebrow, gradient, back }: Props) {
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+  eyebrow,
+  gradient,
+  back,
+}: Props) {
   const navigate = useNavigate();
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -27,14 +31,18 @@ export function PageHeader({ title, subtitle, actions, eyebrow, gradient, back }
             variant="ghost"
             aria-label="Kembali"
             className="mt-1"
-            onClick={() => (typeof back === "string" ? navigate(back) : navigate(-1))}
+            onClick={() =>
+              typeof back === "string" ? navigate(back) : navigate(-1)
+            }
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
         <div>
           {eyebrow && (
-            <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">{eyebrow}</span>
+            <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">
+              {eyebrow}
+            </span>
           )}
           <h1
             className={cn(
@@ -45,10 +53,16 @@ export function PageHeader({ title, subtitle, actions, eyebrow, gradient, back }
           >
             {title}
           </h1>
-          {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>}
+          {subtitle && (
+            <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
+              {subtitle}
+            </p>
+          )}
         </div>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex flex-wrap items-center gap-2">{actions}</div>
+      )}
     </div>
   );
 }

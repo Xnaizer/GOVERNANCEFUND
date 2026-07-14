@@ -7,9 +7,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 
 export function AppProviders({ children }: { children: ReactNode }) {
-    // Default cache: data dianggap fresh 30s → mount berulang & fokus-jendela tak refetch,
-    // permintaan identik antar halaman dipakai-ulang. Aksi pasca-tx tetap segar via
-    // invalidateQueries / polling manual (useTxThenSync), yang mengabaikan staleTime.
     const [queryClient] = useState(
         () =>
             new QueryClient({

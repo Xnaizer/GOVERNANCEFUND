@@ -19,10 +19,6 @@ function countByStatus(programs: ProgramListItem[]) {
   return c;
 }
 
-/**
- * Agregasi data ringkasan dashboard per role — reuse endpoint yang sudah ada.
- * Dipakai oleh DashboardHome (StatCard/panel) dan topbar (badge antrean aksi).
- */
 export function useDashboardStats() {
   const { data: me } = useMe();
   const role = me?.role ?? "USER";
@@ -50,7 +46,7 @@ export function useDashboardStats() {
 
   const programs = programsQ.data ?? [];
   const counts = countByStatus(programs);
-  const toSign = counts.APPROVED + counts.DRAWABLE; // kandidat milestone menunggu tanda tangan
+  const toSign = counts.APPROVED + counts.DRAWABLE; 
 
   const mine = wallet
     ? programs.filter((p) => p.picWallet?.toLowerCase() === wallet)

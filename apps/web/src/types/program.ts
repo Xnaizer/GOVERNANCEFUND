@@ -3,15 +3,15 @@ import type { Milestone } from "./milestone";
 import type { FreezeOutcome, UnfreezeVote } from "./vote";
 
 export type ProgramStatus =
-  | "PENDING" 
-  | "APPROVED" 
-  | "DRAWABLE" 
+  | "PENDING"
+  | "APPROVED"
+  | "DRAWABLE"
   | "MILESTONE_ACHIEVED"
-  | "FROZEN" 
-  | "COMPLETED" 
+  | "FROZEN"
+  | "COMPLETED"
   | "FRAUD_CONFIRMED";
 
-  export interface ProgramListItem {
+export interface ProgramListItem {
   programId: number;
   programHash: string;
   picWallet: string;

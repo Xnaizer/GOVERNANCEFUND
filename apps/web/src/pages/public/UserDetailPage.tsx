@@ -56,7 +56,9 @@ export function UserDetailPage() {
             subtitle={
               u.role === "PIC"
                 ? `Profil publik PIC · ${u.programs.length} program · reputasi ${u.reputationScore}`
-                : `Profil publik ${u.role.toLowerCase()} · reputasi ${u.reputationScore}`
+                : `Profil publik ${u.role.toLowerCase()} · reputasi ${
+                    u.reputationScore
+                  }`
             }
             bannerUrl={u.profileBannerURL}
             chips={
@@ -99,100 +101,140 @@ export function UserDetailPage() {
             </div>
           </DarkHero>
 
-          {/* Hanya PIC yang mengelola program — sembunyikan untuk peran lain */}
           {u.role === "PIC" && (
-          <SectionCard
-            title={`Program (${u.programs.length})`}
-            icon={<Folder className="h-4 w-4" />}
-            accent="#4899EA"
-            className="shadow-none"
-          >
-            <div className="flex flex-col gap-1">
-              {u.programs.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Belum ada program.
-                </p>
-              )}
-              {u.programs.map((p) => (
-                <Link
-                  key={p.programId}
-                  to={`/programs/${p.programId}`}
-                  className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-brand-blue/4"
-                >
-                  <span className="font-mono text-xs text-muted-foreground">
-                    #{p.programId}
-                  </span>
-                  <span className="truncate font-display font-medium tracking-tight">
-                    {p.title ?? "(draft)"}
-                  </span>
-                  <StatusChip status={p.status as ProgramStatus} />
-                  <span className="ml-auto font-mono text-muted-foreground">
-                    {formatIDR(p.totalBudget)}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </SectionCard>
-          )}
-
-          {/* ADMIN — role yang divote */}
-          {u.role === "ADMIN" && u.roleVoteBallots && u.roleVoteBallots.length > 0 && (
             <SectionCard
-              title={`Voting Peran (${u.roleVoteBallots.length})`}
-              icon={<Gavel className="h-4 w-4" />}
+              title={`Program (${u.programs.length})`}
+              icon={<Folder className="h-4 w-4" />}
               accent="#4899EA"
               className="shadow-none"
             >
-              <div className="flex flex-col">
-                {u.roleVoteBallots.map((b, i) => (
-                  <div key={i} className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0">
-                    <Link to={`/governance/votes/${b.roleVote.voteId}`} className="font-mono text-xs text-brand-blue hover:underline">
-                      #{b.roleVote.voteId}
-                    </Link>
-                    <Badge variant={b.roleVote.isDevote ? "destructive" : "default"} className="rounded-sm">
-                      {b.roleVote.isDevote ? "Devote" : "Grant"}
-                    </Badge>
-                    <Badge variant="secondary" className="rounded-sm">{b.roleVote.roleToTarget}</Badge>
-                    <span className="font-mono text-xs text-muted-foreground">{formatShortenAddress(b.roleVote.candidate)}</span>
-                    <Badge variant={b.roleVote.executed ? "success" : "secondary"} className="rounded-sm">
-                      {b.roleVote.executed ? "Selesai" : "Berjalan"}
-                    </Badge>
-                    <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">{formatDate(b.votedAt)}</span>
-                  </div>
+              <div className="flex flex-col gap-1">
+                {u.programs.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Belum ada program.
+                  </p>
+                )}
+                {u.programs.map((p) => (
+                  <Link
+                    key={p.programId}
+                    to={`/programs/${p.programId}`}
+                    className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-brand-blue/4"
+                  >
+                    <span className="font-mono text-xs text-muted-foreground">
+                      #{p.programId}
+                    </span>
+                    <span className="truncate font-display font-medium tracking-tight">
+                      {p.title ?? "(draft)"}
+                    </span>
+                    <StatusChip status={p.status as ProgramStatus} />
+                    <span className="ml-auto font-mono text-muted-foreground">
+                      {formatIDR(p.totalBudget)}
+                    </span>
+                  </Link>
                 ))}
               </div>
             </SectionCard>
           )}
 
-          {/* VALIDATOR — banding unfreeze yang divote */}
-          {u.role === "VALIDATOR" && u.unfreezeBallots && u.unfreezeBallots.length > 0 && (
-            <SectionCard
-              title={`Suara Banding Unfreeze (${u.unfreezeBallots.length})`}
-              icon={<Scale className="h-4 w-4" />}
-              accent="#4899EA"
-              className="shadow-none"
-            >
-              <div className="flex flex-col">
-                {u.unfreezeBallots.map((b, i) => (
-                  <div key={i} className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0">
-                    <Link to={`/programs/${b.unfreezeVote.programId}`} className="flex min-w-0 items-center gap-2">
-                      <span className="font-mono text-xs text-muted-foreground">#{b.unfreezeVote.programId}</span>
-                      <span className="truncate font-display font-medium tracking-tight hover:text-brand-blue">{b.unfreezeVote.program?.title ?? "(tanpa judul)"}</span>
-                    </Link>
-                    <Badge variant={b.approve ? "success" : "destructive"} className="rounded-sm">
-                      {b.approve ? "Setuju" : "Tolak"}
-                    </Badge>
-                    <Badge variant={b.unfreezeVote.resolved ? "secondary" : "warning"} className="rounded-sm">
-                      {b.unfreezeVote.resolved ? "Selesai" : "Berjalan"}
-                    </Badge>
-                    <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">{formatDate(b.votedAt)}</span>
-                  </div>
-                ))}
-              </div>
-            </SectionCard>
-          )}
+          {u.role === "ADMIN" &&
+            u.roleVoteBallots &&
+            u.roleVoteBallots.length > 0 && (
+              <SectionCard
+                title={`Voting Peran (${u.roleVoteBallots.length})`}
+                icon={<Gavel className="h-4 w-4" />}
+                accent="#4899EA"
+                className="shadow-none"
+              >
+                <div className="flex flex-col">
+                  {u.roleVoteBallots.map((b, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0"
+                    >
+                      <Link
+                        to={`/governance/votes/${b.roleVote.voteId}`}
+                        className="font-mono text-xs text-brand-blue hover:underline"
+                      >
+                        #{b.roleVote.voteId}
+                      </Link>
+                      <Badge
+                        variant={
+                          b.roleVote.isDevote ? "destructive" : "default"
+                        }
+                        className="rounded-sm"
+                      >
+                        {b.roleVote.isDevote ? "Devote" : "Grant"}
+                      </Badge>
+                      <Badge variant="secondary" className="rounded-sm">
+                        {b.roleVote.roleToTarget}
+                      </Badge>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {formatShortenAddress(b.roleVote.candidate)}
+                      </span>
+                      <Badge
+                        variant={b.roleVote.executed ? "success" : "secondary"}
+                        className="rounded-sm"
+                      >
+                        {b.roleVote.executed ? "Selesai" : "Berjalan"}
+                      </Badge>
+                      <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">
+                        {formatDate(b.votedAt)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
 
-          {/* AUDITOR — program yang dibekukan */}
+          {u.role === "VALIDATOR" &&
+            u.unfreezeBallots &&
+            u.unfreezeBallots.length > 0 && (
+              <SectionCard
+                title={`Suara Banding Unfreeze (${u.unfreezeBallots.length})`}
+                icon={<Scale className="h-4 w-4" />}
+                accent="#4899EA"
+                className="shadow-none"
+              >
+                <div className="flex flex-col">
+                  {u.unfreezeBallots.map((b, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0"
+                    >
+                      <Link
+                        to={`/programs/${b.unfreezeVote.programId}`}
+                        className="flex min-w-0 items-center gap-2"
+                      >
+                        <span className="font-mono text-xs text-muted-foreground">
+                          #{b.unfreezeVote.programId}
+                        </span>
+                        <span className="truncate font-display font-medium tracking-tight hover:text-brand-blue">
+                          {b.unfreezeVote.program?.title ?? "(tanpa judul)"}
+                        </span>
+                      </Link>
+                      <Badge
+                        variant={b.approve ? "success" : "destructive"}
+                        className="rounded-sm"
+                      >
+                        {b.approve ? "Setuju" : "Tolak"}
+                      </Badge>
+                      <Badge
+                        variant={
+                          b.unfreezeVote.resolved ? "secondary" : "warning"
+                        }
+                        className="rounded-sm"
+                      >
+                        {b.unfreezeVote.resolved ? "Selesai" : "Berjalan"}
+                      </Badge>
+                      <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">
+                        {formatDate(b.votedAt)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
           {u.role === "AUDITOR" && u.freezes && u.freezes.length > 0 && (
             <SectionCard
               title={`Program Dibekukan (${u.freezes.length})`}
@@ -202,19 +244,41 @@ export function UserDetailPage() {
             >
               <div className="flex flex-col">
                 {u.freezes.map((f) => (
-                  <div key={f.programId} className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0">
-                    <Link to={`/programs/${f.programId}`} className="flex min-w-0 items-center gap-2">
-                      <span className="font-mono text-xs text-muted-foreground">#{f.programId}</span>
-                      <span className="truncate font-display font-medium tracking-tight hover:text-brand-blue">{f.program?.title ?? "(tanpa judul)"}</span>
+                  <div
+                    key={f.programId}
+                    className="flex flex-wrap items-center gap-2 border-b border-black/5 py-2.5 text-sm last:border-0"
+                  >
+                    <Link
+                      to={`/programs/${f.programId}`}
+                      className="flex min-w-0 items-center gap-2"
+                    >
+                      <span className="font-mono text-xs text-muted-foreground">
+                        #{f.programId}
+                      </span>
+                      <span className="truncate font-display font-medium tracking-tight hover:text-brand-blue">
+                        {f.program?.title ?? "(tanpa judul)"}
+                      </span>
                     </Link>
                     <Badge
-                      variant={f.outcome === "FRAUD_PROVEN" ? "destructive" : f.outcome === "PENDING" ? "warning" : "secondary"}
+                      variant={
+                        f.outcome === "FRAUD_PROVEN"
+                          ? "destructive"
+                          : f.outcome === "PENDING"
+                          ? "warning"
+                          : "secondary"
+                      }
                       className="rounded-sm"
                     >
                       {f.outcome}
                     </Badge>
-                    {f.program && <span className="font-mono text-xs text-muted-foreground">{formatIDR(f.program.totalBudget)}</span>}
-                    <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">{formatDate(f.frozenAt)}</span>
+                    {f.program && (
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {formatIDR(f.program.totalBudget)}
+                      </span>
+                    )}
+                    <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">
+                      {formatDate(f.frozenAt)}
+                    </span>
                   </div>
                 ))}
               </div>

@@ -20,7 +20,6 @@ export function useSignMilestone() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (a: SignArgs) => {
-      // Preflight sama seperti aksi tulis: connect + wallet sesuai + jaringan benar.
       await guard.ensureReady();
       const signature = await signTypedDataAsync({
         domain: EIP712_DOMAIN,

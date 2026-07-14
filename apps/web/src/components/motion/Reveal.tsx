@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { useReducedMotionSafe } from "../../hooks/useReducedMotionSafe";
 
-/** Fade + slide-up saat masuk viewport (sekali). */
 export function Reveal({
   children,
   className,

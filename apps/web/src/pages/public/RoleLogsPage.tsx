@@ -47,9 +47,7 @@ export function RoleLogsPage() {
   const roles = useMemo(
     () => [
       "ALL",
-      ...Array.from(
-        new Set(rows.map((l) => l.targetRole).filter(Boolean)),
-      ),
+      ...Array.from(new Set(rows.map((l) => l.targetRole).filter(Boolean))),
     ],
     [rows],
   );

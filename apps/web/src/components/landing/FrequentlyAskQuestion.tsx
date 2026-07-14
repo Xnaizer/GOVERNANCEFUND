@@ -67,7 +67,9 @@ function FaqRow({
       <div
         className={cn(
           "grid transition-all duration-300 ease-out",
-          open ? "grid-rows-[1                                                                                                              fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          open
+            ? "grid-rows-[1                                                                                                              fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0",
         )}
       >
         <div className="overflow-hidden">
@@ -84,7 +86,10 @@ export function FrequentlyAskQuestion() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <section data-nav-theme="light" className="bg-background px-6 pb-24 pt-4 sm:pb-28">
+    <section
+      data-nav-theme="light"
+      className="bg-background px-6 pb-24 pt-4 sm:pb-28"
+    >
       <div className="mx-auto max-w-3xl">
         <Reveal className="text-center">
           <span className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.25em] text-brand-blue">

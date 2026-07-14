@@ -1,6 +1,5 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-/** Deret tab sebagai pemilih filter (bukan panel konten). */
 export function FilterTabs<T extends string>({
   items,
   value,
@@ -13,7 +12,11 @@ export function FilterTabs<T extends string>({
   className?: string;
 }) {
   return (
-    <Tabs value={value} onValueChange={(v) => onChange(v as T)} className={className}>
+    <Tabs
+      value={value}
+      onValueChange={(v) => onChange(v as T)}
+      className={className}
+    >
       <TabsList className="h-auto flex-wrap gap-1 rounded-xl bg-muted/60 p-1">
         {items.map((it) => (
           <TabsTrigger

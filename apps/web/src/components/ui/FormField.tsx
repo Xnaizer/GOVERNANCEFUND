@@ -1,18 +1,22 @@
 import type { ReactNode } from "react";
-import { useController, type Control, type FieldValues, type FieldPath } from "react-hook-form";
+import {
+  useController,
+  type Control,
+  type FieldValues,
+  type FieldPath,
+} from "react-hook-form";
 import { CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { cn } from "@/utils/cn";
-
-/**
- * RHF-bound wrappers untuk shadcn Input/Textarea. Controlled via useController agar prefilled
- * value & validasi tampil konsisten. (Bug placeholder HeroUI sudah tak relevan di shadcn.)
- */
 
 interface FieldPassthrough {
   label?: ReactNode;
@@ -24,9 +28,7 @@ interface FieldPassthrough {
   errorMessage?: ReactNode;
   autoComplete?: string;
   className?: string;
-  /** Kelas tambahan untuk elemen kontrol di dalam (Input/Textarea/trigger). */
   inputClassName?: string;
-  /** Diterima demi kompat; shadcn selalu label di atas. */
   labelPlacement?: "inside" | "outside" | "outside-left";
   minRows?: number;
 }
@@ -37,7 +39,12 @@ type Bound<T extends FieldValues> = {
 };
 
 function FieldShell({
-  name, label, description, error, className, children,
+  name,
+  label,
+  description,
+  error,
+  className,
+  children,
 }: {
   name: string;
   label?: ReactNode;
@@ -48,26 +55,40 @@ function FieldShell({
 }) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      {label && (
-        <Label htmlFor={name}>
-          {label}
-          {/* penanda wajib */}
-        </Label>
-      )}
+      {label && <Label htmlFor={name}>{label}</Label>}
       {children}
-      {description && !error && <p className="text-xs text-muted-foreground">{description}</p>}
+      {description && !error && (
+        <p className="text-xs text-muted-foreground">{description}</p>
+      )}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
 
-export function FormInput<T extends FieldValues>({ control, name, ...props }: Bound<T> & FieldPassthrough) {
+export function FormInput<T extends FieldValues>({
+  control,
+  name,
+  ...props
+}: Bound<T> & FieldPassthrough) {
   const { field, fieldState } = useController({ control, name });
   const error = props.errorMessage ?? fieldState.error?.message;
   const invalid = props.isInvalid ?? !!fieldState.error;
-  const label = props.isRequired && props.label ? <>{props.label} <span className="text-destructive">*</span></> : props.label;
+  const label =
+    props.isRequired && props.label ? (
+      <>
+        {props.label} <span className="text-destructive">*</span>
+      </>
+    ) : (
+      props.label
+    );
   return (
-    <FieldShell name={name} label={label} description={props.description} error={error} className={props.className}>
+    <FieldShell
+      name={name}
+      label={label}
+      description={props.description}
+      error={error}
+      className={props.className}
+    >
       <Input
         id={name}
         type={props.type}
@@ -79,30 +100,50 @@ export function FormInput<T extends FieldValues>({ control, name, ...props }: Bo
         onBlur={field.onBlur}
         ref={field.ref}
         aria-invalid={invalid || undefined}
-        className={cn(invalid && "border-destructive focus-visible:ring-destructive", props.inputClassName)}
+        className={cn(
+          invalid && "border-destructive focus-visible:ring-destructive",
+          props.inputClassName,
+        )}
       />
     </FieldShell>
   );
 }
 
-/**
- * Date picker RHF-bound (shadcn Popover + Calendar). Menyimpan value sebagai
- * string ISO tanggal (yyyy-mm-dd) agar mudah diserialisasi ke backend.
- */
 export function FormDatePicker<T extends FieldValues>({
-  control, name, minDate, maxDate, ...props
+  control,
+  name,
+  minDate,
+  maxDate,
+  ...props
 }: Bound<T> & FieldPassthrough & { minDate?: Date; maxDate?: Date }) {
   const { field, fieldState } = useController({ control, name });
   const error = props.errorMessage ?? fieldState.error?.message;
   const invalid = props.isInvalid ?? !!fieldState.error;
-  const label = props.isRequired && props.label ? <>{props.label} <span className="text-destructive">*</span></> : props.label;
+  const label =
+    props.isRequired && props.label ? (
+      <>
+        {props.label} <span className="text-destructive">*</span>
+      </>
+    ) : (
+      props.label
+    );
   const value = field.value ? new Date(field.value as string) : undefined;
   const display = value
-    ? value.toLocaleDateString("id-ID", { year: "numeric", month: "long", day: "numeric" })
+    ? value.toLocaleDateString("id-ID", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
     : "";
 
   return (
-    <FieldShell name={name} label={label} description={props.description} error={error} className={props.className}>
+    <FieldShell
+      name={name}
+      label={label}
+      description={props.description}
+      error={error}
+      className={props.className}
+    >
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -128,7 +169,9 @@ export function FormDatePicker<T extends FieldValues>({
             onSelect={(d) => field.onChange(d ? toISODate(d) : undefined)}
             disabled={
               minDate || maxDate
-                ? (d) => (minDate ? d < minDate : false) || (maxDate ? d > maxDate : false)
+                ? (d) =>
+                    (minDate ? d < minDate : false) ||
+                    (maxDate ? d > maxDate : false)
                 : undefined
             }
             autoFocus
@@ -139,7 +182,6 @@ export function FormDatePicker<T extends FieldValues>({
   );
 }
 
-/** yyyy-mm-dd lokal (hindari geser tanggal karena UTC). */
 function toISODate(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -147,13 +189,30 @@ function toISODate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-export function FormTextarea<T extends FieldValues>({ control, name, ...props }: Bound<T> & FieldPassthrough) {
+export function FormTextarea<T extends FieldValues>({
+  control,
+  name,
+  ...props
+}: Bound<T> & FieldPassthrough) {
   const { field, fieldState } = useController({ control, name });
   const error = props.errorMessage ?? fieldState.error?.message;
   const invalid = props.isInvalid ?? !!fieldState.error;
-  const label = props.isRequired && props.label ? <>{props.label} <span className="text-destructive">*</span></> : props.label;
+  const label =
+    props.isRequired && props.label ? (
+      <>
+        {props.label} <span className="text-destructive">*</span>
+      </>
+    ) : (
+      props.label
+    );
   return (
-    <FieldShell name={name} label={label} description={props.description} error={error} className={props.className}>
+    <FieldShell
+      name={name}
+      label={label}
+      description={props.description}
+      error={error}
+      className={props.className}
+    >
       <Textarea
         id={name}
         placeholder={props.placeholder}
@@ -164,7 +223,9 @@ export function FormTextarea<T extends FieldValues>({ control, name, ...props }:
         onBlur={field.onBlur}
         ref={field.ref}
         aria-invalid={invalid || undefined}
-        className={cn(invalid && "border-destructive focus-visible:ring-destructive")}
+        className={cn(
+          invalid && "border-destructive focus-visible:ring-destructive",
+        )}
       />
     </FieldShell>
   );

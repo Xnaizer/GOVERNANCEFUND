@@ -21,9 +21,11 @@ export function useMe() {
 export function useLogin() {
   const qc = useQueryClient();
   return useMutation({
-    // login hanya balas { token }; langsung ambil profil agar cache ["me"] terisi SEBELUM
-    // navigate → ProtectedRoute tak memantul balik ke /login.
-    mutationFn: async (input: { identifier: string; password: string; turnstileToken?: string }) => {
+    mutationFn: async (input: {
+      identifier: string;
+      password: string;
+      turnstileToken?: string;
+    }) => {
       await authApi.login(input);
       return authApi.getMe();
     },
@@ -38,7 +40,7 @@ export function useLogout() {
     mutationFn: authApi.logout,
     onSuccess: () => {
       qc.setQueryData(["me"], null);
-      disconnect(); // putuskan wallet saat logout
+      disconnect(); 
     },
   });
 }
@@ -56,7 +58,15 @@ export function useForgotPassword() {
 
 export function useResetPassword() {
   return useMutation({
-    mutationFn: (input: { token: string; newPassword: string; turnstileToken?: string }) =>
-      authApi.resetPassword(input.token, input.newPassword, input.turnstileToken),
+    mutationFn: (input: {
+      token: string;
+      newPassword: string;
+      turnstileToken?: string;
+    }) =>
+      authApi.resetPassword(
+        input.token,
+        input.newPassword,
+        input.turnstileToken,
+      ),
   });
 }

@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 import { cn } from "@/utils/cn";
 
-/** Satu glow radial (untuk aksen di belakang gambar/kartu, terutama di section gelap). */
 export function Glow({
   className,
   color = "rgba(72,153,234,0.45)",
@@ -14,5 +13,11 @@ export function Glow({
   const style: CSSProperties = {
     background: `radial-gradient(circle at center, ${color} 0%, transparent ${size})`,
   };
-  return <div aria-hidden className={cn("pointer-events-none absolute inset-0 blur-2xl", className)} style={style} />;
+  return (
+    <div
+      aria-hidden
+      className={cn("pointer-events-none absolute inset-0 blur-2xl", className)}
+      style={style}
+    />
+  );
 }

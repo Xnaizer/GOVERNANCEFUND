@@ -29,6 +29,6 @@ export interface RedemptionStats {
   pending: number;
   settled: number;
   cancelled: number;
-  totalSettledAmount: string; // total token dibakar & dicairkan
-  totalPendingAmount: string; // escrow berjalan
+  totalSettledAmount: string; 
+  totalPendingAmount: string; 
 }

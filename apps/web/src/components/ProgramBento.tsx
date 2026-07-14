@@ -9,10 +9,23 @@ import { StatusChip, IntegrityChip } from "./StatusChip";
 import { formatIDR, formatShortenAddress } from "../utils/format";
 
 function initials(s: string): string {
-  return s.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("") || "?";
+  return (
+    s
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase() ?? "")
+      .join("") || "?"
+  );
 }
 
-export function ProgramBento({ programs, isLoading }: { programs: ProgramListItem[]; isLoading: boolean }) {
+export function ProgramBento({
+  programs,
+  isLoading,
+}: {
+  programs: ProgramListItem[];
+  isLoading: boolean;
+}) {
   const navigate = useNavigate();
 
   if (isLoading) {
@@ -40,7 +53,6 @@ export function ProgramBento({ programs, isLoading }: { programs: ProgramListIte
             onClick={() => navigate(`/programs/${p.programId}`)}
             className="group h-full cursor-pointer overflow-hidden rounded-2xl border-black/5 pt-0 shadow-none transition-colors duration-300 hover:border-brand-blue/30"
           >
-            {/* Cover */}
             <div className="relative h-36 w-full overflow-hidden bg-linear-to-br from-brand-mint/30 to-brand-blue/30">
               {cover ? (
                 <img
@@ -56,27 +68,39 @@ export function ProgramBento({ programs, isLoading }: { programs: ProgramListIte
               <div className="absolute left-2.5 top-2.5">
                 <StatusChip status={p.status} />
               </div>
-              <span className="absolute right-2.5 top-2.5 rounded-sm bg-black/55 px-2 py-0.5 font-mono text-[11px] text-white backdrop-blur-sm">#{p.programId}</span>
+              <span className="absolute right-2.5 top-2.5 rounded-sm bg-black/55 px-2 py-0.5 font-mono text-[11px] text-white backdrop-blur-sm">
+                #{p.programId}
+              </span>
             </div>
 
-            {/* Body: judul + lokasi/kategori + budget (tanpa chip menumpuk) */}
             <CardContent className="flex flex-col gap-1 p-4 pb-3">
               <p className="line-clamp-1 font-display font-semibold tracking-tight">
-                {p.title ?? <span className="italic text-amber-600">Orphan (tanpa judul)</span>}
+                {p.title ?? (
+                  <span className="italic text-amber-600">
+                    Orphan (tanpa judul)
+                  </span>
+                )}
               </p>
-              {meta && <p className="truncate text-xs text-muted-foreground">{meta}</p>}
-              <p className="mt-1.5 font-mono text-base font-semibold text-brand-blue">{formatIDR(p.totalBudget)}</p>
+              {meta && (
+                <p className="truncate text-xs text-muted-foreground">{meta}</p>
+              )}
+              <p className="mt-1.5 font-mono text-base font-semibold text-brand-blue">
+                {formatIDR(p.totalBudget)}
+              </p>
             </CardContent>
 
-            {/* Footer minimal: PIC di kiri, integritas di kanan */}
             <CardFooter className="justify-between gap-2 border-t border-black/5 p-3">
               <div className="flex min-w-0 items-center gap-2">
                 <Avatar className="h-6 w-6 shrink-0 text-[10px]">
-                  {p.pic?.profilePictureURL && <AvatarImage src={p.pic.profilePictureURL} alt={picLabel} />}
+                  {p.pic?.profilePictureURL && (
+                    <AvatarImage src={p.pic.profilePictureURL} alt={picLabel} />
+                  )}
                   <AvatarFallback>{initials(picLabel)}</AvatarFallback>
                 </Avatar>
                 <span className="truncate text-xs text-muted-foreground">
-                  {p.pic?.name ?? p.executorName ?? formatShortenAddress(p.picWallet)}
+                  {p.pic?.name ??
+                    p.executorName ??
+                    formatShortenAddress(p.picWallet)}
                 </span>
               </div>
               <IntegrityChip integrity={p.integrity} />

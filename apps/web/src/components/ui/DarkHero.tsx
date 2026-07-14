@@ -6,28 +6,28 @@ import { Grain } from "../backgrounds/Grain";
 import { cn } from "@/utils/cn";
 
 interface Props {
-  /** Label kecil uppercase di atas judul (mis. "Program #12"). */
   eyebrow?: ReactNode;
   title: ReactNode;
-  /** Judul memakai gradient brand alih-alih putih polos. */
   gradient?: boolean;
   subtitle?: ReactNode;
-  /** Baris chip/badge di bawah judul. */
   chips?: ReactNode;
-  /** Konten tambahan (mis. avatar, meta) di dalam hero. */
   children?: ReactNode;
-  /** Tautan "kembali" opsional di atas hero. */
   back?: { to: string; label: string };
-  /** Gambar banner opsional sebagai latar (mis. banner profil), dengan overlay gelap. */
   bannerUrl?: string | null;
   className?: string;
 }
 
-/**
- * Band hero gelap ala section gelap di landing (#0b1220 + Glow + Grain).
- * Dipakai konsisten di halaman detail publik (program / user / vote).
- */
-export function DarkHero({ eyebrow, title, gradient, subtitle, chips, children, back, bannerUrl, className }: Props) {
+export function DarkHero({
+  eyebrow,
+  title,
+  gradient,
+  subtitle,
+  chips,
+  children,
+  back,
+  bannerUrl,
+  className,
+}: Props) {
   return (
     <div className="flex flex-col gap-5 pt-1">
       {back && (
@@ -47,17 +47,31 @@ export function DarkHero({ eyebrow, title, gradient, subtitle, chips, children, 
       >
         {bannerUrl && (
           <>
-            <img src={bannerUrl} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
+            <img
+              src={bannerUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-35"
+            />
             <div className="absolute inset-0 bg-linear-to-t from-[#0b1220] via-[#0b1220]/85 to-[#0b1220]/60" />
           </>
         )}
-        <Glow color="rgba(72,153,234,0.20)" size="55%" className="left-[-6%] top-[-20%] h-80 w-80" />
-        <Glow color="rgba(103,243,206,0.14)" size="55%" className="right-[-6%] bottom-[-30%] h-72 w-72" />
+        <Glow
+          color="rgba(72,153,234,0.20)"
+          size="55%"
+          className="left-[-6%] top-[-20%] h-80 w-80"
+        />
+        <Glow
+          color="rgba(103,243,206,0.14)"
+          size="55%"
+          className="right-[-6%] bottom-[-30%] h-72 w-72"
+        />
         <Grain className="opacity-50" />
 
         <div className="relative">
           {eyebrow && (
-            <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-mint">{eyebrow}</span>
+            <span className="text-xs font-medium uppercase tracking-[0.25em] text-brand-mint">
+              {eyebrow}
+            </span>
           )}
           <h1
             className={cn(
@@ -67,8 +81,16 @@ export function DarkHero({ eyebrow, title, gradient, subtitle, chips, children, 
           >
             {title}
           </h1>
-          {subtitle && <p className="mt-3 max-w-2xl text-pretty text-sm text-white/60 sm:text-base">{subtitle}</p>}
-          {chips && <div className="mt-4 flex flex-wrap items-center gap-2">{chips}</div>}
+          {subtitle && (
+            <p className="mt-3 max-w-2xl text-pretty text-sm text-white/60 sm:text-base">
+              {subtitle}
+            </p>
+          )}
+          {chips && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {chips}
+            </div>
+          )}
           {children}
         </div>
       </section>

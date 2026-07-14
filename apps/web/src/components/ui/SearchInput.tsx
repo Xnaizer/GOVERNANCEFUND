@@ -2,7 +2,6 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/utils/cn";
 
-/** Input pencarian dengan ikon + tombol clear. */
 export function SearchInput({
   value,
   onChange,

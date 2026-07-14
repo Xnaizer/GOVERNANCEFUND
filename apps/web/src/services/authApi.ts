@@ -24,7 +24,11 @@ export async function verifyEmail(token: string) {
   return res.data.data;
 }
 
-export async function login(input: { identifier: string; password: string; turnstileToken?: string }) {
+export async function login(input: {
+  identifier: string;
+  password: string;
+  turnstileToken?: string;
+}) {
   const res = await api.post<Envelope<{ token: string }>>("/auth/login", input);
   return res.data.data;
 }
@@ -44,11 +48,22 @@ export async function updateProfile(input: UpdateProfileInput) {
 }
 
 export async function forgotPassword(email: string, turnstileToken?: string) {
-  const res = await api.post<Envelope<string>>("/auth/forgot-password", { email, turnstileToken });
+  const res = await api.post<Envelope<string>>("/auth/forgot-password", {
+    email,
+    turnstileToken,
+  });
   return res.data.data;
 }
 
-export async function resetPassword(token: string, newPassword: string, turnstileToken?: string) {
-  const res = await api.post<Envelope<string>>("/auth/reset-password", { token, newPassword, turnstileToken });
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+  turnstileToken?: string,
+) {
+  const res = await api.post<Envelope<string>>("/auth/reset-password", {
+    token,
+    newPassword,
+    turnstileToken,
+  });
   return res.data.data;
 }

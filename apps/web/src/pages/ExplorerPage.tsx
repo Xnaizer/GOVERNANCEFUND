@@ -7,7 +7,13 @@ import { Reveal } from "../components/motion/Reveal";
 import { Paginator } from "../components/ui/Paginator";
 import { SearchInput } from "../components/ui/SearchInput";
 import { FilterTabs } from "../components/ui/FilterTabs";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { usePrograms } from "../hooks/usePrograms";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useBriefLoading } from "../hooks/useBriefLoading";
@@ -31,17 +37,24 @@ export function ExplorerPage() {
   const programs = data?.programs ?? [];
   const totalPages = data?.pagination?.totalPages ?? 1;
   const categories = useMemo(
-    () => ["ALL", ...Array.from(new Set(programs.map((p) => p.category).filter(Boolean) as string[]))],
+    () => [
+      "ALL",
+      ...Array.from(
+        new Set(programs.map((p) => p.category).filter(Boolean) as string[]),
+      ),
+    ],
     [programs],
   );
 
-  // Search + kategori bekerja pada halaman server yang aktif (kompromi skala akademik).
   const filtered = useMemo(() => {
     const s = debounced.trim().toLowerCase();
     return programs.filter((p) => {
       if (category !== "ALL" && p.category !== category) return false;
       if (!s) return true;
-      return String(p.programId).includes(s) || (p.title ?? "").toLowerCase().includes(s);
+      return (
+        String(p.programId).includes(s) ||
+        (p.title ?? "").toLowerCase().includes(s)
+      );
     });
   }, [programs, debounced, category]);
 
@@ -59,20 +72,50 @@ export function ExplorerPage() {
       <StatsBar />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <FilterTabs items={TABS} value={tab} onChange={(k) => { setTab(k); setPage(1); }} />
+        <FilterTabs
+          items={TABS}
+          value={tab}
+          onChange={(k) => {
+            setTab(k);
+            setPage(1);
+          }}
+        />
         <div className="flex flex-col gap-3 sm:ml-auto sm:flex-row">
-          <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Cari judul atau #ID…" className="sm:max-w-xs" />
-          <Select value={category} onValueChange={(v) => { setCategory(v); setPage(1); }}>
-            <SelectTrigger className="h-8 sm:max-w-45"><SelectValue /></SelectTrigger>
+          <SearchInput
+            value={search}
+            onChange={(v) => {
+              setSearch(v);
+              setPage(1);
+            }}
+            placeholder="Cari judul atau #ID…"
+            className="sm:max-w-xs"
+          />
+          <Select
+            value={category}
+            onValueChange={(v) => {
+              setCategory(v);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 sm:max-w-45">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              {categories.map((c) => <SelectItem key={c} value={c}>{c === "ALL" ? "Semua kategori" : c}</SelectItem>)}
+              {categories.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c === "ALL" ? "Semua kategori" : c}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <Reveal>
-        <ProgramBento programs={filtered} isLoading={isLoading || isFetching || flashing} />
+        <ProgramBento
+          programs={filtered}
+          isLoading={isLoading || isFetching || flashing}
+        />
       </Reveal>
       <Paginator page={page} totalPages={totalPages} onChange={setPage} />
     </ListShell>

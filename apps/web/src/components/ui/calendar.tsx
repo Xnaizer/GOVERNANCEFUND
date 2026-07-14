@@ -6,7 +6,6 @@ import { buttonVariants } from "@/components/ui/button";
 
 export type CalendarProps = ComponentProps<typeof DayPicker>;
 
-/** shadcn-style Calendar untuk react-day-picker v9. Tanpa border luar (flat). */
 export function Calendar({
   className,
   classNames,

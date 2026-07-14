@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-/** Pantau status koneksi jaringan browser. */
 export function useOnline() {
   const [online, setOnline] = useState(() => navigator.onLine);
   useEffect(() => {
