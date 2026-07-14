@@ -12,6 +12,14 @@ import type {
 import { fakerID_ID as faker } from "@faker-js/faker";
 import { computeProgramHash } from "@repo/shared";
 
+declare const process: {
+  env: Record<string, string | undefined>;
+  exit: (code?: number) => never;
+};
+if (process.env.NODE_ENV === "production") {
+  throw new Error("Seed dilarang di production — hentikan.");
+}
+
 const prisma = new PrismaClient();
 
 faker.seed(2026);

@@ -21,7 +21,13 @@ import { asyncHandler } from "./utils/asyncHandler";
 
 const app: Express = express();
 
-app.use(helmet()); 
+// Di belakang reverse-proxy Railway: percayai 1 hop proxy agar cookie `secure`
+// terkirim benar dan req.ip akurat (dipakai rate-limit + Turnstile remoteip).
+if (env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
+}
+
+app.use(helmet());
 app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
 app.use(cookieParser()); 
 app.use(pinoHttp({

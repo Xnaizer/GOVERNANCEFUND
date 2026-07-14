@@ -35,9 +35,8 @@ enum ProposalStatus {
   MILESTONE_ACHIEVED
   FROZEN
   COMPLETED
-  FRAUD_CONFIRMED 
+  FRAUD_CONFIRMED
 }
-
 
 // enum Integrity
 enum Integrity {
@@ -48,9 +47,9 @@ enum Integrity {
 
 // enum displayTab
 enum DisplayTab {
-  ACTIVE 
-  FINISHED 
-  FLAGGED 
+  ACTIVE
+  FINISHED
+  FLAGGED
   FRAUD
 }
 
@@ -82,14 +81,15 @@ enum FreezeResult {
   PENDING
   CLEARED
   FRAUD_PROVEN
-  UNRESOLVED 
+  UNRESOLVED
 }
+
 // enum Role Change Type
 enum RoleChangeType {
   PIC_GRANTED
   PIC_REVOKED
-  ROLE_GRANTED      
-  ROLE_REVOKED      
+  ROLE_GRANTED
+  ROLE_REVOKED
 }
 
 // enum Redemption Status 
@@ -102,9 +102,9 @@ enum RedemptionStatus {
 // Redemption (two-phase escrow) Model Data
 model Redemption {
   id             String           @id @default(cuid())
-  redemptionId   Int              @unique          
-  picWallet      String                            
-  amount         String                            
+  redemptionId   Int              @unique
+  picWallet      String
+  amount         String
   status         RedemptionStatus @default(PENDING)
   requestedAt    DateTime
   settledAt      DateTime?
@@ -124,50 +124,50 @@ model Redemption {
 
 // User Model Data
 model User {
-  id                  String    @id @default(cuid())
-  username            String    @unique
-  email               String    @unique
-  passwordHash        String
-  isActive            Boolean   @default(false)
-  isVerified          Boolean   @default(false)
-  role                Role      @default(USER)
-  reputationScore     Int       @default(75)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  walletAddress       String?   @unique
-  name                String?
-  nik                 String?   @unique
-  nip                 String?   @unique
-  institution         String?
-  position            String?
-  birthPlace          String?
-  birthDate           DateTime?
-  address             String?
-  phone               String?
-  nationality         String?
-  profilePictureURL   String?
-  profileBannerURL    String?
-  verificationTokens  VerificationToken[]
-  programs            Program[]
-  roleVoteBallots     RoleVoteBallot[]
-  unfreezeBallots     UnfreezeVoteBallot[]
-  reputationLogs      ReputationLog[]
-  redemptions         Redemption[]
+  id                 String               @id @default(cuid())
+  username           String               @unique
+  email              String               @unique
+  passwordHash       String
+  isActive           Boolean              @default(false)
+  isVerified         Boolean              @default(false)
+  role               Role                 @default(USER)
+  reputationScore    Int                  @default(75)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  walletAddress      String?              @unique
+  name               String?
+  nik                String?              @unique
+  nip                String?              @unique
+  institution        String?
+  position           String?
+  birthPlace         String?
+  birthDate          DateTime?
+  address            String?
+  phone              String?
+  nationality        String?
+  profilePictureURL  String?
+  profileBannerURL   String?
+  verificationTokens VerificationToken[]
+  programs           Program[]
+  roleVoteBallots    RoleVoteBallot[]
+  unfreezeBallots    UnfreezeVoteBallot[]
+  reputationLogs     ReputationLog[]
+  redemptions        Redemption[]
 
   @@index([role])
 }
 
 // Reputation Log Model Data
 model ReputationLog {
-  id                  String     @id  @default(cuid())
-  change              Int
-  reason              ReputationReason
-  scoreAfter          Int
-  programId           Int?
-  program             Program?   @relation(fields: [programId], references: [programId])
-  userId              String
-  user                User       @relation(fields: [userId], references: [id])
-  createdAt           DateTime   @default(now())
+  id         String           @id @default(cuid())
+  change     Int
+  reason     ReputationReason
+  scoreAfter Int
+  programId  Int?
+  program    Program?         @relation(fields: [programId], references: [programId])
+  userId     String
+  user       User             @relation(fields: [userId], references: [id])
+  createdAt  DateTime         @default(now())
 
   @@index([userId])
   @@index([programId])
@@ -175,55 +175,55 @@ model ReputationLog {
 
 // Verification Model Data
 model VerificationToken {
-  id                  String    @id @default(cuid())
-  tokenHash           String    @unique
-  type                TokenType
-  expiresAt           DateTime
-  userId              String
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt           DateTime  @default(now())
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  type      TokenType
+  expiresAt DateTime
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
 }
 
 // Program Model Data
 model Program {
-  programId           Int       @id  @default(autoincrement())
-  programHash         String
-  picWallet           String
-  totalBudget         String
-  totalAllocatedSoFar String    @default("0")
-  milestoneCount      Int
-  currentMilestone    Int       @default(0)
-  status              ProposalStatus  @default(PENDING)
-  submittedAt         DateTime?
-  title               String?
-  description         String?
-  province            String?
-  regency             String?
-  district            String?
-  locationAddress     String?
-  executorName        String?
+  programId            Int                @id @default(autoincrement())
+  programHash          String
+  picWallet            String
+  totalBudget          String
+  totalAllocatedSoFar  String             @default("0")
+  milestoneCount       Int
+  currentMilestone     Int                @default(0)
+  status               ProposalStatus     @default(PENDING)
+  submittedAt          DateTime?
+  title                String?
+  description          String?
+  province             String?
+  regency              String?
+  district             String?
+  locationAddress      String?
+  executorName         String?
   executorRegistration String?
-  category            String?
-  institutionName     String?
-  fiscalYear          Int?
-  plannedStartDate    DateTime?
-  plannedEndDate      DateTime?
-  ipfsCid             String?
-  integrity           Integrity   @default(VERIFIED)
-  displayTab          DisplayTab  @default(ACTIVE)
-  isOrphan            Boolean     @default(false)
-  isOnChain           Boolean     @default(false)
-  txHash              String?
-  picId               String?
-  pic                 User?       @relation(fields: [picId], references: [id])
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  programURLs         String[]
-  milestones          Milestone[]
-  withdrawals         WithdrawalRecord[]
-  unfreezeVote        UnfreezeVote?
-  freezeOutcome       FreezeOutcome?
-  reputationLogs      ReputationLog[]
+  category             String?
+  institutionName      String?
+  fiscalYear           Int?
+  plannedStartDate     DateTime?
+  plannedEndDate       DateTime?
+  ipfsCid              String?
+  integrity            Integrity          @default(VERIFIED)
+  displayTab           DisplayTab         @default(ACTIVE)
+  isOrphan             Boolean            @default(false)
+  isOnChain            Boolean            @default(false)
+  txHash               String?
+  picId                String?
+  pic                  User?              @relation(fields: [picId], references: [id])
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  programURLs          String[]
+  milestones           Milestone[]
+  withdrawals          WithdrawalRecord[]
+  unfreezeVote         UnfreezeVote?
+  freezeOutcome        FreezeOutcome?
+  reputationLogs       ReputationLog[]
 
   @@index([displayTab])
   @@index([status])
@@ -234,100 +234,100 @@ model Program {
 
 // Milestone Model Data
 model Milestone {
-  id                  String      @id   @default(cuid())
-  title               String?
-  description         String?
-  evidenceURL         String?
-  evidenceHash        String?
-  status              MilestoneStatus   @default(PLANNED)
-  milestoneIndex      Int        
-  milestoneBudget     String      @default("0")
-  programId           Int 
-  program             Program     @relation(fields: [programId], references: [programId])
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  signatures          MilestoneSignature[]
+  id              String               @id @default(cuid())
+  title           String?
+  description     String?
+  evidenceURL     String?
+  evidenceHash    String?
+  status          MilestoneStatus      @default(PLANNED)
+  milestoneIndex  Int
+  milestoneBudget String               @default("0")
+  programId       Int
+  program         Program              @relation(fields: [programId], references: [programId])
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  signatures      MilestoneSignature[]
 
   @@unique([programId, milestoneIndex])
 }
 
 // Milestone Signature for EIP 712 Data
 model MilestoneSignature {
-  id                  String      @id   @default(cuid())
-  signerWallet        String      
-  signerRole          SignerRole
-  signature           String
-  signedAt            DateTime    @default(now())
-  milestoneId         String
-  milestone           Milestone   @relation(fields: [milestoneId], references: [id])
+  id           String     @id @default(cuid())
+  signerWallet String
+  signerRole   SignerRole
+  signature    String
+  signedAt     DateTime   @default(now())
+  milestoneId  String
+  milestone    Milestone  @relation(fields: [milestoneId], references: [id])
 
   @@unique([milestoneId, signerWallet])
-  @@unique([milestoneId, signerRole]) 
+  @@unique([milestoneId, signerRole])
 }
 
 // Withdrawl Record Model Data
 model WithdrawalRecord {
-  id                  String      @id   @default(cuid())
-  amount              String
-  recipientName       String
-  description         String
-  timestamp           DateTime
-  txHash              String?
-  picWallet           String
-  programId           Int
-  receiptUrl          String?
-  program             Program     @relation(fields: [programId], references: [programId])
-  
+  id            String   @id @default(cuid())
+  amount        String
+  recipientName String
+  description   String
+  timestamp     DateTime
+  txHash        String?
+  picWallet     String
+  programId     Int
+  receiptUrl    String?
+  program       Program  @relation(fields: [programId], references: [programId])
+
   @@index([programId])
 }
 
 // Role Vote Model Data
 model RoleVote {
-  voteId              Int         @id
-  candidate           String
-  roleToTarget        SignerRole
-  voteCount           Int         @default(0)
-  isDevote            Boolean     @default(false)
-  executed            Boolean     @default(false)
-  ballots             RoleVoteBallot[]
+  voteId       Int              @id
+  candidate    String
+  roleToTarget SignerRole
+  voteCount    Int              @default(0)
+  isDevote     Boolean          @default(false)
+  executed     Boolean          @default(false)
+  ballots      RoleVoteBallot[]
 }
 
 // Role Vote Ballot Model Data
 model RoleVoteBallot {
-  id                  String    @id @default(cuid())
-  roleVoteId          Int
-  roleVote            RoleVote  @relation(fields: [roleVoteId], references: [voteId])
-  voterId             String
-  voter               User      @relation(fields: [voterId], references: [id])
-  votedAt             DateTime  @default(now())
+  id         String   @id @default(cuid())
+  roleVoteId Int
+  roleVote   RoleVote @relation(fields: [roleVoteId], references: [voteId])
+  voterId    String
+  voter      User     @relation(fields: [voterId], references: [id])
+  votedAt    DateTime @default(now())
 
   @@unique([roleVoteId, voterId])
 }
 
 // Unfreeze Vote Model Data
 model UnfreezeVote {
-  id                 String     @id   @default(cuid())
-  programId          Int        @unique
-  picWallet          String     
-  program            Program    @relation(fields: [programId], references: [programId])
-  approveVotes       Int        @default(0)
-  rejectVotes        Int        @default(0)
-  appealStartedAt    DateTime?
-  resolved           Boolean    @default(false)
-  createdAt          DateTime   @default(now())
-  txHash             String?
-  ballots            UnfreezeVoteBallot[]
+  id              String               @id @default(cuid())
+  programId       Int                  @unique
+  picWallet       String
+  program         Program              @relation(fields: [programId], references: [programId])
+  approveVotes    Int                  @default(0)
+  rejectVotes     Int                  @default(0)
+  appealStartedAt DateTime?
+  resolved        Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  txHash          String?
+  ballots         UnfreezeVoteBallot[]
 }
 
 // Unfreeze Vote Ballot Model Data
 model UnfreezeVoteBallot {
-  id                 String     @id   @default(cuid())
-  unfreezeVoteId     String
-  unfreezeVote       UnfreezeVote   @relation(fields: [unfreezeVoteId], references: [id])
-  voterId            String
-  voter              User       @relation(fields: [voterId], references: [id])
-  approve            Boolean 
-  votedAt            DateTime   @default(now())
+  id             String       @id @default(cuid())
+  unfreezeVoteId String
+  unfreezeVote   UnfreezeVote @relation(fields: [unfreezeVoteId], references: [id])
+  voterId        String
+  voter          User         @relation(fields: [voterId], references: [id])
+  approve        Boolean
+  votedAt        DateTime     @default(now())
 
   @@unique([unfreezeVoteId, voterId])
 }
@@ -339,9 +339,9 @@ model FreezeOutcome {
   outcome       FreezeResult @default(PENDING)
   frozenAt      DateTime
   resolvedAt    DateTime?
-  reason        String?                                   
-  description   String?                                   
-  evidenceUrl   String?                                   
+  reason        String?
+  description   String?
+  evidenceUrl   String?
   programId     Int          @unique
   program       Program      @relation(fields: [programId], references: [programId])
   createdAt     DateTime     @default(now())
@@ -349,13 +349,13 @@ model FreezeOutcome {
 }
 
 model RoleChangeLog {
-  id            String          @id   @default(cuid())
-  changeType    RoleChangeType
-  targetWallet  String      
-  targetRole    String
-  actorWallet   String?
-  txHash        String?
-  createdAt     DateTime        @default(now())
+  id           String         @id @default(cuid())
+  changeType   RoleChangeType
+  targetWallet String
+  targetRole   String
+  actorWallet  String?
+  txHash       String?
+  createdAt    DateTime       @default(now())
 
   @@index([targetWallet])
   @@index([actorWallet])
