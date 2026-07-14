@@ -8,7 +8,7 @@ const ITEMS = [
     tag: "Bagi warga",
     title: "Pantau ke mana dana mengalir.",
     body: "Buka Explorer publik dan telusuri setiap program, pencairan, hingga percobaan kecurangan — tanpa perlu akun.",
-    img: "/media/person-phone.webp",
+    img: "/media/monitoring.jpg",
     color: "#4899EA",
     glow: "rgba(72,153,234,0.5)",
   },
@@ -16,7 +16,7 @@ const ITEMS = [
     tag: "Bagi auditor",
     title: "Bekukan yang mencurigakan seketika.",
     body: "Auditor independen bisa menghentikan program dalam satu transaksi on-chain — publik, terlihat, dan tak bisa ditutupi.",
-    img: "/media/purple-sky.webp",
+    img: "/media/audit.jpg",
     color: "#C084FC",
     glow: "rgba(192,132,252,0.5)",
   },
@@ -24,7 +24,7 @@ const ITEMS = [
     tag: "Bagi institusi",
     title: "Kelola anggaran tanpa celah.",
     body: "Alur multi-signature dan hash on-chain memastikan tak ada satu pihak pun yang bisa memindahkan dana sendirian.",
-    img: "/media/hero-finance.webp",
+    img: "/media/stakeholder.jpg",
     color: "#67F3CE",
     glow: "rgba(103,243,206,0.5)",
   },
@@ -106,10 +106,8 @@ export function HoverFeature() {
               alt={item.title}
               className="absolute inset-0 h-full w-full object-cover"
             />
-            <div
-              className="absolute inset-0 mix-blend-soft-light"
-              style={{ backgroundColor: item.color, opacity: 0.25 }}
-            />
+            {/* Overlay gelap 30% agar foto lebih redup */}
+            <div className="absolute inset-0 bg-black/30" />
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
             <div className="absolute inset-x-5 bottom-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-md">

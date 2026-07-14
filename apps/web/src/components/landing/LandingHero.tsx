@@ -53,13 +53,16 @@ export function LandingHero() {
           className="absolute inset-0 z-0"
         >
           <motion.img
-            src="/media/hero-aurora.webp"
+            src="/media/hero.jpg"
             alt=""
             style={{ y: imgY, scale: imgScale }}
             className="h-full w-full object-cover"
             loading="eager"
           />
         </motion.div>
+
+        {/* Overlay gelap 30% agar foto hero lebih redup & teks kontras */}
+        <div className="absolute inset-0 z-1 bg-black/30" />
 
         <motion.div
           style={{ x: glowMX, y: glowMY }}

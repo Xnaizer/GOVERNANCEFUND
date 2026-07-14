@@ -4,6 +4,7 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { RouteProgress } from "./components/RouteProgress";
+import { RouteTitle } from "./components/RouteTitle";
 
 export function App() {
   return (
@@ -11,6 +12,7 @@ export function App() {
       <OfflineBanner />
       <BrowserRouter>
         <ScrollToTop />
+        <RouteTitle />
         <RouteProgress />
         <AppRoutes />
       </BrowserRouter>
