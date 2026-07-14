@@ -97,7 +97,7 @@ governancefund/
 | Layer | Teknologi utama |
 |---|---|
 | **Frontend** (`apps/web`) | Vite + React 18, React Router, Tailwind v4 (CSS-first) + shadcn/ui (Radix), Wagmi v2 + Viem + RainbowKit, React Query, react-hook-form + Zod, framer-motion/GSAP/Lenis (landing), Cloudflare Turnstile |
-| **Backend** (`apps/api`) | Express 4 + TypeScript (tsx/tsup), Prisma, BullMQ (Upstash Redis), JWT (httpOnly cookie), Nodemailer, Pino, Sentry, Alchemy SDK, Cloudinary + Pinata (IPFS) |
+| **Backend** (`apps/api`) | Express 4 + TypeScript (tsx/tsup), Prisma, BullMQ (Upstash Redis), JWT (httpOnly cookie), Brevo (email via HTTP API), Pino, Sentry, Alchemy SDK, Cloudinary + Pinata (IPFS) |
 | **Blockchain** (`packages/blockchain`) | Solidity 0.8.35, Hardhat 3, OpenZeppelin v5 (EIP712/ECDSA/AccessControl/ERC20), Ethers (khusus script) |
 | **Database** | Supabase PostgreSQL via Prisma 5.20 (session pooler) |
 | **Infra** | Vercel (FE), Railway (BE), Upstash Redis, Alchemy Notify webhook |
@@ -124,7 +124,7 @@ pnpm install
 
 # 2. Siapkan environment (lihat README tiap paket untuk daftar lengkap)
 #    - packages/database/.env  → DATABASE_URL, DIRECT_URL (Supabase pooler)
-#    - apps/api/.env           → JWT_SECRET, UPSTASH_REDIS_URL, ALCHEMY_*, SMTP_*, dst.
+#    - apps/api/.env           → JWT_SECRET, UPSTASH_REDIS_URL, ALCHEMY_*, BREVO_API_KEY, dst.
 #    - apps/web/.env           → VITE_API_URL, VITE_WC_PROJECT_ID, dst.
 
 # 3. Database — generate client + push schema (+ seed opsional)

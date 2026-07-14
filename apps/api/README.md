@@ -18,7 +18,7 @@ upload (Cloudinary/IPFS), dan infrastruktur asinkron (BullMQ).
 ## Tech Stack
 
 Express 4.21 · **tsx** (dev watch) · **tsup** (bundle prod) · Prisma 5.20 · BullMQ (Upstash Redis via
-ioredis) · JWT (cookie httpOnly + fallback Bearer) · bcryptjs · Nodemailer (EJS) · **Pino** (log
+ioredis) · JWT (cookie httpOnly + fallback Bearer) · bcryptjs · **Brevo** email HTTP API (EJS) · **Pino** (log
 terstruktur, redaksi rahasia) · **Sentry** · Alchemy SDK · Cloudinary + **Pinata** (IPFS) · Multer ·
 helmet · express-rate-limit · sanitize-html · **Cloudflare Turnstile** (anti-bot pada auth).
 
@@ -53,9 +53,14 @@ utils/          # AppError, asyncHandler, response envelope
 ## Environment (`apps/api/.env`) — inti
 
 `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` (≥32), `UPSTASH_REDIS_URL` (`rediss://…`),
-`ALCHEMY_BASE_SEPOLIA_RPC_URL`, `ALCHEMY_WEBHOOK_SECRET`, `SMTP_*`, `FRONTEND_URL`,
-`QUEUE_ADMIN_USER/PASS`, `CLOUDINARY_*`, `PINATA_JWT/GATEWAY`, `TURNSTILE_SECRET_KEY` (opsional),
-`SENTRY_DSN` (opsional), `ENABLE_WORKERS` (`false` untuk hemat kuota Redis saat dev).
+`ALCHEMY_BASE_SEPOLIA_RPC_URL`, `ALCHEMY_WEBHOOK_SECRET`, `BREVO_API_KEY`, `EMAIL_FROM`,
+`FRONTEND_URL`, `QUEUE_ADMIN_USER/PASS`, `CLOUDINARY_*`, `PINATA_JWT/GATEWAY`,
+`TURNSTILE_SECRET_KEY` (opsional), `SENTRY_DSN` (opsional), `ENABLE_WORKERS` (`false` untuk hemat
+kuota Redis saat dev).
+
+> **Email pakai Brevo HTTP API, bukan SMTP** — host cloud (Railway) memblok egress SMTP (port 465
+> & 587 sama-sama timeout), jadi pengiriman lewat HTTPS/443. `BREVO_API_KEY` **wajib** (app gagal
+> boot tanpanya) dan `EMAIL_FROM` harus sender yang sudah diverifikasi di dashboard Brevo.
 
 > **Jangan commit `.env`.** Alamat kontrak + ABI + alamat deployer aman publik (fitur transparansi).
 

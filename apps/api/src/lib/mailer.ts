@@ -1,4 +1,3 @@
-import nodemailer from "nodemailer";
 import { env } from "../config/env";
 import path from "node:path";
 import ejs from "ejs";
@@ -10,17 +9,16 @@ interface IEmail {
   data: Record<string, unknown>;
 }
 
-const transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
-  secure: env.SMTP_PORT === 465, 
-  auth: {
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-  },
-  connectionTimeout: 10_000, 
-  greetingTimeout: 10_000,
-});
+const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
+const SEND_TIMEOUT_MS = 10_000;
+
+function parseSender(from: string): { name: string; email: string } {
+  const match = from.match(/^\s*(.*?)\s*<(.+)>\s*$/);
+  if (match?.[2]) {
+    return { name: match[1] || "GovernanceFund", email: match[2].trim() };
+  }
+  return { name: "GovernanceFund", email: from.trim() };
+}
 
 async function renderTemplate(
   templateName: string,
@@ -39,15 +37,30 @@ async function renderTemplate(
 export async function sendTemplateEmail(params: IEmail): Promise<void> {
   const html = await renderTemplate(params.template, params.data);
 
-  await transporter.sendMail({
-    from: env.EMAIL_FROM,
-    to: params.to,
-    subject: params.subject,
-    html,
+  const res = await fetch(BREVO_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "api-key": env.BREVO_API_KEY,
+      "content-type": "application/json",
+      accept: "application/json",
+    },
+    body: JSON.stringify({
+      sender: parseSender(env.EMAIL_FROM),
+      to: [{ email: params.to }],
+      subject: params.subject,
+      htmlContent: html,
+    }),
+    signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
   });
+
+  if (!res.ok) {
+    // Body Brevo menjelaskan sebabnya (mis. sender belum diverifikasi); tidak memuat api-key.
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Brevo send failed (${res.status}): ${detail}`);
+  }
 }
 
 export async function verifyMailer(): Promise<void> {
-  await transporter.verify();
-  console.log("[MAILER] SMTP Connection verified");
+  const { email } = parseSender(env.EMAIL_FROM);
+  console.log(`[MAILER] Brevo HTTP API ready (sender: ${email})`);
 }
