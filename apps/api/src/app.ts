@@ -21,8 +21,6 @@ import { asyncHandler } from "./utils/asyncHandler";
 
 const app: Express = express();
 
-// Di belakang reverse-proxy Railway: percayai 1 hop proxy agar cookie `secure`
-// terkirim benar dan req.ip akurat (dipakai rate-limit + Turnstile remoteip).
 if (env.NODE_ENV === "production") {
     app.set("trust proxy", 1);
 }

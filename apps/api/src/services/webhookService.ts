@@ -434,8 +434,6 @@ export async function handleProgramForceFrozen(
       },
     });
 
-    // Upsert: auditor mungkin sudah melampirkan bukti (FreezeOutcome dibuat) sebelum event masuk.
-    // On-chain adalah sumber kebenaran untuk auditorWallet/txHash; reason/description dibiarkan.
     await tx.freezeOutcome.upsert({
       where: { programId },
       create: {
