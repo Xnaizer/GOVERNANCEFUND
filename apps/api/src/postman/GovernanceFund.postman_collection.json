@@ -7,7 +7,13 @@
   },
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
   },
   "variable": [],
   "item": [
@@ -17,13 +23,19 @@
         {
           "name": "Health check",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/health",
-              "host": ["{{baseUrl}}"],
-              "path": ["health"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
             }
           }
         }
@@ -35,31 +47,55 @@
         {
           "name": "Register",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"pic_user\",\n  \"email\": \"pic@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/auth/register",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             }
           }
         },
         {
           "name": "Verify Email",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/auth/verify-email?token={{verifyToken}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "verify-email"],
-              "query": [{ "key": "token", "value": "{{verifyToken}}" }]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{verifyToken}}"
+                }
+              ]
             },
             "description": "Raw token comes from the verification email (or dev SMTP inbox / server logs). Paste it into the `verifyToken` environment variable first."
           }
@@ -83,17 +119,29 @@
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"pic@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/auth/login",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
             "description": "Saves data.token to the `token` environment variable. To collect role tokens, log in as each account and copy `token` into adminToken/picToken/validatorToken/auditorToken."
           }
@@ -105,8 +153,13 @@
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/auth/me",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "me"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             }
           }
         },
@@ -114,49 +167,83 @@
           "name": "Update Profile (fill-data)",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Budi Santoso\",\n  \"nik\": \"3201010101010001\",\n  \"nip\": \"198001012005011001\",\n  \"institution\": \"Dinas Pekerjaan Umum\",\n  \"position\": \"Kepala Proyek\",\n  \"birthPlace\": \"Bandung\",\n  \"birthDate\": \"1980-01-01\",\n  \"address\": \"Jl. Merdeka No. 1\",\n  \"phone\": \"+628123456789\",\n  \"nationality\": \"Indonesia\"\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/auth/me",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "me"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             }
           }
         },
         {
           "name": "Forgot Password",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"pic@example.com\"\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/auth/forgot-password",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "forgot-password"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "forgot-password"
+              ]
             }
           }
         },
         {
           "name": "Reset Password",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"newpassword123\"\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/auth/reset-password",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "reset-password"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "reset-password"
+              ]
             }
           }
         },
@@ -167,8 +254,13 @@
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/auth/logout",
-              "host": ["{{apiUrl}}"],
-              "path": ["auth", "logout"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
             }
           }
         }
@@ -184,8 +276,14 @@
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/users/wallet/nonce",
-              "host": ["{{apiUrl}}"],
-              "path": ["users", "wallet", "nonce"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "users",
+                "wallet",
+                "nonce"
+              ]
             },
             "description": "Returns a one-time nonce. Sign it with MetaMask/viem `personal_sign`, then submit to Bind Wallet."
           }
@@ -194,15 +292,26 @@
           "name": "Bind Wallet",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"walletAddress\": \"{{picWallet}}\",\n  \"signature\": \"0xREPLACE_WITH_personal_sign_of_the_nonce\"\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/users/wallet/bind",
-              "host": ["{{apiUrl}}"],
-              "path": ["users", "wallet", "bind"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "users",
+                "wallet",
+                "bind"
+              ]
             },
             "description": "signature = personal_sign(nonce) by the wallet. See scripts/sign-nonce.mjs in TESTING_SCENARIOS.md to produce one locally."
           }
@@ -213,20 +322,42 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/users?page=1&limit=20",
-              "host": ["{{apiUrl}}"],
-              "path": ["users"],
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" },
-                { "key": "role", "value": "PIC", "disabled": true },
-                { "key": "isVerified", "value": "false", "disabled": true }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "role",
+                  "value": "PIC",
+                  "disabled": true
+                },
+                {
+                  "key": "isVerified",
+                  "value": "false",
+                  "disabled": true
+                }
               ]
             }
           }
@@ -237,17 +368,63 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"isVerified\": true\n}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isVerified\": true\n}"
+            },
             "url": {
               "raw": "{{apiUrl}}/users/{{userId}}/verify",
-              "host": ["{{apiUrl}}"],
-              "path": ["users", "{{userId}}", "verify"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "verify"
+              ]
             }
+          }
+        },
+        {
+          "name": "Get User by ID (ADMIN)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiUrl}}/users/{{userId}}",
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Detail satu user. Butuh role ADMIN."
           }
         }
       ]
@@ -277,19 +454,32 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{picToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{picToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"title\": \"Pembangunan Jembatan Desa\",\n  \"description\": \"Pembangunan jembatan penghubung dua desa\",\n  \"totalBudget\": \"300\",\n  \"milestoneCount\": 2,\n  \"province\": \"Jawa Barat\",\n  \"regency\": \"Bandung\",\n  \"district\": \"Cileunyi\",\n  \"locationAddress\": \"Jl. Raya Cileunyi\",\n  \"executorName\": \"CV Maju Jaya\",\n  \"executorRegistration\": \"REG-001\",\n  \"category\": \"Infrastruktur\",\n  \"institutionName\": \"Dinas PU\",\n  \"fiscalYear\": 2026,\n  \"plannedStartDate\": \"2026-01-01\",\n  \"plannedEndDate\": \"2026-12-31\",\n  \"milestones\": [\n    { \"title\": \"Fondasi\", \"description\": \"Pengerjaan fondasi\", \"milestoneBudget\": \"200\" },\n    { \"title\": \"Struktur atas\", \"description\": \"Pengerjaan struktur\", \"milestoneBudget\": \"100\" }\n  ]\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/programs",
-              "host": ["{{apiUrl}}"],
-              "path": ["programs"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "programs"
+              ]
             },
             "description": "Requires: role PIC, isVerified=true, wallet bound, reputationScore>=35, AND on-chain totalValidatorsCount>=3 (real contract read). If no validators exist on-chain this returns 400 - see TESTING_SCENARIOS.md."
           }
@@ -301,12 +491,26 @@
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/programs?page=1&limit=20",
-              "host": ["{{apiUrl}}"],
-              "path": ["programs"],
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "programs"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" },
-                { "key": "tab", "value": "ACTIVE", "disabled": true }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "tab",
+                  "value": "ACTIVE",
+                  "disabled": true
+                }
               ]
             }
           }
@@ -318,8 +522,13 @@
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/programs/{{programId}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["programs", "{{programId}}"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "programs",
+                "{{programId}}"
+              ]
             }
           }
         },
@@ -329,17 +538,70 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{picToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{picToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/programs/{{programId}}/onchain-payload",
-              "host": ["{{apiUrl}}"],
-              "path": ["programs", "{{programId}}", "onchain-payload"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "programs",
+                "{{programId}}",
+                "onchain-payload"
+              ]
             },
             "description": "Fresh { programId, programHash, milestoneCount } recomputed from current data. FE calls this right before submitProposal on-chain."
+          }
+        },
+        {
+          "name": "Upload Freeze Evidence (AUDITOR)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auditorToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Indikasi penggelapan dana milestone\",\n  \"description\": \"Bukti awal ketidaksesuaian penarikan dengan progres fisik.\",\n  \"evidenceUrl\": \"https://example.com/bukti-freeze.pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{apiUrl}}/programs/{{programId}}/freeze-evidence",
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "programs",
+                "{{programId}}",
+                "freeze-evidence"
+              ]
+            },
+            "description": "Auditor melampirkan alasan/bukti pembekuan (metadata FreezeOutcome). Butuh role AUDITOR."
           }
         }
       ]
@@ -353,19 +615,32 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{adminToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"milestoneId\": \"{{milestoneId}}\",\n  \"milestoneIndex\": 0,\n  \"milestoneBudget\": \"200\",\n  \"evidenceHash\": \"0x1111111111111111111111111111111111111111111111111111111111111111\",\n  \"signature\": \"0xREPLACE_WITH_REAL_EIP712_SIGNATURE\",\n  \"signerRole\": \"ADMIN\"\n}"
             },
             "url": {
               "raw": "{{apiUrl}}/signatures",
-              "host": ["{{apiUrl}}"],
-              "path": ["signatures"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "signatures"
+              ]
             },
             "description": "signature MUST be a real EIP-712 MilestoneApproval signature by a wallet that (a) matches your bound wallet and (b) holds the claimed role on-chain. Fake signatures are rejected by recoverTypedDataAddress + hasRole. See scripts/sign-milestone.mjs in TESTING_SCENARIOS.md."
           }
@@ -377,8 +652,13 @@
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/signatures/{{milestoneId}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["signatures", "{{milestoneId}}"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "signatures",
+                "{{milestoneId}}"
+              ]
             }
           }
         },
@@ -388,15 +668,24 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{picToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{picToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "DELETE",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/signatures/{{milestoneId}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["signatures", "{{milestoneId}}"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "signatures",
+                "{{milestoneId}}"
+              ]
             },
             "description": "PIC-only. Wipes all signatures + clears milestone evidenceHash. Only allowed while milestone status is PLANNED (not yet released)."
           }
@@ -409,17 +698,34 @@
         {
           "name": "List Programs",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/programs?page=1&limit=20",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "programs"],
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "programs"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" },
-                { "key": "tab", "value": "ACTIVE", "disabled": true }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "tab",
+                  "value": "ACTIVE",
+                  "disabled": true
+                }
               ]
             }
           }
@@ -427,13 +733,21 @@
         {
           "name": "Program Detail (enriched)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/programs/{{programId}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "programs", "{{programId}}"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "programs",
+                "{{programId}}"
+              ]
             },
             "description": "Includes milestones+signatures, withdrawals, freezeOutcome, unfreezeVote."
           }
@@ -441,42 +755,71 @@
         {
           "name": "Program Withdrawals",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/programs/{{programId}}/withdrawals",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "programs", "{{programId}}", "withdrawals"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "programs",
+                "{{programId}}",
+                "withdrawals"
+              ]
             }
           }
         },
         {
           "name": "Stats",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/stats",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "stats"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "stats"
+              ]
             }
           }
         },
         {
           "name": "Role Votes",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/votes?page=1&limit=20",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "votes"],
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "votes"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -484,29 +827,50 @@
         {
           "name": "Role Vote Detail",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/votes/{{voteId}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "votes", "{{voteId}}"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "votes",
+                "{{voteId}}"
+              ]
             }
           }
         },
         {
           "name": "Unfreeze Votes",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/unfreeze-votes?page=1&limit=20",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "unfreeze-votes"],
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "unfreeze-votes"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -514,29 +878,51 @@
         {
           "name": "Unfreeze Vote Detail (by programId)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/unfreeze-votes/{{programId}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "unfreeze-votes", "{{programId}}"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "unfreeze-votes",
+                "{{programId}}"
+              ]
             }
           }
         },
         {
           "name": "Role Change Logs",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/logs/roles?page=1&limit=20",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "logs", "roles"],
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "logs",
+                "roles"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
               ]
             }
           }
@@ -544,14 +930,53 @@
         {
           "name": "User Public Profile",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/public/users/{{userId}}",
-              "host": ["{{apiUrl}}"],
-              "path": ["public", "users", "{{userId}}"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "users",
+                "{{userId}}"
+              ]
             }
+          }
+        },
+        {
+          "name": "List Users (public)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiUrl}}/public/users?page=1&limit=20",
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "public",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Daftar user publik (profil ringkas per-role)."
           }
         }
       ]
@@ -580,7 +1005,9 @@
         {
           "name": "PicRoleGrantedByAdmin",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -589,15 +1016,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "RoleGrantedViaGovernance (VALIDATOR)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -606,15 +1040,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "RoleGrantedViaGovernance (AUDITOR)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -623,15 +1064,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "RoleGrantedViaGovernance (ADMIN)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -640,15 +1088,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "ProposalSubmitted (VERIFIED path)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -657,8 +1112,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "Uses the real programId+programHash saved by Create Program -> integrity VERIFIED. Change programId to a non-existent one to test the ORPHAN branch."
           }
@@ -666,7 +1126,9 @@
         {
           "name": "ProposalSubmitted (ORPHAN path)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -675,8 +1137,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "programId not in DB -> creates a naked ORPHAN record, displayTab FLAGGED."
           }
@@ -684,7 +1151,9 @@
         {
           "name": "ProposalVoted",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -693,15 +1162,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "ProposalApproved",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -710,15 +1186,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "MilestoneReleased",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -727,15 +1210,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "OnChainWithdrawalLogged",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -744,8 +1234,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "Send twice with the SAME txHash to verify dedup (2nd -> DUPLICATE_SKIPPED)."
           }
@@ -753,7 +1248,9 @@
         {
           "name": "MilestoneFinalized",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -762,8 +1259,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "PIC +5 MILESTONE_FINALIZED (returned unused budget)."
           }
@@ -771,7 +1273,9 @@
         {
           "name": "ProgramCompleted",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -780,8 +1284,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "PIC +15 PROGRAM_COMPLETED, status COMPLETED, tab FINISHED."
           }
@@ -789,7 +1298,9 @@
         {
           "name": "ProgramForceFrozen",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -798,8 +1309,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "Creates FreezeOutcome (PENDING), status FROZEN, tab FLAGGED."
           }
@@ -807,7 +1323,9 @@
         {
           "name": "UnfreezeAppealSubmitted",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -816,15 +1334,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "UnfreezeAppealVoted (approve)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -833,15 +1358,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "ProgramUnfrozenViaBFT",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -850,8 +1382,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "Auditor -20 FALSE_FREEZE, FreezeOutcome CLEARED, status DRAWABLE, tab ACTIVE."
           }
@@ -859,7 +1396,9 @@
         {
           "name": "ProgramFraudConfirmed",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -868,8 +1407,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             },
             "description": "PIC -40 FRAUD_PROVEN + Auditor +20 VALID_FREEZE, status FRAUD_CONFIRMED, tab FRAUD."
           }
@@ -877,7 +1421,9 @@
         {
           "name": "RoleVoteCreated",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -886,15 +1432,22 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         },
         {
           "name": "RoleVoteCast",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
@@ -903,8 +1456,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/webhook/alchemy",
-              "host": ["{{baseUrl}}"],
-              "path": ["webhook", "alchemy"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "webhook",
+                "alchemy"
+              ]
             }
           }
         }
@@ -920,19 +1478,36 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{picToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{picToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
             },
             "url": {
               "raw": "{{apiUrl}}/uploads/program/{{programId}}/image",
-              "host": ["{{apiUrl}}"],
-              "path": ["uploads", "program", "{{programId}}", "image"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "program",
+                "{{programId}}",
+                "image"
+              ]
             },
             "description": "form-data 'file' = jpg/png/webp (≤5MB). Append ke Program.programURLs. Return { url, publicId, programURLs }."
           }
@@ -943,15 +1518,26 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{picToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{picToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "POST",
             "header": [],
             "url": {
               "raw": "{{apiUrl}}/uploads/program/{{programId}}/pin-data",
-              "host": ["{{apiUrl}}"],
-              "path": ["uploads", "program", "{{programId}}", "pin-data"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "program",
+                "{{programId}}",
+                "pin-data"
+              ]
             },
             "description": "Tanpa body. Pin JSON kanonik program ke Pinata, simpan Program.ipfsCid. Return { cid, gatewayUrl }."
           }
@@ -962,19 +1548,36 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{picToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{picToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
             },
             "url": {
               "raw": "{{apiUrl}}/uploads/milestone/{{milestoneId}}/evidence",
-              "host": ["{{apiUrl}}"],
-              "path": ["uploads", "milestone", "{{milestoneId}}", "evidence"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "milestone",
+                "{{milestoneId}}",
+                "evidence"
+              ]
             },
             "description": "form-data 'file' = pdf/image (≤10MB). Milestone harus PLANNED. Set evidenceURL+evidenceHash. Return { cid, gatewayUrl, evidenceHash } — evidenceHash dipakai EIP-712 + executeMilestoneRelease."
           }
@@ -985,19 +1588,36 @@
             "auth": {
               "type": "bearer",
               "bearer": [
-                { "key": "token", "value": "{{picToken}}", "type": "string" }
+                {
+                  "key": "token",
+                  "value": "{{picToken}}",
+                  "type": "string"
+                }
               ]
             },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
             },
             "url": {
               "raw": "{{apiUrl}}/uploads/withdrawal/{{withdrawalId}}/receipt",
-              "host": ["{{apiUrl}}"],
-              "path": ["uploads", "withdrawal", "{{withdrawalId}}", "receipt"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "withdrawal",
+                "{{withdrawalId}}",
+                "receipt"
+              ]
             },
             "description": "form-data 'file' = jpg/png/webp (≤5MB). Set WithdrawalRecord.receiptUrl. Isi {{withdrawalId}} dari id WithdrawalRecord (setelah webhook OnChainWithdrawalLogged)."
           }
@@ -1009,12 +1629,24 @@
             "header": [],
             "body": {
               "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
             },
             "url": {
               "raw": "{{apiUrl}}/uploads/user/avatar",
-              "host": ["{{apiUrl}}"],
-              "path": ["uploads", "user", "avatar"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "user",
+                "avatar"
+              ]
             },
             "description": "User login apa pun (pakai {{token}} default). form-data 'file' = image ≤5MB. Set profilePictureURL sendiri."
           }
@@ -1026,14 +1658,133 @@
             "header": [],
             "body": {
               "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
             },
             "url": {
               "raw": "{{apiUrl}}/uploads/user/banner",
-              "host": ["{{apiUrl}}"],
-              "path": ["uploads", "user", "banner"]
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "uploads",
+                "user",
+                "banner"
+              ]
             },
             "description": "User login apa pun. form-data 'file' = image ≤5MB. Set profileBannerURL sendiri."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Gateway (no auth)",
+      "item": [
+        {
+          "name": "List Redemptions",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiUrl}}/gateway/redemptions?page=1&limit=20",
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "gateway",
+                "redemptions"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "PENDING",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Daftar permohonan pencairan (redemption). Filter opsional ?status=PENDING."
+          }
+        },
+        {
+          "name": "Redemptions by PIC Wallet",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiUrl}}/gateway/redemptions/pic/{{picWallet}}",
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "gateway",
+                "redemptions",
+                "pic",
+                "{{picWallet}}"
+              ]
+            },
+            "description": "Redemption milik satu PIC berdasarkan alamat wallet."
+          }
+        },
+        {
+          "name": "Redemption Detail",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiUrl}}/gateway/redemptions/{{redemptionId}}",
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "gateway",
+                "redemptions",
+                "{{redemptionId}}"
+              ]
+            },
+            "description": "Detail satu redemption."
+          }
+        },
+        {
+          "name": "Gateway Stats",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{apiUrl}}/gateway/stats",
+              "host": [
+                "{{apiUrl}}"
+              ],
+              "path": [
+                "gateway",
+                "stats"
+              ]
+            },
+            "description": "Ringkasan statistik pencairan."
           }
         }
       ]
