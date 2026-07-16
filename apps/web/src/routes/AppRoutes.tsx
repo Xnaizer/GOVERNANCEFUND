@@ -32,6 +32,11 @@ const VerifyEmailPage = lazy(() =>
     default: m.VerifyEmailPage,
   })),
 );
+const ResendVerificationPage = lazy(() =>
+  import("../pages/ResendVerificationPage").then((m) => ({
+    default: m.ResendVerificationPage,
+  })),
+);
 const ForgotPasswordPage = lazy(() =>
   import("../pages/ForgotPasswordPage").then((m) => ({
     default: m.ForgotPasswordPage,
@@ -184,6 +189,10 @@ export function AppRoutes() {
         />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route
+          path="/resend-verification"
+          element={<ResendVerificationPage />}
+        />
 
         <Route
           element={

@@ -1,7 +1,6 @@
 import { SmoothScroll } from "../providers/SmoothScroll";
 import { LandingNav } from "../components/landing/LandingNav";
 import { LandingHero } from "../components/landing/LandingHero";
-import { TechMarquee } from "../components/landing/TechMarquee";
 import { HeroShowcase } from "../components/landing/HeroShowcase";
 import { FeatureShowcase } from "../components/landing/FeatureShowcase";
 import { StickyInfo } from "../components/landing/StickyInfo";
@@ -18,7 +17,6 @@ export function Landing() {
         <LandingNav />
         <main>
           <LandingHero />
-          <TechMarquee />
           <HeroShowcase />
           <FeatureShowcase />
           <StickyInfo />

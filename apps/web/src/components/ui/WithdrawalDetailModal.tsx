@@ -52,7 +52,7 @@ export function WithdrawalDetailModal({
               <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                 Jumlah
               </p>
-              <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-brand-blue">
+              <p className="mt-1 font-display text-2xl font-semibold tracking-tight text-brand-blue sm:text-3xl">
                 {formatIDR(w.amount)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">

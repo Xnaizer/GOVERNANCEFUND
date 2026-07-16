@@ -175,7 +175,7 @@ export function ProfilePage() {
         <div className="flex flex-col gap-4 px-6 pb-6 pt-14 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="font-display text-2xl font-semibold tracking-tight">
+              <h2 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
                 {me.name ?? me.username}
               </h2>
               <Badge className="rounded-full">{me.role}</Badge>

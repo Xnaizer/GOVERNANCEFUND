@@ -125,7 +125,7 @@ export function ProgramDetailPage() {
       accent="#f59e0b"
       className={unresolved ? "border-amber-300 bg-amber-50/40" : ""}
     >
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <Field
           label="Auditor"
           value={formatShortenAddress(freeze.auditorWallet)}
@@ -202,7 +202,7 @@ export function ProgramDetailPage() {
           </div>
         );
       })()}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <Field
           label="Status"
           value={
