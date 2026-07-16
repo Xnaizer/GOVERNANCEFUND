@@ -206,6 +206,41 @@ export async function getMe(userId: string) {
   return user;
 }
 
+export async function resendVerification(email: string): Promise<void> {
+  const target = email.toLowerCase().trim();
+
+  const user = await prisma.user.findUnique({ where: { email: target } });
+
+  if (!user || user.isActive) return;
+
+  const rawToken = generateToken();
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.verificationToken.deleteMany({
+      where: { userId: user.id, type: "ACTIVATION" },
+    });
+
+    await tx.verificationToken.create({
+      data: { tokenHash, type: "ACTIVATION", expiresAt, userId: user.id },
+    });
+  });
+
+  const verifyUrl = `${env.FRONTEND_URL}/verify-email?token=${rawToken}`;
+
+  await sendTemplateEmail({
+    to: target,
+    subject: "Verify your GovernanceFund account",
+    template: "verify-email",
+    data: {
+      username: user.username,
+      verifyUrl,
+      year: new Date().getFullYear(),
+    },
+  });
+}
+
 export async function requestPasswordReset(email: string): Promise<void> {
   const forgotEmail = email.toLowerCase().trim();
 
