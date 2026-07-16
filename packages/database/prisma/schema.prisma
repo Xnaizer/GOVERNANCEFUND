@@ -92,11 +92,19 @@ enum RoleChangeType {
   ROLE_REVOKED
 }
 
-// enum Redemption Status 
+// enum Redemption Status
 enum RedemptionStatus {
   PENDING
   SETTLED
   CANCELLED
+}
+
+// enum Outbox Status
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  DONE
+  FAILED
 }
 
 // Redemption (two-phase escrow) Model Data
@@ -359,4 +367,29 @@ model RoleChangeLog {
 
   @@index([targetWallet])
   @@index([actorWallet])
+}
+
+model JobRun {
+  name      String   @id
+  lastRunAt DateTime
+  updatedAt DateTime @updatedAt
+}
+
+model OutboxEvent {
+  id            String       @id @default(cuid())
+  txHash        String
+  logIndex      Int
+  eventName     String
+  args          Json
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  nextAttemptAt DateTime     @default(now())
+  claimedAt     DateTime?
+  lastError     String?
+  createdAt     DateTime     @default(now())
+  processedAt   DateTime?
+
+  @@unique([txHash, logIndex])
+  @@index([status, nextAttemptAt])
+  @@index([status, claimedAt])
 }

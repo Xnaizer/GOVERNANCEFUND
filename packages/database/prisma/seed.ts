@@ -75,6 +75,7 @@ interface SeededUser {
   id: string;
   walletAddress: string;
   role: string;
+  reputationScore: number;
 }
 
 async function main() {
@@ -130,7 +131,12 @@ async function main() {
           height: 300,
         }),
       },
-      select: { id: true, walletAddress: true, role: true },
+      select: {
+        id: true,
+        walletAddress: true,
+        role: true,
+        reputationScore: true,
+      },
     });
     return user as SeededUser;
   }
