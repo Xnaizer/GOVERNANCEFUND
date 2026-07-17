@@ -36,6 +36,7 @@ export const readLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  store: makeStore("read"),
   message: limitMessage("Too many requests, try again later"),
 });
 

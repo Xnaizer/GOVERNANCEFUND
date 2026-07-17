@@ -9,6 +9,7 @@ import { HoverFeature } from "../components/landing/HoverFeature";
 import { StatsCards } from "../components/landing/StatsCards";
 import { FrequentlyAskQuestion } from "../components/landing/FrequentlyAskQuestion";
 import { LandingFooter } from "../components/landing/LandingFooter";
+import { TechStack } from "@/components/TechStack";
 
 export function Landing() {
   return (
@@ -17,6 +18,7 @@ export function Landing() {
         <LandingNav />
         <main>
           <LandingHero />
+          <TechStack />
           <HeroShowcase />
           <FeatureShowcase />
           <StickyInfo />

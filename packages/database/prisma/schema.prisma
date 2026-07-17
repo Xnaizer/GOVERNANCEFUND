@@ -298,6 +298,8 @@ model RoleVote {
   isDevote     Boolean          @default(false)
   executed     Boolean          @default(false)
   ballots      RoleVoteBallot[]
+
+  @@index([candidate, isDevote])
 }
 
 // Role Vote Ballot Model Data

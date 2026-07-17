@@ -461,8 +461,6 @@ export function AboutPage() {
           </Reveal>
         </section>
 
-        <TechStack />
-
         <section className="px-4 pb-20 pt-4 sm:px-6 sm:pb-28">
           <div className="mx-auto max-w-3xl">
             <Reveal className="text-center">

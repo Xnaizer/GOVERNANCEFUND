@@ -9,6 +9,7 @@ import {
 } from "./reputationService";
 import { sanitizeText } from "../utils/sanitize";
 
+
 export interface DecodedEvent {
   eventName: string;
   args: Record<string, unknown>;
@@ -224,7 +225,7 @@ export async function handleMilestoneReleased(
     return { result: "SKIPPED_NOT_FOUND", programId };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.program.update({
       where: { programId },
       data: {
@@ -274,7 +275,7 @@ export async function handleMilestoneFinalized(
     return { result: "SKIPPED_NOT_FOUND", programId };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.program.update({
       where: { programId },
       data: {
@@ -330,7 +331,7 @@ export async function handleProgramCompleted(
     return { result: "SKIPPED_NOT_FOUND", programId };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.program.update({
       where: { programId },
       data: {
@@ -424,7 +425,7 @@ export async function handleProgramForceFrozen(
     return { result: "SKIPPED_NOT_FOUND", programId };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.program.update({
       where: { programId },
       data: {
@@ -566,7 +567,7 @@ export async function handleProgramUnfrozenViaBFT(
     return { result: "SKIPPED_NOT_FOUND", programId };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.program.update({
       where: { programId },
       data: {
@@ -627,7 +628,7 @@ export async function handleProgramFraudConfirmed(
     return { result: "SKIPPED_NOT_FOUND", programId };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.program.update({
       where: { programId },
       data: {
@@ -797,8 +798,24 @@ export async function handleRoleGrantedViaGovernance(
     return { result: "SKIPPED_USER_NOT_FOUND" };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.user.update({ where: { id: user.id }, data: { role } });
+    
+    const vote = await tx.roleVote.findFirst({ where: { candidate: account, isDevote: false, executed: false }});
+    
+    if(vote) {
+      await tx.roleVote.update({
+        where: {
+          voteId: vote.voteId
+        },
+        data: {
+          executed: true
+        }
+      });
+    } else {
+      console.warn(`[WEBHOOK] RoleVote not found for RoleGranted for account ${account}`);
+    }
+    
     await tx.roleChangeLog.create({
       data: {
         changeType: "ROLE_GRANTED",
@@ -828,8 +845,24 @@ export async function handleRoleRevokedViaGovernance(
     return { result: "SKIPPED_USER_NOT_FOUND" };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.user.update({ where: { id: user.id }, data: { role: "USER" } });
+    
+    const vote = await tx.roleVote.findFirst({ where: { candidate: account, isDevote: true, executed: false }});
+
+    if(vote) {
+      await tx.roleVote.update({
+        where: {
+          voteId: vote.voteId
+        },
+        data: {
+          executed: true
+        }
+      })
+    } else {
+      console.warn(`[WEBHOOK] RoleVote not found for RoleRevoked for account ${account}`);
+    }
+    
     await tx.roleChangeLog.create({
       data: {
         changeType: "ROLE_REVOKED",
@@ -860,7 +893,7 @@ export async function handlePicRoleGrantedByAdmin(
     return { result: "SKIPPED_USER_NOT_FOUND" };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.user.update({
       where: { id: user.id },
       data: {
@@ -898,7 +931,7 @@ export async function handlePicRoleRevokedByAdmin(
     return { result: "SKIPPED_USER_NOT_FOUND" };
   }
 
-  await prisma.$transaction(async (tx: any) => {
+  await prisma.$transaction(async (tx: any ) => {
     await tx.user.update({
       where: { id: user.id },
       data: {

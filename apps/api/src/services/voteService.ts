@@ -15,7 +15,7 @@ export async function listRoleVotes(page: number, limit: number) {
   const skip = (page - 1) * limit;
   const cacheKey = `votes:role:list:${page}:${limit}`;
 
-  return cacheAside(cacheKey, 180, async () => {
+  return cacheAside(cacheKey, 30, async () => {
     const [votes, total] = await Promise.all([
       prisma.roleVote.findMany({
         select: {
@@ -68,7 +68,7 @@ export async function listRoleVotes(page: number, limit: number) {
 export async function getRoleVoteById(voteId: number) {
   const cacheKey = `votes:role:detail:${voteId}`;
 
-  return cacheAside(cacheKey, 180, async () => {
+  return cacheAside(cacheKey, 30, async () => {
     const votes = await prisma.roleVote.findUnique({
       where: { voteId },
       select: {
@@ -107,7 +107,7 @@ export async function listUnfreezeVotes(page: number, limit: number) {
   const skip = (page - 1) * limit;
   const cacheKey = `votes:unfreeze:list:${page}:${limit}`;
 
-  return cacheAside(cacheKey, 180, async () => {
+  return cacheAside(cacheKey, 30, async () => {
     const [votes, total] = await Promise.all([
       prisma.unfreezeVote.findMany({
         select: {
@@ -141,7 +141,7 @@ export async function listUnfreezeVotes(page: number, limit: number) {
 }
 
 export async function getUnfreezeVoteByProgramId(programId: number) {
-  return cacheAside(`votes:unfreeze:detail:${programId}`, 180, async () => {
+  return cacheAside(`votes:unfreeze:detail:${programId}`, 30, async () => {
     const vote = await prisma.unfreezeVote.findUnique({
       where: { programId },
       select: {

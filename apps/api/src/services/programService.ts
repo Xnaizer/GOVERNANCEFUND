@@ -207,7 +207,7 @@ export async function listPrograms(
     tab ?? "all"
   }:${statuses.join("+") || "all"}:${page}:${limit}`;
 
-  return cacheAside(cacheKey, 180, async () => {
+  return cacheAside(cacheKey, 30, async () => {
     const where = {
       ...(tab ? { displayTab: tab } : {}),
       ...(statuses.length ? { status: { in: statuses } } : {}),
@@ -240,7 +240,7 @@ export async function listPrograms(
 export async function getProgramById(programId: number) {
   const cacheKey = `program:detail:${programId}`;
 
-  return cacheAside(cacheKey, 300, async () => {
+  return cacheAside(cacheKey, 60, async () => {
     const program = await prisma.program.findUnique({
       where: {
         programId,
@@ -315,7 +315,7 @@ export async function getProgramById(programId: number) {
 }
 
 export async function getPublicStats() {
-  return cacheAside("public:stats", 300, async () => {
+  return cacheAside("public:stats", 60, async () => {
     const [active, finished, flagged, fraud, total] = await Promise.all([
       prisma.program.count({ where: { displayTab: "ACTIVE" } }),
       prisma.program.count({ where: { displayTab: "FINISHED" } }),
@@ -334,7 +334,7 @@ export async function getPublicStats() {
 export async function getProgramWithdrawals(programId: number) {
   const cacheKey = `program:withdrawals:${programId}`;
 
-  return cacheAside(cacheKey, 180, async () => {
+  return cacheAside(cacheKey, 30, async () => {
     const program = await prisma.program.findUnique({
       where: { programId },
       select: { programId: true },
