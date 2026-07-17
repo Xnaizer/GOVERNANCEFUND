@@ -17,7 +17,6 @@ import { useState, type CSSProperties } from "react";
 import { CONTRACT_ADDRESS } from "@repo/shared";
 import { LandingNav } from "../components/landing/LandingNav";
 import { LandingFooter } from "../components/landing/LandingFooter";
-import { TechStack } from "../components/TechStack";
 import { Reveal } from "../components/motion/Reveal";
 import { Glow } from "../components/backgrounds/Glow";
 import { cn } from "@/utils/cn";
