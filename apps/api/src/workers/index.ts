@@ -6,9 +6,9 @@ import * as webhookService from "../services/webhookService";
 import { runReconciliation } from "../services/reconciliationService";
 import { runRedemptionReconciliation } from "../services/redemptionService";
 
-const IDLE_POLL_MS = 15_000;
-const STALE_SWEEP_MS = 5 * 60_000;
-const RECONCILE_EVERY_MS = 12 * 60 * 60 * 1000;
+const IDLE_POLL_MS = 8_000;
+const STALE_SWEEP_MS = 3 * 60_000;
+const RECONCILE_EVERY_MS = 60 * 60 * 1000;
 const RECONCILE_CHECK_MS = 60 * 60 * 1000;
 const RECONCILE_JOB = "reconciliation";
 

@@ -163,6 +163,7 @@ model User {
   redemptions        Redemption[]
 
   @@index([role])
+  @@index([updatedAt])
 }
 
 // Reputation Log Model Data

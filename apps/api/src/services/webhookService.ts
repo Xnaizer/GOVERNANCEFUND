@@ -798,24 +798,17 @@ export async function handleRoleGrantedViaGovernance(
     return { result: "SKIPPED_USER_NOT_FOUND" };
   }
 
-  await prisma.$transaction(async (tx: any ) => {
-    await tx.user.update({ where: { id: user.id }, data: { role } });
+  await prisma.$transaction(async (tx: any) => {
     
-    const vote = await tx.roleVote.findFirst({ where: { candidate: account, isDevote: false, executed: false }});
-    
-    if(vote) {
-      await tx.roleVote.update({
-        where: {
-          voteId: vote.voteId
-        },
-        data: {
-          executed: true
-        }
-      });
-    } else {
-      console.warn(`[WEBHOOK] RoleVote not found for RoleGranted for account ${account}`);
-    }
-    
+    const updatedUser = await tx.user.update({
+      where: {
+        id: user.id,
+        updatedAt: user.updatedAt, 
+      },
+      data: { role },
+      select: { id: true, role: true, updatedAt: true },
+    });
+
     await tx.roleChangeLog.create({
       data: {
         changeType: "ROLE_GRANTED",
@@ -825,6 +818,8 @@ export async function handleRoleGrantedViaGovernance(
         txHash: txHash ?? null,
       },
     });
+
+    return updatedUser;
   });
 
   return { result: `ROLE_GRANTED_${role}` };
@@ -845,24 +840,17 @@ export async function handleRoleRevokedViaGovernance(
     return { result: "SKIPPED_USER_NOT_FOUND" };
   }
 
-  await prisma.$transaction(async (tx: any ) => {
-    await tx.user.update({ where: { id: user.id }, data: { role: "USER" } });
+  await prisma.$transaction(async (tx: any) => {
     
-    const vote = await tx.roleVote.findFirst({ where: { candidate: account, isDevote: true, executed: false }});
+    const updatedUser = await tx.user.update({
+      where: {
+        id: user.id,
+        updatedAt: user.updatedAt, 
+      },
+      data: { role: "USER" },
+      select: { id: true, role: true, updatedAt: true },
+    });
 
-    if(vote) {
-      await tx.roleVote.update({
-        where: {
-          voteId: vote.voteId
-        },
-        data: {
-          executed: true
-        }
-      })
-    } else {
-      console.warn(`[WEBHOOK] RoleVote not found for RoleRevoked for account ${account}`);
-    }
-    
     await tx.roleChangeLog.create({
       data: {
         changeType: "ROLE_REVOKED",
@@ -872,6 +860,8 @@ export async function handleRoleRevokedViaGovernance(
         txHash: txHash ?? null,
       },
     });
+
+    return updatedUser;
   });
 
   return { result: "ROLE_REVOKED" };
