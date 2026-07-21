@@ -298,9 +298,15 @@ model RoleVote {
   voteCount    Int              @default(0)
   isDevote     Boolean          @default(false)
   executed     Boolean          @default(false)
+  grantedBy    String
+  submittedAt  DateTime
+  txHash       String?
   ballots      RoleVoteBallot[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@index([candidate, isDevote])
+  @@index([executed, submittedAt])
 }
 
 // Role Vote Ballot Model Data
