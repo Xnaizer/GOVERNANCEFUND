@@ -25,13 +25,15 @@ export async function listRoleVotes(page: number, limit: number) {
           voteCount: true,
           isDevote: true,
           executed: true,
+          grantedBy: true,
+          submittedAt: true,
+          txHash: true,
           _count: { select: { ballots: true } },
         },
         orderBy: { voteId: "desc" },
         skip,
         take: limit,
       }),
-
       prisma.roleVote.count(),
     ]);
 
@@ -51,6 +53,9 @@ export async function listRoleVotes(page: number, limit: number) {
     const enriched = votes.map((v) => ({
       ...v,
       candidateUser: byWallet.get(v.candidate.toLowerCase()) ?? null,
+      isExpired:
+        !v.executed &&
+        Date.now() - v.submittedAt.getTime() > 7 * 24 * 60 * 60 * 1000,
     }));
 
     return {
@@ -78,6 +83,9 @@ export async function getRoleVoteById(voteId: number) {
         voteCount: true,
         isDevote: true,
         executed: true,
+        grantedBy: true,
+        submittedAt: true,
+        txHash: true,
         ballots: {
           select: {
             votedAt: true,
@@ -99,7 +107,13 @@ export async function getRoleVoteById(voteId: number) {
       select: USER_MINI,
     });
 
-    return { ...votes, candidateUser };
+    return {
+      ...votes,
+      candidateUser,
+      isExpired:
+        !votes.executed &&
+        Date.now() - votes.submittedAt.getTime() > 7 * 24 * 60 * 60 * 1000,
+    };
   });
 }
 

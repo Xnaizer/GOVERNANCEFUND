@@ -694,12 +694,13 @@ export async function handleProgramFraudConfirmed(
 
 export async function handleRoleVoteCreated(
   args: Record<string, unknown>,
-  _txHash?: string,
+  txHash?: string,
 ): Promise<{ result: string; voteId: number }> {
   const voteId = Number(args.voteId);
   const candidate = String(args.candidate).toLowerCase();
   const roleHash = String(args.roleToTarget);
   const isDevote = Boolean(args.isDevote);
+  const grantedBy = String(args.grantedBy).toLowerCase();
 
   const roleToTarget = mapRoleHashToSignerRole(roleHash);
 
@@ -717,6 +718,9 @@ export async function handleRoleVoteCreated(
       voteCount: 0,
       isDevote,
       executed: false,
+      grantedBy,
+      submittedAt: new Date(),
+      txHash: txHash ?? null,
     },
     update: {},
   });
@@ -779,6 +783,7 @@ export async function handleRoleGrantedViaGovernance(
 ): Promise<{ result: string }> {
   const roleHash = String(args.role);
   const account = String(args.account).toLowerCase();
+  const voteId = Number(args.voteId);
 
   const role = mapRoleHashToRole(roleHash);
 
@@ -799,11 +804,10 @@ export async function handleRoleGrantedViaGovernance(
   }
 
   await prisma.$transaction(async (tx: any) => {
-    
     const updatedUser = await tx.user.update({
       where: {
         id: user.id,
-        updatedAt: user.updatedAt, 
+        updatedAt: user.updatedAt,
       },
       data: { role },
       select: { id: true, role: true, updatedAt: true },
@@ -819,8 +823,22 @@ export async function handleRoleGrantedViaGovernance(
       },
     });
 
+    const roleVote = await tx.roleVote.findUnique({ where: { voteId } });
+    if (roleVote) {
+      await tx.roleVote.update({
+        where: { voteId },
+        data: { executed: true },
+      });
+    } else {
+      console.warn(
+        `[WEBHOOK] RoleGranted: roleVote ${voteId} not found, skip executed flag`,
+      );
+    }
+
     return updatedUser;
   });
+
+  await invalidatePattern("votes:role:*");
 
   return { result: `ROLE_GRANTED_${role}` };
 }
@@ -830,6 +848,7 @@ export async function handleRoleRevokedViaGovernance(
   txHash?: string,
 ): Promise<{ result: string }> {
   const account = String(args.account).toLowerCase();
+  const voteId = Number(args.voteId);
 
   const user = await prisma.user.findUnique({
     where: { walletAddress: account },
@@ -841,11 +860,10 @@ export async function handleRoleRevokedViaGovernance(
   }
 
   await prisma.$transaction(async (tx: any) => {
-    
     const updatedUser = await tx.user.update({
       where: {
         id: user.id,
-        updatedAt: user.updatedAt, 
+        updatedAt: user.updatedAt,
       },
       data: { role: "USER" },
       select: { id: true, role: true, updatedAt: true },
@@ -861,8 +879,22 @@ export async function handleRoleRevokedViaGovernance(
       },
     });
 
+    const roleVote = await tx.roleVote.findUnique({ where: { voteId } });
+    if (roleVote) {
+      await tx.roleVote.update({
+        where: { voteId },
+        data: { executed: true },
+      });
+    } else {
+      console.warn(
+        `[WEBHOOK] RoleRevoked: roleVote ${voteId} not found, skip executed flag`,
+      );
+    }
+
     return updatedUser;
   });
+
+  await invalidatePattern("votes:role:*");
 
   return { result: "ROLE_REVOKED" };
 }
