@@ -11,6 +11,7 @@ import { UserCell } from "../../components/UserCell";
 import { fetchRoleVote } from "../../services/votesApi";
 import { impliedTotalFromThreshold } from "../../utils/bft";
 import { formatShortenAddress, formatDate } from "../../utils/format";
+import { VoteDeadline } from "@/components/VoteDeadline";
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -68,6 +69,7 @@ export function VoteDetailPage() {
                 >
                   {v.executed ? "Selesai" : "Berjalan"}
                 </Badge>
+                <VoteDeadline start={v.submittedAt} resolved={v.executed} />
               </>
             }
           />

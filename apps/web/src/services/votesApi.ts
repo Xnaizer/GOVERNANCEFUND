@@ -23,6 +23,9 @@ export interface RoleVoteRow {
   voteCount: number;
   isDevote: boolean;
   executed: boolean;
+  grantedBy: string;
+  submittedAt: string;
+  isExpired: boolean;
   candidateUser?: VoteUserMini | null;
 }
 

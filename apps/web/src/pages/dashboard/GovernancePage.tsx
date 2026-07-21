@@ -34,6 +34,7 @@ import { useProposeRole, useVoteRoleProposal } from "../../hooks/useAdmin";
 import { useAdminThreshold } from "../../hooks/useGovReads";
 import { VOTABLE_ROLES, type GovRole } from "../../config/roles";
 import { formatShortenAddress } from "../../utils/format";
+import { VoteDeadline } from "@/components/VoteDeadline";
 
 export function GovernancePage() {
   const users = useQuery({
@@ -55,7 +56,8 @@ export function GovernancePage() {
   const roleVote = useVoteRoleProposal();
 
   const validAddr = /^0x[a-fA-F0-9]{40}$/.test(candidate);
-  const open = votes.data?.rows.filter((v) => !v.executed) ?? [];
+  const open = votes.data?.rows.filter((v) => !v.executed && !v.isExpired) ?? [];
+  const expired = votes.data?.rows.filter((v) => !v.executed && v.isExpired) ?? [];
 
   const allUsers = users.data?.users ?? [];
   const matchUser = (u: AdminUser) => {
@@ -274,13 +276,14 @@ export function GovernancePage() {
                               {formatShortenAddress(v.candidate)}
                             </span>
                           </Link>
+                          <VoteDeadline start={v.submittedAt} compact />
                           <RoleVoteCount
                             voteId={v.voteId}
                             threshold={adminThreshold}
                           />
                           <ConfirmButton
                             triggerLabel="Setujui"
-                            triggerProps={{ size: "sm", color: "primary" }}
+                            triggerProps={{ size: "sm", color: "primary", isDisabled: v.isExpired }}
                             title={`Setujui usulan peran #${v.voteId}?`}
                             confirmLabel="Ya, kirim vote"
                             toasts={{
