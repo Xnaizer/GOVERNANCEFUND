@@ -80,6 +80,7 @@ contract Web3Governance is EIP712, AccessControl {
         uint256 voteCount;
         bool isDevote;
         bool executed;
+        uint256 rVoteSubmittedAt;
     }
 
     /**
@@ -177,16 +178,16 @@ contract Web3Governance is EIP712, AccessControl {
     // ==========================================
 
     /// @notice Emitted when an admin proposes a new role grant or revoke vote.
-    event RoleVoteCreated(uint256 indexed voteId, address indexed candidate, bytes32 roleToTarget, bool isDevote);
+    event RoleVoteCreated(uint256 indexed voteId, address indexed candidate, bytes32 roleToTarget, bool isDevote, address grantedBy);
 
     /// @notice Emitted each time an admin casts a vote on a role proposal.
     event RoleVoteCast(uint256 indexed voteId, address indexed admin, uint256 currentVotes);
 
     /// @notice Emitted when a role is granted to an account through BFT governance.
-    event RoleGrantedViaGovernance(bytes32 indexed role, address indexed account);
+    event RoleGrantedViaGovernance(bytes32 indexed role, address indexed account, uint256 voteId);
 
     /// @notice Emitted when a role is revoked from an account through BFT governance.
-    event RoleRevokedViaGovernance(bytes32 indexed role, address indexed account);
+    event RoleRevokedViaGovernance(bytes32 indexed role, address indexed account, uint256 voteId);
 
     /// @notice Emitted when an admin directly grants PIC_ROLE (no voting). The granting admin
     ///         (msg.sender) is recorded as the accountable party.
@@ -285,10 +286,11 @@ contract Web3Governance is EIP712, AccessControl {
             roleToTarget: roleToGrant,
             voteCount: 0,
             isDevote: false,
-            executed: false
+            executed: false,
+            rVoteSubmittedAt: block.timestamp
         });
 
-        emit RoleVoteCreated(voteId, candidate, roleToGrant, false);
+        emit RoleVoteCreated(voteId, candidate, roleToGrant, false, msg.sender);
     }
 
     /**
@@ -310,10 +312,11 @@ contract Web3Governance is EIP712, AccessControl {
             roleToTarget: roleToRevoke,
             voteCount: 0,
             isDevote: true,
-            executed: false
+            executed: false,
+            rVoteSubmittedAt: block.timestamp
         });
 
-        emit RoleVoteCreated(voteId, targetUser, roleToRevoke, true);
+        emit RoleVoteCreated(voteId, targetUser, roleToRevoke, true, msg.sender);
     }
 
     /**
@@ -328,6 +331,7 @@ contract Web3Governance is EIP712, AccessControl {
         RoleVote storage rVote = roleVotes[voteId];
 
         require(!rVote.executed, "Govern: Vote already executed");
+        require(block.timestamp <= rVote.rVoteSubmittedAt + VOTING_PERIOD, "Govern: Voting period has expired");
         require(!hasVotedRole[voteId][msg.sender], "Govern: You have already voted");
 
         hasVotedRole[voteId][msg.sender] = true;
@@ -347,7 +351,7 @@ contract Web3Governance is EIP712, AccessControl {
                 } else if (rVote.roleToTarget == VALIDATOR_ROLE) {
                     if (totalValidatorsCount > 0) totalValidatorsCount -= 1;
                 }
-                emit RoleRevokedViaGovernance(rVote.roleToTarget, rVote.candidate);
+                emit RoleRevokedViaGovernance(rVote.roleToTarget, rVote.candidate, voteId);
             } else {
                 require(
                     !hasRole(ADMIN_ROLE, rVote.candidate) &&
@@ -364,7 +368,7 @@ contract Web3Governance is EIP712, AccessControl {
                 } else if (rVote.roleToTarget == VALIDATOR_ROLE) {
                     totalValidatorsCount += 1;
                 }
-                emit RoleGrantedViaGovernance(rVote.roleToTarget, rVote.candidate);
+                emit RoleGrantedViaGovernance(rVote.roleToTarget, rVote.candidate, voteId);
             }
         }
     }
