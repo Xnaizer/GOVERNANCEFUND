@@ -298,10 +298,16 @@ importers:
       '@openzeppelin/contracts':
         specifier: ^5.6.1
         version: 5.6.1
+      viem:
+        specifier: ^2.53.1
+        version: 2.55.2(bufferutil@4.1.0)(typescript@7.0.2)(utf-8-validate@5.0.10)(zod@3.23.8)
     devDependencies:
       '@nomicfoundation/hardhat-toolbox-mocha-ethers':
         specifier: ^3.0.7
         version: 3.0.7(ljrhu42ssxdhhmspi3byfj6eji)
+      '@nomicfoundation/hardhat-verify':
+        specifier: ^3.0.21
+        version: 3.0.21(hardhat@3.9.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))
       '@types/node':
         specifier: ^22.19.21
         version: 22.20.1
@@ -311,6 +317,9 @@ importers:
       hardhat:
         specifier: ^3.9.0
         version: 3.9.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+      tsx:
+        specifier: ^4.23.1
+        version: 4.23.1
       typescript:
         specifier: 7.0.2
         version: 7.0.2
