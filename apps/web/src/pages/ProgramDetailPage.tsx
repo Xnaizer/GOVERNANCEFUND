@@ -362,13 +362,13 @@ export function ProgramDetailPage() {
             </Card>
           )}
 
-          {p.programURLs && p.programURLs.length > 0 && (
+          {p.images && p.images.length > 0 && (
             <Section title="Foto Program">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {p.programURLs.map((url, i) => (
-                  <a key={i} href={url} target="_blank" rel="noreferrer">
+                {p.images.map((img, i) => (
+                  <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
                     <img
-                      src={url}
+                      src={img.url}
                       alt={`Foto ${i + 1}`}
                       className="h-32 w-full rounded-lg border object-cover transition-transform hover:scale-[1.02]"
                       loading="lazy"

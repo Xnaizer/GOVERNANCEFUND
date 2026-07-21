@@ -330,10 +330,15 @@ async function main() {
           fiscalYear: faker.helpers.arrayElement([2024, 2025, 2026]),
           plannedStartDate: faker.date.past({ years: 1 }),
           plannedEndDate: faker.date.future({ years: 1 }),
-          programURLs: Array.from(
-            { length: faker.number.int({ min: 1, max: 3 }) },
-            () => faker.image.urlPicsumPhotos({ width: 800, height: 600 }),
-          ),
+          images: {
+            create: Array.from(
+              { length: faker.number.int({ min: 1, max: 3 }) },
+              () => ({
+                url: faker.image.urlPicsumPhotos({ width: 800, height: 600 }),
+                publicId: `seed/${faker.string.alphanumeric(16)}`,
+              }),
+            ),
+          },
           ipfsCid: faker.datatype.boolean()
             ? `bafy${faker.string.alphanumeric(52).toLowerCase()}`
             : null,

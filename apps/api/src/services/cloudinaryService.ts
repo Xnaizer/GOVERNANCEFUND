@@ -27,3 +27,13 @@ export function uploadImage(
     stream.end(buffer);
   });
 }
+
+export async function deleteImage(publicId: string): Promise<void> {
+  const result = await cloudinary.uploader.destroy(publicId, {
+    resource_type: "image",
+  });
+
+  if (result.result !== "ok" && result.result !== "not found") {
+    throw new Error(`Cloudinary delete failed: ${result.result}`);
+  }
+}

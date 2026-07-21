@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/AppError";
 import { invalidate, invalidatePattern } from "../lib/cache";
-import { uploadImage } from "./cloudinaryService";
+import { uploadImage, deleteImage } from "./cloudinaryService";
 import { pinFile, pinJSON } from "./ipfsService";
 import { sha256Hex } from "../utils/hash";
 
@@ -16,11 +16,9 @@ async function invalidateProgram(programId: number): Promise<void> {
   await invalidatePattern("programs:list:*");
 }
 
-export async function attachProgramImage(
-  userId: string,
-  programId: number,
-  file: UploadedFile,
-) {
+const MAX_PROGRAM_IMAGES = 8;
+
+async function assertProgramOwnership(userId: string, programId: number) {
   const program = await prisma.program.findUnique({
     where: { programId },
     select: { picId: true },
@@ -33,20 +31,103 @@ export async function attachProgramImage(
   if (program.picId !== userId) {
     throw new AppError("Not your program", 403);
   }
+}
+
+export async function attachProgramImage(
+  userId: string,
+  programId: number,
+  file: UploadedFile,
+) {
+  await assertProgramOwnership(userId, programId);
+
+  const existingCount = await prisma.programImage.count({
+    where: { programId },
+  });
+
+  if (existingCount >= MAX_PROGRAM_IMAGES) {
+    throw new AppError(
+      `Maksimum ${MAX_PROGRAM_IMAGES} foto per program`,
+      400,
+    );
+  }
 
   const { url, publicId } = await uploadImage(file.buffer, {
     folder: `governance/programs/${programId}`,
   });
 
-  const updated = await prisma.program.update({
-    where: { programId },
-    data: { programURLs: { push: url } },
-    select: { programURLs: true },
+  const image = await prisma.programImage.create({
+    data: { programId, url, publicId },
   });
 
   await invalidateProgram(programId);
 
-  return { url, publicId, programURLs: updated.programURLs };
+  return image;
+}
+
+export async function replaceProgramImage(
+  userId: string,
+  programId: number,
+  imageId: string,
+  file: UploadedFile,
+) {
+  await assertProgramOwnership(userId, programId);
+
+  const existing = await prisma.programImage.findUnique({
+    where: { id: imageId },
+  });
+
+  if (!existing || existing.programId !== programId) {
+    throw new AppError("Program image not found", 404);
+  }
+
+  const { url, publicId } = await uploadImage(file.buffer, {
+    folder: `governance/programs/${programId}`,
+  });
+
+  const updated = await prisma.programImage.update({
+    where: { id: imageId },
+    data: { url, publicId },
+  });
+
+  await deleteImage(existing.publicId).catch((err) => {
+    console.error(
+      `[UPLOAD] Failed to delete old Cloudinary asset ${existing.publicId}:`,
+      err,
+    );
+  });
+
+  await invalidateProgram(programId);
+
+  return updated;
+}
+
+export async function deleteProgramImage(
+  userId: string,
+  programId: number,
+  imageId: string,
+) {
+  await assertProgramOwnership(userId, programId);
+
+  const existing = await prisma.programImage.findUnique({
+    where: { id: imageId },
+  });
+
+  if (!existing || existing.programId !== programId) {
+    throw new AppError("Program image not found", 404);
+  }
+
+  await prisma.programImage.delete({ where: { id: imageId } });
+
+  await deleteImage(existing.publicId).catch((err) => {
+    console.error(
+      `[UPLOAD] Failed to delete Cloudinary asset ${existing.publicId}:`,
+      err,
+    );
+  });
+
+  await invalidateProgram(programId);
+
+  return { deleted: true, imageId };
 }
 
 export async function pinProgramData(userId: string, programId: number) {

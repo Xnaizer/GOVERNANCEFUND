@@ -32,6 +32,39 @@ export default {
     response.created(res, result);
   },
 
+  async replaceProgramImage(req: Request, res: Response): Promise<void> {
+    const imageId = req.params.imageId;
+
+    if (!imageId) {
+      throw new AppError("Invalid image id", 400);
+    }
+
+    const result = await uploadService.replaceProgramImage(
+      req.user!.id,
+      parseProgramId(req),
+      imageId,
+      requireFile(req),
+    );
+
+    response.success(res, result);
+  },
+
+  async deleteProgramImage(req: Request, res: Response): Promise<void> {
+    const imageId = req.params.imageId;
+
+    if (!imageId) {
+      throw new AppError("Invalid image id", 400);
+    }
+
+    const result = await uploadService.deleteProgramImage(
+      req.user!.id,
+      parseProgramId(req),
+      imageId,
+    );
+
+    response.success(res, result);
+  },
+
   async programPinData(req: Request, res: Response): Promise<void> {
     const result = await uploadService.pinProgramData(
       req.user!.id,

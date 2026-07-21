@@ -38,7 +38,10 @@ const PUBLIC_PROGRAM_SELECT = {
   txHash: true,
   submittedAt: true,
   createdAt: true,
-  programURLs: true,
+  images: {
+    select: { id: true, url: true },
+    orderBy: { createdAt: "asc" },
+  },
   ipfsCid: true,
   pic: {
     select: {

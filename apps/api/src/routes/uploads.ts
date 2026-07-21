@@ -17,6 +17,23 @@ router.post(
   asyncHandler(uploadController.programImage),
 );
 
+router.put(
+  "/program/:programId/image/:imageId",
+  mutationLimiter,
+  asyncHandler(authMiddleware),
+  requireRole(["PIC"]),
+  imageUpload,
+  asyncHandler(uploadController.replaceProgramImage),
+);
+
+router.delete(
+  "/program/:programId/image/:imageId",
+  mutationLimiter,
+  asyncHandler(authMiddleware),
+  requireRole(["PIC"]),
+  asyncHandler(uploadController.deleteProgramImage),
+);
+
 router.post(
   "/program/:programId/pin-data",
   mutationLimiter,

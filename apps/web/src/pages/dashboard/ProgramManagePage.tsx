@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
+import { ImagePlus, Trash2, ImageOff } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +20,11 @@ import { getProgramDetailAuthed } from "../../services/programApi";
 import {
   uploadMilestoneEvidence,
   uploadWithdrawalReceipt,
+  uploadProgramImage,
+  replaceProgramImage,
+  deleteProgramImage,
 } from "../../services/uploadApi";
+import { useMe } from "../../hooks/useAuth";
 import {
   useWithdraw,
   useFinalizeMilestone,
@@ -29,11 +34,12 @@ import { withdrawSchema, type WithdrawForm } from "../../schemas/withdraw";
 import { StatusChip } from "../../components/StatusChip";
 import { formatIDR, formatDate } from "../../utils/format";
 import { getErrorMessage } from "../../utils/error";
+import { cn } from "@/utils/cn";
 import { useReleaseMilestone } from "../../hooks/useReleaseMilestone";
 import { useSignatures } from "../../hooks/useSignatures";
 import { useResetSignatures } from "../../hooks/useResetSignatures";
 import type { Milestone } from "../../types/milestone";
-import type { Withdrawal } from "../../types/program";
+import type { Withdrawal, ProgramImage } from "../../types/program";
 
 function WithdrawalManageRow({
   programId,
@@ -223,9 +229,164 @@ function MilestoneRow({
   );
 }
 
+const MAX_PROGRAM_IMAGES = 8;
+
+function GalleryPhoto({
+  programId,
+  img,
+}: {
+  programId: number;
+  img: ProgramImage;
+}) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  const invalidateProgram = () =>
+    qc.invalidateQueries({ queryKey: ["program-authed", programId] });
+
+  const onReplace = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      await toast.promise(replaceProgramImage(programId, img.id, file), {
+        loading: "Mengganti foto…",
+        success: "Foto diganti.",
+        error: (e) => getErrorMessage(e),
+      });
+      await invalidateProgram();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onDelete = async () => {
+    await toast.promise(deleteProgramImage(programId, img.id), {
+      loading: "Menghapus foto…",
+      success: "Foto dihapus.",
+      error: (e) => getErrorMessage(e),
+    });
+    await invalidateProgram();
+  };
+
+  return (
+    <div className="group relative overflow-hidden rounded-lg border border-black/5">
+      <img
+        src={img.url}
+        alt="Foto program"
+        className="h-28 w-full object-cover"
+        loading="lazy"
+      />
+      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+        <Button asChild size="sm" variant="secondary">
+          <label className={busy ? "pointer-events-none opacity-50" : "cursor-pointer"}>
+            {busy && <Spinner size={16} className="text-current" />}
+            Ganti
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              disabled={busy}
+              onChange={(e) => onReplace(e.target.files?.[0])}
+            />
+          </label>
+        </Button>
+        <ConfirmButton
+          triggerLabel={<Trash2 className="h-4 w-4" />}
+          triggerProps={{
+            size: "sm",
+            color: "danger",
+            variant: "flat",
+            isIconOnly: true,
+            "aria-label": "Hapus foto",
+          }}
+          title="Hapus foto ini?"
+          confirmLabel="Ya, hapus"
+          confirmColor="danger"
+          toasts={{ loading: "Menghapus…", success: "Foto dihapus." }}
+          action={onDelete}
+          warnings={["Foto akan dihapus permanen dari galeri program."]}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProgramGallerySection({
+  programId,
+  images,
+}: {
+  programId: number;
+  images: ProgramImage[];
+}) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const atLimit = images.length >= MAX_PROGRAM_IMAGES;
+
+  const onAdd = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      await toast.promise(uploadProgramImage(programId, file), {
+        loading: "Mengunggah foto…",
+        success: "Foto ditambahkan.",
+        error: (e) => getErrorMessage(e),
+      });
+      await qc.invalidateQueries({ queryKey: ["program-authed", programId] });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="rounded-2xl border-black/5 shadow-none">
+      <CardHeader className="font-display font-semibold tracking-tight">
+        Foto Program ({images.length}/{MAX_PROGRAM_IMAGES})
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {images.length === 0 ? (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <ImageOff className="h-4 w-4" /> Belum ada foto.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {images.map((img) => (
+              <GalleryPhoto key={img.id} programId={programId} img={img} />
+            ))}
+          </div>
+        )}
+        <Button
+          asChild
+          size="sm"
+          variant="secondary"
+          className="w-fit"
+        >
+          <label
+            className={cn(
+              "cursor-pointer",
+              (busy || atLimit) && "pointer-events-none opacity-50",
+            )}
+          >
+            {busy && <Spinner size={16} className="text-current" />}
+            <ImagePlus className="h-4 w-4" />
+            {atLimit ? "Maksimum tercapai" : "Tambah Foto"}
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              disabled={busy || atLimit}
+              onChange={(e) => onAdd(e.target.files?.[0])}
+            />
+          </label>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ProgramManagePage() {
   const { id } = useParams();
   const programId = Number(id);
+  const { data: me } = useMe();
   const { data: p, isLoading } = useQuery({
     queryKey: ["program-authed", programId],
     queryFn: () => getProgramDetailAuthed(programId),
@@ -261,6 +422,10 @@ export function ProgramManagePage() {
 
   if (isLoading) return <SkeletonList />;
   if (!p) return <p>Program tidak ditemukan.</p>;
+
+  if (me && p.pic && p.pic.id !== me.id) {
+    return <Navigate to="/dashboard/programs" replace />;
+  }
 
   return (
     <>
@@ -382,6 +547,8 @@ export function ProgramManagePage() {
             </CardContent>
           </Card>
         )}
+
+        <ProgramGallerySection programId={p.programId} images={p.images ?? []} />
 
         <Card className="rounded-2xl border-black/5 shadow-none">
           <CardHeader className="font-display font-semibold tracking-tight">

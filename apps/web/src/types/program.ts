@@ -40,8 +40,13 @@ export interface ProgramListItem {
   txHash: string | null;
   submittedAt: string | null;
   createdAt: string;
-  programURLs?: string[];
+  images?: ProgramImage[];
   pic?: ProgramPic | null;
+}
+
+export interface ProgramImage {
+  id: string;
+  url: string;
 }
 
 export interface ProgramPic {
@@ -68,4 +73,4 @@ export interface Withdrawal {
   timestamp: string;
   txHash: string | null;
   receiptUrl: string | null;
-}
+}   

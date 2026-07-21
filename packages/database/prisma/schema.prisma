@@ -227,7 +227,7 @@ model Program {
   pic                  User?              @relation(fields: [picId], references: [id])
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
-  programURLs          String[]
+  images               ProgramImage[]
   milestones           Milestone[]
   withdrawals          WithdrawalRecord[]
   unfreezeVote         UnfreezeVote?
@@ -239,6 +239,18 @@ model Program {
   @@index([programHash])
   @@index([picId])
   @@index([isOnChain])
+}
+
+// Program Gallery Photo
+model ProgramImage {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String
+  programId Int
+  program   Program  @relation(fields: [programId], references: [programId], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([programId])
 }
 
 // Milestone Model Data
