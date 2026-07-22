@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useParams, Link, Navigate } from "react-router-dom";
-import { ImagePlus, Trash2, ImageOff } from "lucide-react";
+import { useParams, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +7,8 @@ import { toast } from "sonner";
 import { PageHeader } from "../../components/ui/PageHeader";
 import { FormInput, FormTextarea } from "../../components/ui/FormField";
 import { SkeletonList } from "../../components/ui/Skeleton";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { ImageOff, ImagePlus, Pencil, Trash2 } from "lucide-react";
 import { ConfirmButton } from "../../components/ui/ConfirmButton";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -34,12 +35,11 @@ import { withdrawSchema, type WithdrawForm } from "../../schemas/withdraw";
 import { StatusChip } from "../../components/StatusChip";
 import { formatIDR, formatDate } from "../../utils/format";
 import { getErrorMessage } from "../../utils/error";
-import { cn } from "@/utils/cn";
 import { useReleaseMilestone } from "../../hooks/useReleaseMilestone";
 import { useSignatures } from "../../hooks/useSignatures";
 import { useResetSignatures } from "../../hooks/useResetSignatures";
 import type { Milestone } from "../../types/milestone";
-import type { Withdrawal, ProgramImage } from "../../types/program";
+import type { Withdrawal } from "../../types/program";
 
 function WithdrawalManageRow({
   programId,
@@ -229,151 +229,128 @@ function MilestoneRow({
   );
 }
 
-const MAX_PROGRAM_IMAGES = 8;
-
-function GalleryPhoto({
-  programId,
-  img,
-}: {
-  programId: number;
-  img: ProgramImage;
-}) {
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-
-  const invalidateProgram = () =>
-    qc.invalidateQueries({ queryKey: ["program-authed", programId] });
-
-  const onReplace = async (file: File | undefined) => {
-    if (!file) return;
-    setBusy(true);
-    try {
-      await toast.promise(replaceProgramImage(programId, img.id, file), {
-        loading: "Mengganti foto…",
-        success: "Foto diganti.",
-        error: (e) => getErrorMessage(e),
-      });
-      await invalidateProgram();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const onDelete = async () => {
-    await toast.promise(deleteProgramImage(programId, img.id), {
-      loading: "Menghapus foto…",
-      success: "Foto dihapus.",
-      error: (e) => getErrorMessage(e),
-    });
-    await invalidateProgram();
-  };
-
-  return (
-    <div className="group relative overflow-hidden rounded-lg border border-black/5">
-      <img
-        src={img.url}
-        alt="Foto program"
-        className="h-28 w-full object-cover"
-        loading="lazy"
-      />
-      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-        <Button asChild size="sm" variant="secondary">
-          <label className={busy ? "pointer-events-none opacity-50" : "cursor-pointer"}>
-            {busy && <Spinner size={16} className="text-current" />}
-            Ganti
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              disabled={busy}
-              onChange={(e) => onReplace(e.target.files?.[0])}
-            />
-          </label>
-        </Button>
-        <ConfirmButton
-          triggerLabel={<Trash2 className="h-4 w-4" />}
-          triggerProps={{
-            size: "sm",
-            color: "danger",
-            variant: "flat",
-            isIconOnly: true,
-            "aria-label": "Hapus foto",
-          }}
-          title="Hapus foto ini?"
-          confirmLabel="Ya, hapus"
-          confirmColor="danger"
-          toasts={{ loading: "Menghapus…", success: "Foto dihapus." }}
-          action={onDelete}
-          warnings={["Foto akan dihapus permanen dari galeri program."]}
-        />
-      </div>
-    </div>
-  );
-}
-
-function ProgramGallerySection({
+function ProgramGallery({
   programId,
   images,
 }: {
   programId: number;
-  images: ProgramImage[];
+  images: { id: string; url: string }[];
 }) {
   const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-  const atLimit = images.length >= MAX_PROGRAM_IMAGES;
+  const [busyId, setBusyId] = useState<string | "new" | null>(null);
+
+  const refresh = () =>
+    qc.invalidateQueries({ queryKey: ["program-authed", programId] });
 
   const onAdd = async (file: File | undefined) => {
     if (!file) return;
-    setBusy(true);
+    setBusyId("new");
     try {
       await toast.promise(uploadProgramImage(programId, file), {
         loading: "Mengunggah foto…",
         success: "Foto ditambahkan.",
         error: (e) => getErrorMessage(e),
       });
-      await qc.invalidateQueries({ queryKey: ["program-authed", programId] });
+      await refresh();
     } finally {
-      setBusy(false);
+      setBusyId(null);
+    }
+  };
+
+  const onReplace = async (imageId: string, file: File | undefined) => {
+    if (!file) return;
+    setBusyId(imageId);
+    try {
+      await toast.promise(replaceProgramImage(programId, imageId, file), {
+        loading: "Mengganti foto…",
+        success: "Foto diganti, yang lama sudah dihapus.",
+        error: (e) => getErrorMessage(e),
+      });
+      await refresh();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const onDelete = async (imageId: string) => {
+    setBusyId(imageId);
+    try {
+      await toast.promise(deleteProgramImage(programId, imageId), {
+        loading: "Menghapus foto…",
+        success: "Foto dihapus.",
+        error: (e) => getErrorMessage(e),
+      });
+      await refresh();
+    } finally {
+      setBusyId(null);
     }
   };
 
   return (
     <Card className="rounded-2xl border-black/5 shadow-none">
-      <CardHeader className="font-display font-semibold tracking-tight">
-        Foto Program ({images.length}/{MAX_PROGRAM_IMAGES})
+      <CardHeader className="flex-row items-center justify-between space-y-0 font-display font-semibold tracking-tight">
+        <span>Foto Program</span>
+        <span className="text-xs font-normal text-muted-foreground">
+          {images.length}/8
+        </span>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+      <CardContent>
         {images.length === 0 ? (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <ImageOff className="h-4 w-4" /> Belum ada foto.
-          </p>
+          <EmptyState
+            icon={<ImageOff />}
+            title="Belum ada foto"
+            description="Tambahkan foto lokasi/progres program supaya donatur lebih yakin."
+          />
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {images.map((img) => (
-              <GalleryPhoto key={img.id} programId={programId} img={img} />
+              <div key={img.id} className="group relative">
+                <img
+                  src={img.url}
+                  alt=""
+                  className="h-28 w-full rounded-lg border object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                  <label className="cursor-pointer rounded-full bg-white/90 p-2 hover:bg-white">
+                    {busyId === img.id ? (
+                      <Spinner size={14} />
+                    ) : (
+                      <Pencil className="h-3.5 w-3.5" />
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={busyId !== null}
+                      onChange={(e) =>
+                        onReplace(img.id, e.target.files?.[0])
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busyId !== null}
+                    onClick={() => onDelete(img.id)}
+                    className="rounded-full bg-white/90 p-2 hover:bg-white disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}
-        <Button
-          asChild
-          size="sm"
-          variant="secondary"
-          className="w-fit"
-        >
-          <label
-            className={cn(
-              "cursor-pointer",
-              (busy || atLimit) && "pointer-events-none opacity-50",
-            )}
-          >
-            {busy && <Spinner size={16} className="text-current" />}
+
+        <Button asChild size="sm" variant="secondary" disabled={busyId !== null}>
+          <label className="cursor-pointer">
+            {busyId === "new" && <Spinner size={16} className="text-current" />}
             <ImagePlus className="h-4 w-4" />
-            {atLimit ? "Maksimum tercapai" : "Tambah Foto"}
+            Tambah Foto
             <input
               type="file"
               accept="image/*"
               className="sr-only"
-              disabled={busy || atLimit}
+              disabled={busyId !== null || images.length >= 8}
               onChange={(e) => onAdd(e.target.files?.[0])}
             />
           </label>
@@ -424,7 +401,19 @@ export function ProgramManagePage() {
   if (!p) return <p>Program tidak ditemukan.</p>;
 
   if (me && p.pic && p.pic.id !== me.id) {
-    return <Navigate to="/dashboard/programs" replace />;
+    return (
+      <div className="flex max-w-2xl flex-col gap-6">
+        <PageHeader
+          back="/dashboard/programs"
+          eyebrow="PIC · Kelola"
+          title={`#${p.programId} ${p.title ?? "(draft)"}`}
+        />
+        <EmptyState
+          title="Bukan program milikmu"
+          description="Halaman kelola ini hanya bisa diakses oleh PIC pemilik program. Aksi apa pun di sini akan ditolak on-chain maupun oleh server."
+        />
+      </div>
+    );
   }
 
   return (
@@ -449,6 +438,8 @@ export function ProgramManagePage() {
             Belum on-chain — submit dulu dari Program Saya.
           </Badge>
         )}
+
+        <ProgramGallery programId={p.programId} images={p.images ?? []} />
 
         {p.status === "DRAWABLE" && (
           <>
@@ -547,8 +538,6 @@ export function ProgramManagePage() {
             </CardContent>
           </Card>
         )}
-
-        <ProgramGallerySection programId={p.programId} images={p.images ?? []} />
 
         <Card className="rounded-2xl border-black/5 shadow-none">
           <CardHeader className="font-display font-semibold tracking-tight">

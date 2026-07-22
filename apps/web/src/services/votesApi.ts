@@ -26,6 +26,7 @@ export interface RoleVoteRow {
   grantedBy: string;
   submittedAt: string;
   isExpired: boolean;
+  txHash?: string | null;
   candidateUser?: VoteUserMini | null;
 }
 

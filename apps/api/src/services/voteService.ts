@@ -1,6 +1,7 @@
 import { cacheAside } from "../lib/cache";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/AppError";
+import { VOTE_DURATION_MS } from "@repo/shared";
 
 const USER_MINI = {
   id: true,
@@ -55,7 +56,7 @@ export async function listRoleVotes(page: number, limit: number) {
       candidateUser: byWallet.get(v.candidate.toLowerCase()) ?? null,
       isExpired:
         !v.executed &&
-        Date.now() - v.submittedAt.getTime() > 7 * 24 * 60 * 60 * 1000,
+        Date.now() - v.submittedAt.getTime() > VOTE_DURATION_MS,
     }));
 
     return {
@@ -112,7 +113,7 @@ export async function getRoleVoteById(voteId: number) {
       candidateUser,
       isExpired:
         !votes.executed &&
-        Date.now() - votes.submittedAt.getTime() > 7 * 24 * 60 * 60 * 1000,
+        Date.now() - votes.submittedAt.getTime() > VOTE_DURATION_MS,
     };
   });
 }

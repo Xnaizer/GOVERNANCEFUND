@@ -241,13 +241,13 @@ model Program {
   @@index([isOnChain])
 }
 
-// Program Gallery Photo
+// Program Image Model Data
 model ProgramImage {
   id        String   @id @default(cuid())
   url       String
   publicId  String
   programId Int
-  program   Program  @relation(fields: [programId], references: [programId], onDelete: Cascade)
+  program   Program  @relation(fields: [programId], references: [programId])
   createdAt DateTime @default(now())
 
   @@index([programId])

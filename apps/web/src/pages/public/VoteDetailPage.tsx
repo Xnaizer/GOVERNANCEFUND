@@ -8,10 +8,10 @@ import { BrandLoader } from "../../components/ui/BrandLoader";
 import { DarkHero } from "../../components/ui/DarkHero";
 import { SectionCard } from "../../components/ui/SectionCard";
 import { UserCell } from "../../components/UserCell";
+import { VoteDeadline } from "../../components/VoteDeadline";
 import { fetchRoleVote } from "../../services/votesApi";
 import { impliedTotalFromThreshold } from "../../utils/bft";
 import { formatShortenAddress, formatDate } from "../../utils/format";
-import { VoteDeadline } from "@/components/VoteDeadline";
 
 function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -69,7 +69,11 @@ export function VoteDetailPage() {
                 >
                   {v.executed ? "Selesai" : "Berjalan"}
                 </Badge>
-                <VoteDeadline start={v.submittedAt} resolved={v.executed} />
+                <VoteDeadline
+                  start={v.submittedAt}
+                  resolved={v.executed}
+                  compact
+                />
               </>
             }
           />

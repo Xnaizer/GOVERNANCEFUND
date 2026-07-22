@@ -73,4 +73,4 @@ export interface Withdrawal {
   timestamp: string;
   txHash: string | null;
   receiptUrl: string | null;
-}   
+}

@@ -25,8 +25,6 @@ export const uploadWithdrawalReceipt = (withdrawalId: string, file: File) =>
 export interface ProgramImageResult {
   id: string;
   url: string;
-  publicId: string;
-  programId: number;
 }
 
 export async function uploadProgramImage(programId: number, file: File) {
@@ -54,7 +52,7 @@ export async function replaceProgramImage(
 }
 
 export async function deleteProgramImage(programId: number, imageId: string) {
-  const res = await api.delete<Envelope<{ deleted: boolean; imageId: string }>>(
+  const res = await api.delete<Envelope<{ deleted: boolean }>>(
     `/uploads/program/${programId}/image/${imageId}`,
   );
   return res.data.data;

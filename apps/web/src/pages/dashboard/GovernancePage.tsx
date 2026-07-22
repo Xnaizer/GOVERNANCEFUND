@@ -303,6 +303,48 @@ export function GovernancePage() {
                 </CardContent>
               </Card>
 
+              {expired.length > 0 && (
+                <Card className="rounded-2xl border-amber-400/50 shadow-none">
+                  <CardHeader className="flex-row items-center justify-between space-y-0 font-display font-semibold tracking-tight">
+                    <span>Voting Peran Kedaluwarsa</span>
+                    <Badge variant="secondary" className="rounded-sm">
+                      {expired.length} usulan
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      Usulan ini sudah melewati batas waktu voting (7 hari) dan
+                      tidak bisa disetujui lagi on-chain. Butuh usulan baru
+                      kalau perubahan peran ini masih diperlukan.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                      {expired.map((v) => (
+                        <div
+                          key={v.voteId}
+                          className="flex flex-wrap items-center gap-3 text-sm"
+                        >
+                          <Link
+                            to={`/governance/votes/${v.voteId}`}
+                            className="min-w-0 flex-1 hover:underline"
+                          >
+                            #{v.voteId} · {v.isDevote ? "Devote" : "Grant"}{" "}
+                            {v.roleToTarget} →{" "}
+                            <span className="font-mono">
+                              {formatShortenAddress(v.candidate)}
+                            </span>
+                          </Link>
+                          <RoleVoteCount
+                            voteId={v.voteId}
+                            threshold={adminThreshold}
+                          />
+                          <VoteDeadline start={v.submittedAt} compact />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card className="rounded-2xl border-black/5 shadow-none">
                 <CardHeader className="flex-row items-center gap-2 space-y-0 font-display font-semibold tracking-tight">
                   <Users className="h-4 w-4 text-brand-blue" />
