@@ -9,7 +9,7 @@ import {
   useValidatorThreshold,
   useProposalVoteCount,
 } from "../../../hooks/useGovReads";
-import { fetchRoleLogs } from "../../../services/logsApi";
+import { fetchRoleLogs, type RoleLogRow } from "../../../services/logsApi";
 import { fetchPublicUsers } from "../../../services/publicUsersApi";
 import { listProgramsAuthed } from "../../../services/programApi";
 import {
@@ -92,9 +92,20 @@ export function ValidatorPanel() {
   const pending = (programs.data ?? []).filter(
     (p) => p.isOnChain && p.status === "PENDING",
   );
-  const newPics = (logs.data?.rows ?? [])
-    .filter((l) => l.targetRole === "PIC" && !l.changeType.includes("REVOK"))
-    .slice(0, 6);
+  const newPics = (() => {
+    const seen = new Set<string>();
+    const result: RoleLogRow[] = [];
+    
+    for (const l of logs.data?.rows ?? []) {
+      if (l.targetRole !== "PIC") continue;
+      const wallet = l.targetWallet?.toLowerCase();
+      if (!wallet || seen.has(wallet)) continue;
+      seen.add(wallet);
+      result.push(l);
+      if (result.length >= 6) break;
+    }
+    return result;
+  })();
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

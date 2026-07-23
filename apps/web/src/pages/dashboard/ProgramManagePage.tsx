@@ -349,7 +349,7 @@ function ProgramGallery({
           </div>
         )}
 
-        <Button asChild size="sm" variant="secondary" disabled={busyId !== null}>
+        <Button asChild size="sm" variant="secondary" disabled={busyId !== null} className="mt-4">
           <label className="cursor-pointer">
             {busyId === "new" && <Spinner size={16} className="text-current" />}
             <ImagePlus className="h-4 w-4" />

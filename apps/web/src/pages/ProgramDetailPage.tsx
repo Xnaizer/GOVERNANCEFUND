@@ -11,6 +11,7 @@ import {
   Snowflake,
   Scale,
   ImageOff,
+  Images,
 } from "lucide-react";
 import { ListShell } from "../components/layout/ListShell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import { BrandLoader } from "../components/ui/BrandLoader";
 import { DarkHero } from "../components/ui/DarkHero";
 import { SectionCard } from "../components/ui/SectionCard";
 import { AllocationMeter } from "../components/charts/AllocationMeter";
+import { WithdrawalChart } from "../components/charts/WithdrawalChart";
 import { ZoomableImage } from "../components/ui/Lightbox";
 import { VoteDeadline } from "../components/VoteDeadline";
 import {
@@ -364,7 +366,7 @@ export function ProgramDetailPage() {
           )}
 
           {p.images && p.images.length > 0 && (
-            <Section title="Foto Program">
+            <Section title="Foto Program" icon={<Images className="h-4 w-4" />}>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {p.images.map((img, i) => (
                   <ZoomableImage
@@ -469,11 +471,6 @@ export function ProgramDetailPage() {
                           {m.description}
                         </p>
                       )}
-                      {m.status === "PLANNED" && (
-                        <div className="mt-3 border-t border-black/5 pt-3">
-                          <VoteDeadline start={m.createdAt} compact />
-                        </div>
-                      )}
                       {m.signatures.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {m.signatures.map((s) => (
@@ -525,7 +522,9 @@ export function ProgramDetailPage() {
                 Belum ada penarikan.
               </p>
             ) : (
-              <div className="flex flex-col divide-y divide-black/5">
+              <div className="flex flex-col gap-4">
+                <WithdrawalChart withdrawals={p.withdrawals} />
+                <div className="flex flex-col divide-y divide-black/5">
                 {p.withdrawals.map((w) => (
                   <div
                     key={w.id}
@@ -561,6 +560,7 @@ export function ProgramDetailPage() {
                     </Button>
                   </div>
                 ))}
+                </div>
               </div>
             )}
           </Section>

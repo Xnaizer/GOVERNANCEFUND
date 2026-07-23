@@ -1,7 +1,11 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../utils/AppError";
 import { invalidate, invalidatePattern } from "../lib/cache";
-import { uploadImage, deleteImage } from "./cloudinaryService";
+import {
+  getSignedUploadParams,
+  verifyUploadedAsset,
+  deleteImage,
+} from "./cloudinaryService";
 import { pinFile, pinJSON } from "./ipfsService";
 import { sha256Hex } from "../utils/hash";
 
@@ -9,6 +13,11 @@ interface UploadedFile {
   buffer: Buffer;
   originalname: string;
   mimetype: string;
+}
+
+interface ConfirmedAsset {
+  url: string;
+  publicId: string;
 }
 
 async function invalidateProgram(programId: number): Promise<void> {
@@ -33,10 +42,31 @@ async function assertProgramOwnership(userId: string, programId: number) {
   }
 }
 
+function programImageFolder(programId: number): string {
+  return `governance/programs/${programId}`;
+}
+
+export async function signProgramImageUpload(
+  userId: string,
+  programId: number,
+) {
+  await assertProgramOwnership(userId, programId);
+
+  const existingCount = await prisma.programImage.count({
+    where: { programId },
+  });
+
+  if (existingCount >= MAX_PROGRAM_IMAGES) {
+    throw new AppError(`Maksimum ${MAX_PROGRAM_IMAGES} foto per program`, 400);
+  }
+
+  return getSignedUploadParams({ folder: programImageFolder(programId) });
+}
+
 export async function attachProgramImage(
   userId: string,
   programId: number,
-  file: UploadedFile,
+  asset: ConfirmedAsset,
 ) {
   await assertProgramOwnership(userId, programId);
 
@@ -51,9 +81,10 @@ export async function attachProgramImage(
     );
   }
 
-  const { url, publicId } = await uploadImage(file.buffer, {
-    folder: `governance/programs/${programId}`,
-  });
+  const { url, publicId } = await verifyUploadedAsset(
+    asset.publicId,
+    programImageFolder(programId),
+  );
 
   const image = await prisma.programImage.create({
     data: { programId, url, publicId },
@@ -68,7 +99,7 @@ export async function replaceProgramImage(
   userId: string,
   programId: number,
   imageId: string,
-  file: UploadedFile,
+  asset: ConfirmedAsset,
 ) {
   await assertProgramOwnership(userId, programId);
 
@@ -80,9 +111,10 @@ export async function replaceProgramImage(
     throw new AppError("Program image not found", 404);
   }
 
-  const { url, publicId } = await uploadImage(file.buffer, {
-    folder: `governance/programs/${programId}`,
-  });
+  const { url, publicId } = await verifyUploadedAsset(
+    asset.publicId,
+    programImageFolder(programId),
+  );
 
   const updated = await prisma.programImage.update({
     where: { id: imageId },
@@ -233,10 +265,36 @@ export async function attachMilestoneEvidence(
   return { cid, gatewayUrl, evidenceHash };
 }
 
+function withdrawalReceiptFolder(programId: number): string {
+  return `governancefund/receipts/${programId}`;
+}
+
+export async function signWithdrawalReceiptUpload(
+  userId: string,
+  withdrawalId: string,
+) {
+  const withdrawal = await prisma.withdrawalRecord.findUnique({
+    where: { id: withdrawalId },
+    select: { programId: true, program: { select: { picId: true } } },
+  });
+
+  if (!withdrawal) {
+    throw new AppError("Withdrawal not found", 404);
+  }
+
+  if (withdrawal.program.picId !== userId) {
+    throw new AppError("Not your program", 403);
+  }
+
+  return getSignedUploadParams({
+    folder: withdrawalReceiptFolder(withdrawal.programId),
+  });
+}
+
 export async function attachWithdrawalReceipt(
   userId: string,
   withdrawalId: string,
-  file: UploadedFile,
+  asset: ConfirmedAsset,
 ) {
   const withdrawal = await prisma.withdrawalRecord.findUnique({
     where: { id: withdrawalId },
@@ -259,9 +317,10 @@ export async function attachWithdrawalReceipt(
     throw new AppError("Not your program", 403);
   }
 
-  const { url, publicId } = await uploadImage(file.buffer, {
-    folder: `governancefund/receipts/${withdrawal.programId}`,
-  });
+  const { url, publicId } = await verifyUploadedAsset(
+    asset.publicId,
+    withdrawalReceiptFolder(withdrawal.programId),
+  );
 
   await prisma.withdrawalRecord.update({
     where: { id: withdrawalId },
@@ -274,11 +333,22 @@ export async function attachWithdrawalReceipt(
   return { url, publicId };
 }
 
-export async function updateUserAvatar(userId: string, file: UploadedFile) {
-  const { url, publicId } = await uploadImage(file.buffer, {
-    folder: `governancefund/users/${userId}`,
+function userAssetFolder(userId: string): string {
+  return `governancefund/users/${userId}`;
+}
+
+export async function signUserAvatarUpload(userId: string) {
+  return getSignedUploadParams({
+    folder: userAssetFolder(userId),
     publicId: "avatar",
   });
+}
+
+export async function updateUserAvatar(userId: string, asset: ConfirmedAsset) {
+  const { url, publicId } = await verifyUploadedAsset(
+    asset.publicId,
+    userAssetFolder(userId),
+  );
 
   await prisma.user.update({
     where: {
@@ -294,11 +364,18 @@ export async function updateUserAvatar(userId: string, file: UploadedFile) {
   return { url, publicId };
 }
 
-export async function updateUserBanner(userId: string, file: UploadedFile) {
-  const { url, publicId } = await uploadImage(file.buffer, {
-    folder: `governancefund/users/${userId}`,
+export async function signUserBannerUpload(userId: string) {
+  return getSignedUploadParams({
+    folder: userAssetFolder(userId),
     publicId: "banner",
   });
+}
+
+export async function updateUserBanner(userId: string, asset: ConfirmedAsset) {
+  const { url, publicId } = await verifyUploadedAsset(
+    asset.publicId,
+    userAssetFolder(userId),
+  );
 
   await prisma.user.update({
     where: { id: userId },

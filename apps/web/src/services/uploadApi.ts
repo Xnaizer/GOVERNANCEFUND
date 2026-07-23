@@ -6,21 +6,68 @@ interface Envelope<T> {
   meta: Record<string, unknown>;
 }
 
-async function uploadImage(path: string, file: File) {
+interface SignedUploadParams {
+  cloudName: string;
+  apiKey: string;
+  timestamp: number;
+  signature: string;
+  folder: string;
+  publicId?: string;
+}
+
+interface UploadedAsset {
+  url: string;
+  publicId: string;
+}
+
+async function uploadDirectToCloudinary(
+  file: File,
+  signed: SignedUploadParams,
+): Promise<UploadedAsset> {
   const fd = new FormData();
-
   fd.append("file", file);
+  fd.append("api_key", signed.apiKey);
+  fd.append("timestamp", String(signed.timestamp));
+  fd.append("signature", signed.signature);
+  fd.append("folder", signed.folder);
+  if (signed.publicId) fd.append("public_id", signed.publicId);
 
-  const res = await api.post<Envelope<{ url: string; publicId: string }>>(
-    path,
-    fd,
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${signed.cloudName}/image/upload`,
+    { method: "POST", body: fd },
   );
 
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error?.message ?? "Upload ke Cloudinary gagal");
+  }
+
+  const json = await res.json();
+  return { url: json.secure_url as string, publicId: json.public_id as string };
+}
+
+
+async function presignedUpload(
+  signPath: string,
+  confirmPath: string,
+  file: File,
+  method: "post" | "put" = "post",
+): Promise<{ url: string; publicId: string } & Record<string, unknown>> {
+  const signRes = await api.post<Envelope<SignedUploadParams>>(signPath);
+  const asset = await uploadDirectToCloudinary(file, signRes.data.data);
+  const res = await api[method]<Envelope<{ url: string; publicId: string }>>(
+    confirmPath,
+    asset,
+  );
   return res.data.data;
 }
 
 export const uploadWithdrawalReceipt = (withdrawalId: string, file: File) =>
-  uploadImage(`/uploads/withdrawal/${withdrawalId}/receipt`, file);
+  presignedUpload(
+    `/uploads/withdrawal/${withdrawalId}/receipt/sign`,
+    `/uploads/withdrawal/${withdrawalId}/receipt`,
+    file,
+  );
 
 export interface ProgramImageResult {
   id: string;
@@ -28,13 +75,11 @@ export interface ProgramImageResult {
 }
 
 export async function uploadProgramImage(programId: number, file: File) {
-  const fd = new FormData();
-  fd.append("file", file);
-  const res = await api.post<Envelope<ProgramImageResult>>(
+  return presignedUpload(
+    `/uploads/program/${programId}/image/sign`,
     `/uploads/program/${programId}/image`,
-    fd,
-  );
-  return res.data.data;
+    file,
+  ) as Promise<ProgramImageResult>;
 }
 
 export async function replaceProgramImage(
@@ -42,13 +87,12 @@ export async function replaceProgramImage(
   imageId: string,
   file: File,
 ) {
-  const fd = new FormData();
-  fd.append("file", file);
-  const res = await api.put<Envelope<ProgramImageResult>>(
+  return presignedUpload(
+    `/uploads/program/${programId}/image/sign`,
     `/uploads/program/${programId}/image/${imageId}`,
-    fd,
-  );
-  return res.data.data;
+    file,
+    "put",
+  ) as Promise<ProgramImageResult>;
 }
 
 export async function deleteProgramImage(programId: number, imageId: string) {
@@ -59,10 +103,10 @@ export async function deleteProgramImage(programId: number, imageId: string) {
 }
 
 export const uploadUserAvatar = (file: File) =>
-  uploadImage("/uploads/user/avatar", file);
+  presignedUpload("/uploads/user/avatar/sign", "/uploads/user/avatar", file);
 
 export const uploadUserBanner = (file: File) =>
-  uploadImage("/uploads/user/banner", file);
+  presignedUpload("/uploads/user/banner/sign", "/uploads/user/banner", file);
 
 export async function uploadMilestoneEvidence(milestoneId: string, file: File) {
   const fd = new FormData();

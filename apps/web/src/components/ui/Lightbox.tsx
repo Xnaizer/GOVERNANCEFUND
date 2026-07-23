@@ -4,9 +4,11 @@ import {
   Dialog,
   DialogPortal,
   DialogOverlay,
+  DialogContent,
   DialogClose,
 } from "@radix-ui/react-dialog";
 import { cn } from "@/utils/cn";
+
 
 export function Lightbox({
   src,
@@ -20,8 +22,11 @@ export function Lightbox({
   return (
     <Dialog open={!!src} onOpenChange={(o) => !o && onClose()}>
       <DialogPortal>
-        <DialogOverlay className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8">
+        <DialogOverlay className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="fixed inset-0 z-[100] flex items-center justify-center border-0 bg-transparent p-4 shadow-none outline-none sm:p-8"
+        >
           {src && (
             <img
               src={src}
@@ -36,11 +41,12 @@ export function Lightbox({
           >
             <X className="h-5 w-5" />
           </DialogClose>
-        </div>
+        </DialogContent>
       </DialogPortal>
     </Dialog>
   );
 }
+
 
 export function ZoomableImage({
   src,

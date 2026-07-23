@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
-import { VoteDeadline } from "../../components/VoteDeadline";
 import { cn } from "@/utils/cn";
 import { useProgramsByStatus } from "../../hooks/useProgramsByStatus";
 import { getProgramDetailAuthed } from "../../services/programApi";
@@ -145,7 +144,6 @@ function SignRow({ programId }: { programId: number }) {
                 {milestone.description}
               </span>
             )}
-            {signable && <VoteDeadline start={milestone.createdAt} compact />}
           </div>
         ) : (
           <span className="text-muted-foreground">—</span>
