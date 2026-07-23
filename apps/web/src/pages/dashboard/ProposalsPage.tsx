@@ -7,6 +7,7 @@ import { useVoteProposal } from "../../hooks/useVoteProposal";
 import {
   useValidatorThreshold,
   useProposalVoteCount,
+  useMyProposalVotes,
 } from "../../hooks/useGovReads";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { PageHeader } from "../../components/ui/PageHeader";
@@ -16,6 +17,8 @@ import { SearchInput } from "../../components/ui/SearchInput";
 import { DataTable } from "../../components/ui/DataTable";
 import { UserCell, MissingUser } from "../../components/UserCell";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { formatIDR } from "../../utils/format";
 import type { ProgramListItem } from "../../types/program";
@@ -99,18 +102,29 @@ export function ProposalsPage() {
     "PENDING",
   ]);
   const { total, threshold } = useValidatorThreshold();
-  const [tab, setTab] = useState<string>("VALID");
+  const [tab, setTab] = useState<"VALID" | "ANOMALY" | "VOTED">("VALID");
   const [search, setSearch] = useState("");
 
-  const { valid, anomaly } = useMemo(() => {
+  const programIds = useMemo(
+    () => (data ?? []).map((p) => p.programId),
+    [data],
+  );
+  const votedSet = useMyProposalVotes(programIds);
+
+  const { valid, anomaly, voted } = useMemo(() => {
     const valid: ProgramListItem[] = [];
     const anomaly: ProgramListItem[] = [];
-    (data ?? []).forEach((p) => (isAnomaly(p) ? anomaly : valid).push(p));
-    return { valid, anomaly };
-  }, [data]);
+    const voted: ProgramListItem[] = [];
+    (data ?? []).forEach((p) => {
+      (isAnomaly(p) ? anomaly : valid).push(p);
+      if (votedSet.has(p.programId)) voted.push(p);
+    });
+    return { valid, anomaly, voted };
+  }, [data, votedSet]);
 
   const shown = useMemo(() => {
-    const base = tab === "ANOMALY" ? anomaly : valid;
+    const base =
+      tab === "ANOMALY" ? anomaly : tab === "VOTED" ? voted : valid;
     const s = search.trim().toLowerCase();
     if (!s) return base;
     return base.filter((p) => {
@@ -126,7 +140,7 @@ export function ProposalsPage() {
         .toLowerCase();
       return hay.includes(s);
     });
-  }, [tab, valid, anomaly, search]);
+  }, [tab, valid, anomaly, voted, search]);
 
   const columns: ColumnDef<ProgramListItem, unknown>[] = [
     {
@@ -195,6 +209,13 @@ export function ProposalsPage() {
             <span className="whitespace-nowrap text-[11px] text-amber-600">
               tinjau dulu
             </span>
+          ) : votedSet.has(row.original.programId) ? (
+            <Badge
+              variant="secondary"
+              className="gap-1 whitespace-nowrap rounded-sm text-emerald-700"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" /> Sudah vote
+            </Badge>
           ) : (
             <VoteBtn p={row.original} />
           )}
@@ -214,12 +235,11 @@ export function ProposalsPage() {
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <FilterTabs
-          items={
-            [
-              { key: "VALID", label: `Bisa Divote (${valid.length})` },
-              { key: "ANOMALY", label: `Anomali (${anomaly.length})` },
-            ] as unknown as { key: string; label: string }[]
-          }
+          items={[
+            { key: "VALID", label: `Bisa Divote (${valid.length})` },
+            { key: "ANOMALY", label: `Anomali (${anomaly.length})` },
+            { key: "VOTED", label: `Sudah Saya Vote (${voted.length})` },
+          ]}
           value={tab}
           onChange={setTab}
         />
@@ -240,12 +260,16 @@ export function ProposalsPage() {
         emptyTitle={
           tab === "ANOMALY"
             ? "Tidak ada proposal anomali"
-            : "Tidak ada proposal menunggu"
+            : tab === "VOTED"
+              ? "Belum ada proposal yang Anda vote"
+              : "Tidak ada proposal menunggu"
         }
         emptyDescription={
           tab === "ANOMALY"
             ? "Proposal tanpa PIC terdaftar / orphan akan dipisahkan ke sini."
-            : "Proposal PENDING yang valid akan muncul di sini."
+            : tab === "VOTED"
+              ? "Proposal PENDING yang sudah Anda beri suara akan muncul di sini."
+              : "Proposal PENDING yang valid akan muncul di sini."
         }
       >
         <DataTable columns={columns} data={shown} minWidth={820} />

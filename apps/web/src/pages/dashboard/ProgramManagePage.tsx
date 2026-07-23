@@ -349,7 +349,7 @@ function ProgramGallery({
           </div>
         )}
 
-        <Button asChild size="sm" variant="secondary" disabled={busyId !== null} className="mt-4">
+        <Button asChild size="sm" variant="secondary" disabled={busyId !== null}>
           <label className="cursor-pointer">
             {busyId === "new" && <Spinner size={16} className="text-current" />}
             <ImagePlus className="h-4 w-4" />
@@ -408,9 +408,9 @@ export function ProgramManagePage() {
   if (isLoading) return <SkeletonList />;
   if (!p) return <p>Program tidak ditemukan.</p>;
 
-  const activeMilestone = p.milestones.find(
-    (m) => m.milestoneIndex === p.currentMilestone,
-  );
+  const activeMilestone =
+    p.milestones.find((m) => m.status === "RELEASED") ??
+    p.milestones.find((m) => m.milestoneIndex === p.currentMilestone);
   const totalWithdrawn = sumAmounts(p.withdrawals.map((w) => w.amount));
   const totalAllocated = (() => {
     try {
@@ -424,7 +424,7 @@ export function ProgramManagePage() {
 
   if (me && p.pic && p.pic.id !== me.id) {
     return (
-      <div className="flex max-w-2xl flex-col gap-6">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6">
         <PageHeader
           back="/dashboard/programs"
           eyebrow="PIC · Kelola"
@@ -440,7 +440,7 @@ export function ProgramManagePage() {
 
   return (
     <>
-      <div className="flex max-w-2xl flex-col gap-6">
+      <div className="mx-auto flex max-w-2xl flex-col gap-6">
         <PageHeader
           back="/dashboard/programs"
           eyebrow="PIC · Kelola"
@@ -465,34 +465,32 @@ export function ProgramManagePage() {
 
         {p.status === "DRAWABLE" && (
           <>
-            <Card className="rounded-2xl border-emerald-500/20 bg-emerald-500/5 shadow-none">
-              <CardHeader className="flex-row items-center gap-2 space-y-0 font-display font-semibold tracking-tight">
-                <Wallet className="h-4 w-4 text-emerald-600" />
-                Dana Bisa Ditarik — Milestone Aktif
-              </CardHeader>
-              <CardContent className="flex flex-col gap-1">
-                <p className="font-mono text-2xl font-semibold tracking-tight text-emerald-700">
-                  {formatIDR(availableToWithdraw.toString())}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Milestone #{(activeMilestone?.milestoneIndex ?? p.currentMilestone) + 1}
-                  {activeMilestone?.title ? ` · ${activeMilestone.title}` : ""}
-                  {activeMilestone && (
-                    <> · budget {formatIDR(activeMilestone.milestoneBudget)}</>
-                  )}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Teralokasi {formatIDR(p.totalAllocatedSoFar)} − sudah ditarik{" "}
-                  {formatIDR(totalWithdrawn.toString())}
-                </p>
-              </CardContent>
-            </Card>
-
             <Card>
-              <CardHeader className="font-semibold">
+              <CardHeader className="flex-row items-center gap-2 space-y-0 font-semibold">
+                <Wallet className="h-4 w-4 text-emerald-600" />
                 Tarik Dana (micro-withdrawal)
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex flex-col gap-4">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+                  <p className="text-xs font-medium uppercase tracking-[0.14em] text-emerald-700/80">
+                    Dana Bisa Ditarik — Milestone Aktif
+                  </p>
+                  <p className="mt-1 font-mono text-2xl font-semibold tracking-tight text-emerald-700">
+                    {formatIDR(availableToWithdraw.toString())}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Milestone #{(activeMilestone?.milestoneIndex ?? p.currentMilestone) + 1}
+                    {activeMilestone?.title ? ` · ${activeMilestone.title}` : ""}
+                    {activeMilestone && (
+                      <> · budget {formatIDR(activeMilestone.milestoneBudget)}</>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Teralokasi {formatIDR(p.totalAllocatedSoFar)} − sudah ditarik{" "}
+                    {formatIDR(totalWithdrawn.toString())}
+                  </p>
+                </div>
+
                 <form onSubmit={onSubmit} className="flex flex-col gap-3">
                   <FormInput
                     control={control}
