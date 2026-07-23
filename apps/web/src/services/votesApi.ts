@@ -28,6 +28,7 @@ export interface RoleVoteRow {
   isExpired: boolean;
   txHash?: string | null;
   candidateUser?: VoteUserMini | null;
+  grantedByUser?: VoteUserMini | null;
 }
 
 export async function fetchRoleVotes(

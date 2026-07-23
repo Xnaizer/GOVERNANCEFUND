@@ -20,6 +20,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { AdminUserDetailModal } from "../../components/AdminUserDetailModal";
+import { UserCell } from "../../components/UserCell";
 import { RowAvatar } from "../../components/dashboard/governance/RowAvatar";
 import {
   PicGrantRow,
@@ -35,6 +36,16 @@ import { useAdminThreshold } from "../../hooks/useGovReads";
 import { VOTABLE_ROLES, type GovRole } from "../../config/roles";
 import { formatShortenAddress } from "../../utils/format";
 import { VoteDeadline } from "@/components/VoteDeadline";
+
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN: "Admin",
+  VALIDATOR: "Validator",
+  AUDITOR: "Auditor",
+  PIC: "PIC",
+};
+function roleLabel(role: string): string {
+  return ROLE_LABEL[role] ?? role;
+}
 
 export function GovernancePage() {
   const users = useQuery({
@@ -264,18 +275,34 @@ export function GovernancePage() {
                       {open.map((v) => (
                         <div
                           key={v.voteId}
-                          className="flex flex-wrap items-center gap-3 text-sm"
+                          className="flex flex-wrap items-center gap-3 rounded-xl border border-black/5 p-3 text-sm"
                         >
                           <Link
                             to={`/governance/votes/${v.voteId}`}
-                            className="min-w-0 flex-1 hover:underline"
+                            className="min-w-0 flex-1"
                           >
-                            #{v.voteId} · {v.isDevote ? "Devote" : "Grant"}{" "}
-                            {v.roleToTarget} →{" "}
-                            <span className="font-mono">
-                              {formatShortenAddress(v.candidate)}
-                            </span>
+                            <UserCell
+                              user={v.candidateUser}
+                              wallet={v.candidate}
+                              size="md"
+                            />
                           </Link>
+                          <div className="flex flex-col items-start gap-1 sm:items-end">
+                            <span className="font-mono text-xs text-muted-foreground">
+                              #{v.voteId}
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <Badge
+                                variant={v.isDevote ? "destructive" : "default"}
+                                className="rounded-sm"
+                              >
+                                {v.isDevote ? "Devote" : "Grant"}
+                              </Badge>
+                              <Badge variant="secondary" className="rounded-sm">
+                                Diajukan sebagai {roleLabel(v.roleToTarget)}
+                              </Badge>
+                            </div>
+                          </div>
                           <VoteDeadline start={v.submittedAt} compact />
                           <RoleVoteCount
                             voteId={v.voteId}
@@ -321,18 +348,34 @@ export function GovernancePage() {
                       {expired.map((v) => (
                         <div
                           key={v.voteId}
-                          className="flex flex-wrap items-center gap-3 text-sm"
+                          className="flex flex-wrap items-center gap-3 rounded-xl border border-black/5 p-3 text-sm"
                         >
                           <Link
                             to={`/governance/votes/${v.voteId}`}
-                            className="min-w-0 flex-1 hover:underline"
+                            className="min-w-0 flex-1"
                           >
-                            #{v.voteId} · {v.isDevote ? "Devote" : "Grant"}{" "}
-                            {v.roleToTarget} →{" "}
-                            <span className="font-mono">
-                              {formatShortenAddress(v.candidate)}
-                            </span>
+                            <UserCell
+                              user={v.candidateUser}
+                              wallet={v.candidate}
+                              size="md"
+                            />
                           </Link>
+                          <div className="flex flex-col items-start gap-1 sm:items-end">
+                            <span className="font-mono text-xs text-muted-foreground">
+                              #{v.voteId}
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <Badge
+                                variant={v.isDevote ? "destructive" : "default"}
+                                className="rounded-sm"
+                              >
+                                {v.isDevote ? "Devote" : "Grant"}
+                              </Badge>
+                              <Badge variant="secondary" className="rounded-sm">
+                                Diajukan sebagai {roleLabel(v.roleToTarget)}
+                              </Badge>
+                            </div>
+                          </div>
                           <RoleVoteCount
                             voteId={v.voteId}
                             threshold={adminThreshold}

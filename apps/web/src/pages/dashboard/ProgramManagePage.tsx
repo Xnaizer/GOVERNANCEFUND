@@ -8,7 +8,8 @@ import { PageHeader } from "../../components/ui/PageHeader";
 import { FormInput, FormTextarea } from "../../components/ui/FormField";
 import { SkeletonList } from "../../components/ui/Skeleton";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { ImageOff, ImagePlus, Pencil, Trash2 } from "lucide-react";
+import { ImageOff, ImagePlus, Pencil, Trash2, Wallet } from "lucide-react";
+import { ZoomableImage, Lightbox } from "../../components/ui/Lightbox";
 import { ConfirmButton } from "../../components/ui/ConfirmButton";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -33,7 +34,7 @@ import {
 } from "../../hooks/usePicActions";
 import { withdrawSchema, type WithdrawForm } from "../../schemas/withdraw";
 import { StatusChip } from "../../components/StatusChip";
-import { formatIDR, formatDate } from "../../utils/format";
+import { formatIDR, formatDate, sumAmounts } from "../../utils/format";
 import { getErrorMessage } from "../../utils/error";
 import { useReleaseMilestone } from "../../hooks/useReleaseMilestone";
 import { useSignatures } from "../../hooks/useSignatures";
@@ -50,6 +51,7 @@ function WithdrawalManageRow({
 }) {
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
@@ -75,11 +77,11 @@ function WithdrawalManageRow({
       </span>
       <div className="ml-auto flex items-center gap-2">
         {w.receiptUrl ? (
-          <a href={w.receiptUrl} target="_blank" rel="noreferrer">
+          <button type="button" onClick={() => setPreviewOpen(true)}>
             <Badge variant="success" className="rounded-sm">
               lihat receipt
             </Badge>
-          </a>
+          </button>
         ) : (
           <Button asChild size="sm" variant="secondary">
             <label htmlFor={`receipt-${w.id}`} className="cursor-pointer">
@@ -96,6 +98,11 @@ function WithdrawalManageRow({
           </Button>
         )}
       </div>
+      <Lightbox
+        src={previewOpen ? w.receiptUrl : null}
+        alt="Receipt"
+        onClose={() => setPreviewOpen(false)}
+      />
     </div>
   );
 }
@@ -305,13 +312,14 @@ function ProgramGallery({
           <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {images.map((img) => (
               <div key={img.id} className="group relative">
-                <img
+                <ZoomableImage
                   src={img.url}
                   alt=""
                   className="h-28 w-full rounded-lg border object-cover"
+                  showZoomHint={false}
                 />
-                <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                  <label className="cursor-pointer rounded-full bg-white/90 p-2 hover:bg-white">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                  <label className="pointer-events-auto cursor-pointer rounded-full bg-white/90 p-2 hover:bg-white">
                     {busyId === img.id ? (
                       <Spinner size={14} />
                     ) : (
@@ -331,7 +339,7 @@ function ProgramGallery({
                     type="button"
                     disabled={busyId !== null}
                     onClick={() => onDelete(img.id)}
-                    className="rounded-full bg-white/90 p-2 hover:bg-white disabled:opacity-50"
+                    className="pointer-events-auto rounded-full bg-white/90 p-2 hover:bg-white disabled:opacity-50"
                   >
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
                   </button>
@@ -400,6 +408,20 @@ export function ProgramManagePage() {
   if (isLoading) return <SkeletonList />;
   if (!p) return <p>Program tidak ditemukan.</p>;
 
+  const activeMilestone = p.milestones.find(
+    (m) => m.milestoneIndex === p.currentMilestone,
+  );
+  const totalWithdrawn = sumAmounts(p.withdrawals.map((w) => w.amount));
+  const totalAllocated = (() => {
+    try {
+      return BigInt(p.totalAllocatedSoFar || "0");
+    } catch {
+      return 0n;
+    }
+  })();
+  const availableToWithdraw =
+    totalAllocated > totalWithdrawn ? totalAllocated - totalWithdrawn : 0n;
+
   if (me && p.pic && p.pic.id !== me.id) {
     return (
       <div className="flex max-w-2xl flex-col gap-6">
@@ -443,6 +465,29 @@ export function ProgramManagePage() {
 
         {p.status === "DRAWABLE" && (
           <>
+            <Card className="rounded-2xl border-emerald-500/20 bg-emerald-500/5 shadow-none">
+              <CardHeader className="flex-row items-center gap-2 space-y-0 font-display font-semibold tracking-tight">
+                <Wallet className="h-4 w-4 text-emerald-600" />
+                Dana Bisa Ditarik — Milestone Aktif
+              </CardHeader>
+              <CardContent className="flex flex-col gap-1">
+                <p className="font-mono text-2xl font-semibold tracking-tight text-emerald-700">
+                  {formatIDR(availableToWithdraw.toString())}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Milestone #{(activeMilestone?.milestoneIndex ?? p.currentMilestone) + 1}
+                  {activeMilestone?.title ? ` · ${activeMilestone.title}` : ""}
+                  {activeMilestone && (
+                    <> · budget {formatIDR(activeMilestone.milestoneBudget)}</>
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Teralokasi {formatIDR(p.totalAllocatedSoFar)} − sudah ditarik{" "}
+                  {formatIDR(totalWithdrawn.toString())}
+                </p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="font-semibold">
                 Tarik Dana (micro-withdrawal)

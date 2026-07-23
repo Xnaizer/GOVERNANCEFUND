@@ -5,12 +5,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ExternalLink, ImageOff, ArrowUpRight } from "lucide-react";
+import { ExternalLink, ImageOff } from "lucide-react";
 import {
   formatIDR,
   formatDate,
   formatShortenAddress,
 } from "../../utils/format";
+import { ZoomableImage } from "./Lightbox";
 import type { Withdrawal } from "../../types/program";
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
@@ -89,22 +90,12 @@ export function WithdrawalDetailModal({
                 Bukti / Receipt
               </span>
               {w.receiptUrl ? (
-                <a
-                  href={w.receiptUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group mt-2 block overflow-hidden rounded-xl border border-black/5"
-                >
-                  <img
-                    src={w.receiptUrl}
-                    alt="Receipt"
-                    className="max-h-80 w-full object-contain bg-muted/30 transition-transform duration-300 group-hover:scale-[1.02]"
-                    loading="lazy"
-                  />
-                  <span className="flex items-center justify-center gap-1.5 border-t border-black/5 py-2 text-xs font-medium text-brand-blue">
-                    Buka gambar penuh <ArrowUpRight className="h-3.5 w-3.5" />
-                  </span>
-                </a>
+                <ZoomableImage
+                  src={w.receiptUrl}
+                  alt="Receipt"
+                  className="max-h-80 w-full object-contain bg-muted/30 transition-transform duration-300"
+                  wrapperClassName="mt-2 block overflow-hidden rounded-xl border border-black/5"
+                />
               ) : (
                 <div className="mt-2 flex flex-col items-center gap-2 rounded-xl border border-dashed border-black/10 py-8 text-center">
                   <ImageOff className="h-6 w-6 text-muted-foreground/50" />

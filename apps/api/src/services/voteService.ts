@@ -38,7 +38,14 @@ export async function listRoleVotes(page: number, limit: number) {
       prisma.roleVote.count(),
     ]);
 
-    const wallets = [...new Set(votes.map((v) => v.candidate.toLowerCase()))];
+    const wallets = [
+      ...new Set(
+        votes.flatMap((v) => [
+          v.candidate.toLowerCase(),
+          v.grantedBy.toLowerCase(),
+        ]),
+      ),
+    ];
 
     const users = wallets.length
       ? await prisma.user.findMany({
@@ -54,6 +61,7 @@ export async function listRoleVotes(page: number, limit: number) {
     const enriched = votes.map((v) => ({
       ...v,
       candidateUser: byWallet.get(v.candidate.toLowerCase()) ?? null,
+      grantedByUser: byWallet.get(v.grantedBy.toLowerCase()) ?? null,
       isExpired:
         !v.executed &&
         Date.now() - v.submittedAt.getTime() > VOTE_DURATION_MS,
@@ -107,10 +115,15 @@ export async function getRoleVoteById(voteId: number) {
       where: { walletAddress: votes.candidate.toLowerCase() },
       select: USER_MINI,
     });
+    const grantedByUser = await prisma.user.findUnique({
+      where: { walletAddress: votes.grantedBy.toLowerCase() },
+      select: USER_MINI,
+    });
 
     return {
       ...votes,
       candidateUser,
+      grantedByUser,
       isExpired:
         !votes.executed &&
         Date.now() - votes.submittedAt.getTime() > VOTE_DURATION_MS,

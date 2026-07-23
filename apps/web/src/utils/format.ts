@@ -1,5 +1,15 @@
 import { VOTE_DURATION_MS } from "@repo/shared";
 
+export function sumAmounts(amounts: (string | null | undefined)[]): bigint {
+  return amounts.reduce<bigint>((acc, a) => {
+    try {
+      return acc + (a ? BigInt(a) : 0n);
+    } catch {
+      return acc;
+    }
+  }, 0n);
+}
+
 export function formatIDR(amount: string | null | undefined): string {
   if (!amount) return "-";
 

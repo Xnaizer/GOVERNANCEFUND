@@ -139,6 +139,25 @@ export function VoteDetailPage() {
               </div>
               <div>
                 <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  Diajukan Oleh
+                </span>
+                <div className="mt-1.5">
+                  {v.grantedByUser ? (
+                    <UserCell
+                      user={v.grantedByUser}
+                      wallet={v.grantedBy}
+                      showRole
+                      size="md"
+                    />
+                  ) : (
+                    <span className="font-mono">
+                      {formatShortenAddress(v.grantedBy)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div>
+                <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                   Suara
                 </span>
                 {executed ? (

@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
+import { VoteDeadline } from "../../components/VoteDeadline";
 import { cn } from "@/utils/cn";
 import { useProgramsByStatus } from "../../hooks/useProgramsByStatus";
 import { getProgramDetailAuthed } from "../../services/programApi";
@@ -135,9 +136,17 @@ function SignRow({ programId }: { programId: number }) {
       </TableCell>
       <TableCell className="px-4 py-3">
         {milestone ? (
-          <span className="font-mono text-sm">
-            #{milestone.milestoneIndex + 1}
-          </span>
+          <div className="flex max-w-64 flex-col gap-1">
+            <span className="font-mono text-sm">
+              #{milestone.milestoneIndex + 1}
+            </span>
+            {milestone.description && (
+              <span className="truncate text-xs text-muted-foreground">
+                {milestone.description}
+              </span>
+            )}
+            {signable && <VoteDeadline start={milestone.createdAt} compact />}
+          </div>
         ) : (
           <span className="text-muted-foreground">—</span>
         )}

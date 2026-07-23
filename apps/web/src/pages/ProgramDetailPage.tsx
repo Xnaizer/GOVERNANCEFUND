@@ -25,6 +25,7 @@ import { BrandLoader } from "../components/ui/BrandLoader";
 import { DarkHero } from "../components/ui/DarkHero";
 import { SectionCard } from "../components/ui/SectionCard";
 import { AllocationMeter } from "../components/charts/AllocationMeter";
+import { ZoomableImage } from "../components/ui/Lightbox";
 import { VoteDeadline } from "../components/VoteDeadline";
 import {
   useValidatorThreshold,
@@ -366,14 +367,14 @@ export function ProgramDetailPage() {
             <Section title="Foto Program">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {p.images.map((img, i) => (
-                  <a key={img.id} href={img.url} target="_blank" rel="noreferrer">
-                    <img
-                      src={img.url}
-                      alt={`Foto ${i + 1}`}
-                      className="h-32 w-full rounded-lg border object-cover transition-transform hover:scale-[1.02]"
-                      loading="lazy"
-                    />
-                  </a>
+                  <ZoomableImage
+                    key={img.id}
+                    src={img.url}
+                    alt={`Foto ${i + 1}`}
+                    className="h-32 w-full rounded-lg border object-cover transition-transform group-hover:scale-[1.02]"
+                    wrapperClassName="overflow-hidden rounded-lg"
+                    loading="lazy"
+                  />
                 ))}
               </div>
             </Section>
@@ -463,6 +464,16 @@ export function ProgramDetailPage() {
                           {formatIDR(m.milestoneBudget)}
                         </span>
                       </div>
+                      {m.description && (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {m.description}
+                        </p>
+                      )}
+                      {m.status === "PLANNED" && (
+                        <div className="mt-3 border-t border-black/5 pt-3">
+                          <VoteDeadline start={m.createdAt} compact />
+                        </div>
+                      )}
                       {m.signatures.length > 0 && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {m.signatures.map((s) => (

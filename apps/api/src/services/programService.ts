@@ -260,6 +260,7 @@ export async function getProgramById(programId: number) {
             milestoneBudget: true,
             evidenceURL: true,
             evidenceHash: true,
+            createdAt: true,
             signatures: {
               select: {
                 id: true,

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -17,8 +18,10 @@ import { FormInput } from "../components/ui/FormField";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Spinner } from "@/components/ui/spinner";
+import { ImageCropper } from "@/components/ui/ImageCropper";
+import { ZoomableImage } from "@/components/ui/Lightbox";
 import { useMe } from "../hooks/useAuth";
 import {
   useUpdateProfile,
@@ -82,14 +85,27 @@ export function ProfilePage() {
     }
   });
 
+  const [cropTarget, setCropTarget] = useState<{
+    file: File;
+    kind: "avatar" | "banner";
+  } | null>(null);
+
   const onFile = (file: File | undefined, kind: "avatar" | "banner") => {
     if (!file) return;
+    setCropTarget({ file, kind });
+  };
+
+  const onCropSave = ({ file: cropped }: { blob: Blob; file: File }) => {
+    const kind = cropTarget?.kind;
+    if (!kind) return;
     const m = kind === "avatar" ? avatarUp : bannerUp;
-    toast.promise(m.mutateAsync(file), {
+    const pr = m.mutateAsync(cropped);
+    toast.promise(pr, {
       loading: "Mengunggah…",
       success: "Foto diperbarui.",
       error: (e) => getErrorMessage(e),
     });
+    pr.finally(() => setCropTarget(null));
   };
 
   const onBind = () =>
@@ -120,10 +136,11 @@ export function ProfilePage() {
         <div className="relative">
           <div className="h-44 w-full overflow-hidden bg-linear-to-br from-brand-mint to-brand-blue">
             {me.profileBannerURL && (
-              <img
+              <ZoomableImage
                 src={me.profileBannerURL}
                 alt="banner"
                 className="h-full w-full object-cover"
+                wrapperClassName="h-full w-full"
               />
             )}
           </div>
@@ -143,14 +160,20 @@ export function ProfilePage() {
           </label>
           <div className="absolute -bottom-11 left-6">
             <div className="relative">
-              <Avatar className="h-24 w-24 text-xl ring-4 ring-white shadow-none">
-                {me.profilePictureURL && (
-                  <AvatarImage src={me.profilePictureURL} alt={me.username} />
-                )}
-                <AvatarFallback>
-                  {initials(me.name ?? me.username)}
-                </AvatarFallback>
-              </Avatar>
+              {me.profilePictureURL ? (
+                <ZoomableImage
+                  src={me.profilePictureURL}
+                  alt={me.username}
+                  className="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow-none"
+                  wrapperClassName="h-24 w-24 rounded-full"
+                />
+              ) : (
+                <Avatar className="h-24 w-24 text-xl ring-4 ring-white shadow-none">
+                  <AvatarFallback>
+                    {initials(me.name ?? me.username)}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <label
                 htmlFor="avatar-input"
                 aria-label="Ganti foto profil"
@@ -333,6 +356,18 @@ export function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      <ImageCropper
+        file={cropTarget?.file ?? null}
+        aspect={cropTarget?.kind === "banner" ? 3 : 1}
+        title={
+          cropTarget?.kind === "banner" ? "Sesuaikan Banner" : "Sesuaikan Foto Profil"
+        }
+        outputWidth={cropTarget?.kind === "banner" ? 1200 : 512}
+        isSaving={avatarUp.isPending || bannerUp.isPending}
+        onCancel={() => setCropTarget(null)}
+        onSave={onCropSave}
+      />
     </div>
   );
 }
