@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma";
+import { prisma, prismaDirect } from "../lib/prisma";
 import { AppError } from "../utils/AppError";
 import { computeProgramHash } from "@repo/shared";
 import { getValidatorCount } from "./contractService";
@@ -96,7 +96,9 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
     throw new AppError("Sum of milestone budgets must equal totalBudget", 400);
   }
 
+  console.time("createProgram:getValidatorCount");
   const validatorCount = await getValidatorCount();
+  console.timeEnd("createProgram:getValidatorCount");
 
   if (validatorCount < MIN_VALIDATORS) {
     throw new AppError(
@@ -105,7 +107,8 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
     );
   }
 
-  const result = await prisma.$transaction(async (tx: any) => {
+  console.time("createProgram:transaction");
+  const result = await prismaDirect.$transaction(async (tx: any) => {
     const program = await tx.program.create({
       data: {
         programHash: "",
@@ -175,6 +178,7 @@ export async function createProgram(userId: string, input: CreateProgramInput) {
 
     return updated;
   });
+  console.timeEnd("createProgram:transaction");
 
   await invalidatePattern("programs:list:*");
   await invalidate("public:stats");
@@ -210,7 +214,7 @@ export async function listPrograms(
     tab ?? "all"
   }:${statuses.join("+") || "all"}:${page}:${limit}`;
 
-  return cacheAside(cacheKey, 30, async () => {
+  return cacheAside(cacheKey, 60, async () => {
     const where = {
       ...(tab ? { displayTab: tab } : {}),
       ...(statuses.length ? { status: { in: statuses } } : {}),
@@ -243,7 +247,7 @@ export async function listPrograms(
 export async function getProgramById(programId: number) {
   const cacheKey = `program:detail:${programId}`;
 
-  return cacheAside(cacheKey, 60, async () => {
+  return cacheAside(cacheKey, 120, async () => {
     const program = await prisma.program.findUnique({
       where: {
         programId,
@@ -319,7 +323,7 @@ export async function getProgramById(programId: number) {
 }
 
 export async function getPublicStats() {
-  return cacheAside("public:stats", 60, async () => {
+  return cacheAside("public:stats", 180, async () => {
     const [active, finished, flagged, fraud, total] = await Promise.all([
       prisma.program.count({ where: { displayTab: "ACTIVE" } }),
       prisma.program.count({ where: { displayTab: "FINISHED" } }),
@@ -338,7 +342,7 @@ export async function getPublicStats() {
 export async function getProgramWithdrawals(programId: number) {
   const cacheKey = `program:withdrawals:${programId}`;
 
-  return cacheAside(cacheKey, 30, async () => {
+  return cacheAside(cacheKey, 60, async () => {
     const program = await prisma.program.findUnique({
       where: { programId },
       select: { programId: true },

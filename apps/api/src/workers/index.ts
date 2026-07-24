@@ -5,11 +5,13 @@ import * as outbox from "../services/outboxService";
 import * as webhookService from "../services/webhookService";
 import { runReconciliation } from "../services/reconciliationService";
 import { runRedemptionReconciliation } from "../services/redemptionService";
+import { getValidatorCount } from "../services/contractService";
 
 const IDLE_POLL_MS = 8_000;
 const STALE_SWEEP_MS = 3 * 60_000;
 const RECONCILE_EVERY_MS = 60 * 60 * 1000;
 const RECONCILE_CHECK_MS = 60 * 60 * 1000;
+const VALIDATOR_COUNT_WARM_MS = 4 * 60_000;
 const RECONCILE_JOB = "reconciliation";
 
 let running = false;
@@ -17,6 +19,18 @@ let loopPromise: Promise<void> | null = null;
 let wakeSignal: (() => void) | null = null;
 let staleTimer: NodeJS.Timeout | null = null;
 let reconcileTimer: NodeJS.Timeout | null = null;
+let validatorCountTimer: NodeJS.Timeout | null = null;
+
+async function warmValidatorCount(): Promise<void> {
+  try {
+    console.time("worker:warmValidatorCount");
+    await getValidatorCount();
+    console.timeEnd("worker:warmValidatorCount");
+  } catch (err) {
+    logger.error({ err }, "[WARM] Failed to refresh onchain:validatorCount");
+    Sentry.captureException(err);
+  }
+}
 
 export function wake(): void {
   wakeSignal?.();
@@ -82,9 +96,7 @@ async function processOne(): Promise<boolean> {
 async function loop(): Promise<void> {
   while (running) {
     try {
-      while (running && (await processOne())) {
-    
-      }
+      while (running && (await processOne())) {}
     } catch (err) {
       logger.error({ err }, "[OUTBOX] Worker loop error");
       Sentry.captureException(err);
@@ -135,6 +147,9 @@ export async function startWorkers(): Promise<void> {
   reconcileTimer = setInterval(() => void reconcileIfDue(), RECONCILE_CHECK_MS);
   void reconcileIfDue();
 
+  validatorCountTimer = setInterval(() => void warmValidatorCount(), VALIDATOR_COUNT_WARM_MS);
+  void warmValidatorCount();
+
   logger.info("[WORKER] Outbox worker started (Postgres-backed)");
 }
 
@@ -144,11 +159,14 @@ export async function stopWorkers(): Promise<void> {
 
   if (staleTimer) clearInterval(staleTimer);
   if (reconcileTimer) clearInterval(reconcileTimer);
+  if (validatorCountTimer) clearInterval(validatorCountTimer);
   staleTimer = null;
   reconcileTimer = null;
+  validatorCountTimer = null;
 
   await loopPromise;
   loopPromise = null;
 
   logger.info("[WORKER] Outbox worker stopped");
 }
+
